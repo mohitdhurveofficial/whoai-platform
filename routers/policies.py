@@ -38,7 +38,7 @@ class PolicyResponse(BaseModel):
 
 
 @router.post(
-    "",
+    "/",
     response_model=PolicyResponse
 )
 async def create_policy(
@@ -66,7 +66,7 @@ async def create_policy(
 
 
 @router.get(
-    "",
+    "/",
     response_model=list[PolicyResponse]
 )
 async def list_policies(
