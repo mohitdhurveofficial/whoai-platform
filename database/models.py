@@ -69,31 +69,26 @@ class Policy(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    agent_id = Column(
-        Integer,
-        ForeignKey("agents.id")
-    )
+    agent = Column(String, nullable=False)
 
-    action_type = Column(String, nullable=False)
+    action = Column(String, nullable=False)
 
-    max_amount = Column(Integer, nullable=False)
+    resource = Column(String, nullable=False)
 
-    environment = Column(String, nullable=False)
+    condition = Column(String, nullable=False)
 
-    needs_approval = Column(
-        Boolean,
-        default=False
+    effect = Column(String, nullable=False)
+
+    risk_level = Column(
+        String,
+        default="medium",
+        nullable=False
     )
 
     created_at = Column(
         DateTime,
         default=datetime.utcnow,
         nullable=False
-    )
-
-    agent = relationship(
-        "Agent",
-        back_populates="policies"
     )
 
 
