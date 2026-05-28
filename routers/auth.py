@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import APIRouter, HTTPException
-from passlib.context import CryptContext
+import hashlib
 from pydantic import BaseModel, EmailStr
 
 from app.auth.jwt_handler import (
@@ -19,10 +19,12 @@ router = APIRouter(
 )
 
 
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
+
+
+def hash_password(password: str):
+    return hashlib.sha256(
+        password.encode()
+    ).hexdigest()
 
 
 class LoginRequest(BaseModel):
@@ -43,7 +45,7 @@ class RefreshRequest(BaseModel):
 FAKE_USERS_DB = {
     "admin@whoai.dev": {
         "email": "admin@whoai.dev",
-        "hashed_password": pwd_context.hash("admin123"),
+        "hashed_password": hash_password("admin123"),
         "role": "admin",
     }
 }
@@ -64,7 +66,7 @@ async def register(payload: RegisterRequest):
 
     FAKE_USERS_DB[payload.email] = {
         "email": payload.email,
-        "hashed_password": pwd_context.hash(payload.password),
+        "hashed_password": hash_password(payload.password),
         "role": payload.role,
     }
 
@@ -84,9 +86,9 @@ async def login(payload: LoginRequest):
             detail="Invalid credentials"
         )
 
-    valid_password = pwd_context.verify(
-        payload.password,
-        user["hashed_password"]
+    valid_password = (
+        hash_password(payload.password)
+        == user["hashed_password"]
     )
 
     if not valid_password:
