@@ -198,6 +198,8 @@
       <div>Live Runtime Evaluation</div>
       <div>Approval Workflow</div>
       <div>Audit Logging</div>
+      <div>Runtime Decisions</div>
+      <div>Approval Queue</div>
 
       <a
         href="https://github.com/mohitdhurveofficial/whoai-api"
@@ -316,13 +318,18 @@ POST /api/v1/evaluate
 {
   "agent": "support-agent",
   "action": "refund",
-  "amount": 5000
+  "amount": 5000,
+  "resource": "customer_order"
 }
 
 Response:
 
 {
+  "trace_id": "whoai_23714c14ab",
   "agent": "support-agent",
+  "resource": "customer_order",
+  "action": "refund",
+  "amount": 5000,
   "decision": "approval_required",
   "risk_level": "high",
   "reason": "refund exceeds threshold"
@@ -480,7 +487,8 @@ Response:
         payload: `{
   "agent": "support-agent",
   "action": "refund",
-  "amount": 5000
+  "amount": 5000,
+  "resource": "customer_order"
 }`,
         decision: 'Approval Required',
         risk: 'High',
@@ -496,6 +504,7 @@ Response:
         payload: `{
   "agent": "sales-agent",
   "action": "update_crm_record",
+  "resource": "crm_account",
   "customer": "enterprise_account"
 }`,
         decision: 'Allowed',
@@ -512,6 +521,7 @@ Response:
         payload: `{
   "agent": "growth-agent",
   "action": "send_bulk_email",
+  "resource": "customer_email_system",
   "audience": 12000
 }`,
         decision: 'Approval Required',
@@ -528,7 +538,8 @@ Response:
         payload: `{
   "agent": "finance-agent",
   "action": "vendor_payout",
-  "amount": 12000
+  "amount": 12000,
+  "resource": "vendor_payment"
 }`,
         decision: 'Denied',
         risk: 'Critical',
