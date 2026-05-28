@@ -16,9 +16,11 @@ from routers import (
     policies,
 )
 
+
 from app.policy_engine.runtime_decision import (
     router as policy_router,
 )
+from app.api.logs import router as logs_router
 
 
 logger = setup_logging()
@@ -107,3 +109,4 @@ app.include_router(metrics.router, prefix="/api/v1")
 
 # Runtime governance engine router
 app.include_router(policy_router, prefix="/api/v1")
+app.include_router(logs_router, prefix="/api/v1")
