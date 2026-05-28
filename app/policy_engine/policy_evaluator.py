@@ -1,16 +1,13 @@
-def evaluate_action(agent: str, action: str, amount: float):
-    REFUND_THRESHOLD = 1000
+def evaluate_action(action: str, amount: float):
 
-    if action == "refund" and amount > REFUND_THRESHOLD:
+    if action == "refund" and amount > 1000:
         return {
-            "agent": agent,
             "decision": "approval_required",
             "risk_level": "high",
             "reason": "refund exceeds threshold",
         }
 
     return {
-        "agent": agent,
         "decision": "approved",
         "risk_level": "low",
         "reason": "within allowed threshold",

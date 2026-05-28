@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Optional, Dict
 
-from app.policy_engine.policy_registry import evaluate_policy
+from app.policy_engine.policy_evaluator import evaluate_action
 from app.policy_engine.trace_generator import generate_trace_id
 from app.policy_engine.audit_logger import log_runtime_decision
+
 
 router = APIRouter()
 
@@ -12,32 +12,29 @@ router = APIRouter()
 class ActionRequest(BaseModel):
     agent: str
     action: str
-    amount: Optional[float] = 0
-    resource: Optional[str] = None
-    metadata: Optional[Dict] = {}
+    amount: float
+    resource: str
 
 
 @router.post("/evaluate")
 async def evaluate(request: ActionRequest):
 
-    trace_id = generate_trace_id()
-
-    policy_result = evaluate_policy(
+    result = evaluate_action(
         action=request.action,
         amount=request.amount,
     )
 
-    runtime_result = {
-        "trace_id": trace_id,
+    response = {
+        "trace_id": generate_trace_id(),
         "agent": request.agent,
-        "action": request.action,
         "resource": request.resource,
-        "decision": policy_result["decision"],
-        "risk_level": policy_result["risk_level"],
-        "policy_matched": policy_result["policy_matched"],
-        "reason": policy_result["reason"],
+        "action": request.action,
+        "amount": request.amount,
+        "decision": result["decision"],
+        "risk_level": result["risk_level"],
+        "reason": result["reason"],
     }
 
-    log_runtime_decision(runtime_result)
+    log_runtime_decision(response)
 
-    return runtime_result
+    return response
