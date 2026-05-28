@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from app.policy_engine.policy_evaluator import evaluate_action
 from app.policy_engine.trace_generator import generate_trace_id
 from app.policy_engine.audit_logger import log_runtime_decision
+from app.policy_engine.approval_store import create_approval
 
 
 router = APIRouter()
@@ -19,22 +20,19 @@ class ActionRequest(BaseModel):
 @router.post("/evaluate")
 async def evaluate(request: ActionRequest):
 
+    trace_id = generate_trace_id()
+
     result = evaluate_action(
+        agent=request.agent,
         action=request.action,
         amount=request.amount,
+        resource=request.resource,
+        trace_id=trace_id,
     )
 
-    response = {
-        "trace_id": generate_trace_id(),
-        "agent": request.agent,
-        "resource": request.resource,
-        "action": request.action,
-        "amount": request.amount,
-        "decision": result["decision"],
-        "risk_level": result["risk_level"],
-        "reason": result["reason"],
-    }
+    if result["decision"] == "approval_required":
+        create_approval(result)
 
-    log_runtime_decision(response)
+    log_runtime_decision(result)
 
-    return response
+    return result
