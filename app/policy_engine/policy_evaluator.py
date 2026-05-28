@@ -1,25 +1,17 @@
-from app.policy_engine.policy_models import HIGH_REFUND_POLICY
+def evaluate_action(agent: str, action: str, amount: float):
+    REFUND_THRESHOLD = 1000
 
-
-def evaluate_action(action_data: dict):
-    action = action_data.get("action")
-    amount = action_data.get("amount", 0)
-
-    # Match refund policy
-    if (
-        action == HIGH_REFUND_POLICY.action
-        and amount > HIGH_REFUND_POLICY.amount_gt
-    ):
+    if action == "refund" and amount > REFUND_THRESHOLD:
         return {
+            "agent": agent,
             "decision": "approval_required",
-            "risk": HIGH_REFUND_POLICY.risk_level,
-            "matched_policy": HIGH_REFUND_POLICY.name,
-            "approver_role": HIGH_REFUND_POLICY.approver_role,
+            "risk_level": "high",
+            "reason": "refund exceeds threshold",
         }
 
     return {
+        "agent": agent,
         "decision": "approved",
-        "risk": "low",
-        "matched_policy": None,
-        "approver_role": None,
+        "risk_level": "low",
+        "reason": "within allowed threshold",
     }
