@@ -1,25 +1,33 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
     AsyncSession,
-    async_sessionmaker
+    async_sessionmaker,
+    create_async_engine,
 )
 from sqlalchemy.orm import declarative_base
 
-
-from dotenv import load_dotenv
-
-import os
+from logger_config import setup_logging
 
 
 load_dotenv()
+logger = setup_logging()
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise ValueError(
+        "DATABASE_URL is not set in environment variables or .env file"
+    )
+
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True
+    echo=False,
+    future=True,
+    pool_pre_ping=True
 )
 
 
@@ -35,7 +43,10 @@ Base = declarative_base()
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
 
 
 async def init_db():
@@ -43,5 +54,9 @@ async def init_db():
     # before create_all runs.
     import database.models
 
+    logger.info("Initializing database tables")
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    logger.info("Database initialization complete")
