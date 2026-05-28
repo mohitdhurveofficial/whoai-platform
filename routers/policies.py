@@ -10,7 +10,7 @@ from database.session import get_db
 
 
 router = APIRouter(
-    prefix="/api/v1/policies",
+    prefix="/policies",
     tags=["policies"]
 )
 
