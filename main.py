@@ -1,6 +1,7 @@
 import time
 
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 
 from logger_config import setup_logging
@@ -13,6 +14,10 @@ from routers import (
     decisions,
     metrics,
     policies,
+)
+
+from app.policy_engine.runtime_decision import (
+    router as policy_router,
 )
 
 
@@ -91,9 +96,14 @@ async def health():
     }
 
 
+# Existing routers
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(policies.router, prefix="/api/v1")
 app.include_router(authorize.router, prefix="/api/v1")
 app.include_router(approvals.router, prefix="/api/v1")
 app.include_router(decisions.router, prefix="/api/v1")
 app.include_router(metrics.router, prefix="/api/v1")
+
+
+# Runtime governance engine router
+app.include_router(policy_router, prefix="/api/v1")

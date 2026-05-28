@@ -9,103 +9,110 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       background-color: #0b1020;
     }
   </style>
 </head>
 
-<body class="text-white antialiased">
+<body class="bg-[#0b1020] text-white antialiased">
 
   <!-- Header -->
-  <header class="border-b border-white/10">
-    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+  <header class="sticky top-0 z-50 border-b border-white/10 bg-[#0b1020]/80 backdrop-blur">
 
-      <div class="text-xl font-semibold tracking-tight">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+
+      <a href="#" class="text-xl font-semibold tracking-tight text-white">
         WhoAI
-      </div>
+      </a>
 
       <nav class="hidden md:flex items-center gap-8 text-sm text-white/70">
 
-  <a href="#product" class="hover:text-white transition">
-    Product
-  </a>
+        <a href="#product" class="transition hover:text-white">
+          Product
+        </a>
 
-  <a href="#story" class="hover:text-white transition">
-    Use Case
-  </a>
+        <a href="#story" class="transition hover:text-white">
+          Use Case
+        </a>
 
-  <a
-    href="https://whoai-api.onrender.com/docs"
-    target="_blank"
-    class="hover:text-white transition"
-  >
-    Docs
-  </a>
+        <a
+          href="https://whoai-api.onrender.com/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="transition hover:text-white"
+        >
+          Docs
+        </a>
 
-  <a
-    href="https://github.com/mohitdhurveofficial/whoai-api"
-    target="_blank"
-    class="hover:text-white transition"
-  >
-    GitHub
-  </a>
+        <a
+          href="https://github.com/mohitdhurveofficial/whoai-api"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="transition hover:text-white"
+        >
+          GitHub
+        </a>
 
-</nav>
+      </nav>
 
       <a
-        href="https://whoai-api.onrender.com"
+        href="https://whoai-api.onrender.com/docs"
         target="_blank"
-        class="bg-teal-500 hover:bg-teal-400 text-black px-4 py-2 rounded-xl text-sm font-medium transition"
+        rel="noopener noreferrer"
+        class="rounded-xl bg-teal-500 px-4 py-2 text-sm font-medium text-black transition hover:bg-teal-400"
       >
-        View Live Docs
+        View Live API
       </a>
 
     </div>
+
   </header>
 
   <!-- Hero -->
-  <section class="max-w-7xl mx-auto px-6 py-24">
+  <section class="mx-auto max-w-7xl px-6 py-24">
 
-    <div class="grid lg:grid-cols-2 gap-20 items-center">
+    <div class="grid items-center gap-20 lg:grid-cols-2">
 
       <!-- Left -->
       <div>
 
-        <div class="text-teal-400 text-sm mb-6 tracking-wide uppercase">
+        <div class="mb-6 text-sm uppercase tracking-[0.2em] text-teal-400">
           Runtime governance for AI agents
         </div>
 
-        <h1 class="text-5xl md:text-6xl font-semibold leading-tight tracking-tight">
+        <h1 class="text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
           Stop risky AI actions before they execute
         </h1>
 
-        <p class="mt-8 text-xl text-white/70 leading-relaxed max-w-xl">
-          WhoAI enforces policy, routes sensitive actions for approval,
-          and records every decision for accountability.
+        <p class="mt-8 max-w-xl text-xl leading-relaxed text-white/70">
+          WhoAI is the governance layer for autonomous AI agents — enforcing policy,
+          routing sensitive actions for approval, and recording every decision.
         </p>
 
         <div class="mt-10 flex flex-wrap gap-4">
 
-  <a
-    href="https://whoai-api.onrender.com/docs"
-    target="_blank"
-    class="bg-teal-500 hover:bg-teal-400 text-black px-6 py-3 rounded-2xl font-medium transition"
-  >
-    View Live Docs
-  </a>
+          <a
+            href="https://whoai-api.onrender.com/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-2xl bg-teal-500 px-6 py-3 font-medium text-black transition hover:bg-teal-400"
+          >
+            View Live API
+          </a>
 
-  <a
-    href="https://github.com/mohitdhurveofficial/whoai-api"
-    target="_blank"
-    class="border border-white/15 hover:border-white/30 px-6 py-3 rounded-2xl text-white/80 transition"
-  >
-    View GitHub
-  </a>
-
-</div>
-
-          
+          <a
+            href="https://github.com/mohitdhurveofficial/whoai-api"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-2xl border border-white/15 px-6 py-3 font-medium text-white/80 transition hover:border-white/30 hover:text-white"
+          >
+            View GitHub
+          </a>
 
         </div>
 
@@ -114,15 +121,15 @@
       <!-- Right -->
       <div class="space-y-4">
 
-        <div class="bg-white/5 border border-white/10 rounded-3xl p-6">
-          <div class="text-sm text-white/50 mb-2">Request</div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div class="mb-2 text-sm text-white/50">Request</div>
           <div class="text-lg font-medium">
-            AI support agent requests $5,000 refund
+            AI support agent requests a $5,000 refund
           </div>
         </div>
 
-        <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-3xl p-6">
-          <div class="text-sm text-yellow-300 mb-2">
+        <div class="rounded-3xl border border-yellow-500/20 bg-yellow-500/10 p-6">
+          <div class="mb-2 text-sm text-yellow-300">
             Approval Required
           </div>
           <div class="text-lg font-medium">
@@ -130,8 +137,8 @@
           </div>
         </div>
 
-        <div class="bg-blue-500/10 border border-blue-500/20 rounded-3xl p-6">
-          <div class="text-sm text-blue-300 mb-2">
+        <div class="rounded-3xl border border-blue-500/20 bg-blue-500/10 p-6">
+          <div class="mb-2 text-sm text-blue-300">
             Review
           </div>
           <div class="text-lg font-medium">
@@ -139,8 +146,8 @@
           </div>
         </div>
 
-        <div class="bg-green-500/10 border border-green-500/20 rounded-3xl p-6">
-          <div class="text-sm text-green-300 mb-2">
+        <div class="rounded-3xl border border-green-500/20 bg-green-500/10 p-6">
+          <div class="mb-2 text-sm text-green-300">
             Decision Logged
           </div>
           <div class="text-lg font-medium">
@@ -157,9 +164,9 @@
   <!-- Trust Strip -->
   <section class="border-y border-white/10">
 
-    <div class="max-w-6xl mx-auto px-6 py-6">
+    <div class="mx-auto max-w-6xl px-6 py-6">
 
-      <div class="flex flex-wrap gap-6 text-sm text-white/50 justify-center">
+      <div class="flex flex-wrap justify-center gap-6 text-sm text-white/50">
 
         <div>Live API</div>
         <div>Public Docs</div>
@@ -174,7 +181,7 @@
   </section>
 
   <!-- Problem -->
-  <section id="product" class="max-w-6xl mx-auto px-6 py-28">
+  <section id="product" class="mx-auto max-w-6xl px-6 py-28">
 
     <div class="max-w-3xl">
 
@@ -206,37 +213,37 @@
   </section>
 
   <!-- Flow -->
-  <section class="max-w-7xl mx-auto px-6 pb-28">
+  <section class="mx-auto max-w-7xl px-6 pb-28">
 
-    <div class="grid md:grid-cols-4 gap-6">
+    <div class="grid gap-6 md:grid-cols-4">
 
-      <div class="bg-white/5 border border-white/10 rounded-3xl p-8">
-        <div class="text-teal-400 mb-4">01</div>
-        <h3 class="text-xl font-medium mb-3">Request</h3>
+      <div class="rounded-3xl border border-white/10 bg-white/5 p-8">
+        <div class="mb-4 text-teal-400">01</div>
+        <h3 class="mb-3 text-xl font-medium">Request</h3>
         <p class="text-white/60">
           An AI agent submits a sensitive action.
         </p>
       </div>
 
-      <div class="bg-white/5 border border-white/10 rounded-3xl p-8">
-        <div class="text-teal-400 mb-4">02</div>
-        <h3 class="text-xl font-medium mb-3">Evaluate</h3>
+      <div class="rounded-3xl border border-white/10 bg-white/5 p-8">
+        <div class="mb-4 text-teal-400">02</div>
+        <h3 class="mb-3 text-xl font-medium">Evaluate</h3>
         <p class="text-white/60">
           WhoAI checks the action against policy.
         </p>
       </div>
 
-      <div class="bg-white/5 border border-white/10 rounded-3xl p-8">
-        <div class="text-teal-400 mb-4">03</div>
-        <h3 class="text-xl font-medium mb-3">Review</h3>
+      <div class="rounded-3xl border border-white/10 bg-white/5 p-8">
+        <div class="mb-4 text-teal-400">03</div>
+        <h3 class="mb-3 text-xl font-medium">Review</h3>
         <p class="text-white/60">
           High-risk actions are routed for approval.
         </p>
       </div>
 
-      <div class="bg-white/5 border border-white/10 rounded-3xl p-8">
-        <div class="text-teal-400 mb-4">04</div>
-        <h3 class="text-xl font-medium mb-3">Record</h3>
+      <div class="rounded-3xl border border-white/10 bg-white/5 p-8">
+        <div class="mb-4 text-teal-400">04</div>
+        <h3 class="mb-3 text-xl font-medium">Record</h3>
         <p class="text-white/60">
           Every decision is logged for accountability.
         </p>
@@ -247,11 +254,11 @@
   </section>
 
   <!-- Story -->
-  <section id="story" class="max-w-6xl mx-auto px-6 pb-28">
+  <section id="story" class="mx-auto max-w-6xl px-6 pb-28">
 
-    <div class="bg-white/5 border border-white/10 rounded-[32px] p-10 md:p-14">
+    <div class="rounded-[32px] border border-white/10 bg-white/5 p-10 md:p-14">
 
-      <div class="text-teal-400 uppercase tracking-wide text-sm mb-5">
+      <div class="mb-5 text-sm uppercase tracking-wide text-teal-400">
         One simple story
       </div>
 
@@ -259,7 +266,7 @@
         A risky refund gets intercepted before execution
       </h2>
 
-      <p class="mt-8 text-lg text-white/70 max-w-3xl leading-relaxed">
+      <p class="mt-8 max-w-3xl text-lg leading-relaxed text-white/70">
         An AI support agent attempts to issue a $5,000 refund.
         WhoAI detects the action exceeds policy limits,
         routes the request for human approval,
@@ -273,19 +280,20 @@
   <!-- Footer CTA -->
   <section class="border-t border-white/10">
 
-    <div class="max-w-6xl mx-auto px-6 py-24 text-center">
+    <div class="mx-auto max-w-6xl px-6 py-24 text-center">
 
-      <h2 class="text-4xl md:text-5xl font-semibold tracking-tight max-w-4xl mx-auto leading-tight">
+      <h2 class="mx-auto max-w-4xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
         Governance in action:
         request, review, decision, record.
       </h2>
 
-      <div class="mt-10 flex justify-center gap-4 flex-wrap">
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
 
         <a
-          href="https://whoai-api.onrender.com"
+          href="https://whoai-api.onrender.com/docs"
           target="_blank"
-          class="bg-teal-500 hover:bg-teal-400 text-black px-6 py-3 rounded-2xl font-medium transition"
+          rel="noopener noreferrer"
+          class="rounded-2xl bg-teal-500 px-6 py-3 font-medium text-black transition hover:bg-teal-400"
         >
           Try Live Docs
         </a>
@@ -293,7 +301,8 @@
         <a
           href="https://github.com/mohitdhurveofficial/whoai-api"
           target="_blank"
-          class="border border-white/15 hover:border-white/30 px-6 py-3 rounded-2xl text-white/80 transition"
+          rel="noopener noreferrer"
+          class="rounded-2xl border border-white/15 px-6 py-3 font-medium text-white/80 transition hover:border-white/30 hover:text-white"
         >
           View GitHub
         </a>
