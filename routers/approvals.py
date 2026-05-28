@@ -1,30 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
-
-from database.session import get_db
-
-from database.models import (
-    Approval,
-    ApprovalStatus
-)
-
-from schemas import (
-    ApprovalResponse,
-    ApprovalUpdate
-)
-
 from datetime import datetime
 
-router = APIRouter()
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database.models import Approval, ApprovalStatus
+from database.session import get_db
+from schemas import ApprovalResponse, ApprovalUpdate
+
+router = APIRouter(
+    prefix="/api/v1",
+    tags=["approvals"]
+)
 
 
-@router.get("/approvals", response_model=list[ApprovalResponse])
+@router.get(
+    "/approvals",
+    response_model=list[ApprovalResponse]
+)
 async def list_approvals(
     db: AsyncSession = Depends(get_db)
 ):
-
     result = await db.execute(
         select(Approval).order_by(
             desc(Approval.created_at)
@@ -45,7 +41,6 @@ async def update_approval(
     payload: ApprovalUpdate,
     db: AsyncSession = Depends(get_db)
 ):
-
     result = await db.execute(
         select(Approval).where(
             Approval.id == approval_id
@@ -54,7 +49,7 @@ async def update_approval(
 
     approval = result.scalar_one_or_none()
 
-    if not approval:
+    if approval is None:
         raise HTTPException(
             status_code=404,
             detail="Approval not found"
@@ -63,28 +58,25 @@ async def update_approval(
     if approval.status != ApprovalStatus.PENDING:
         raise HTTPException(
             status_code=400,
-            detail="Already processed"
+            detail="Approval already processed"
         )
 
-    if payload.status not in [
-        "approved",
-        "rejected"
-    ]:
+    valid_statuses = [
+        ApprovalStatus.APPROVED.value,
+        ApprovalStatus.REJECTED.value,
+    ]
+
+    if payload.status not in valid_statuses:
         raise HTTPException(
             status_code=400,
-            detail="Invalid status"
+            detail="Status must be 'approved' or 'rejected'"
         )
 
-    approval.status = ApprovalStatus(
-        payload.status
-    )
-
+    approval.status = ApprovalStatus(payload.status)
     approval.approved_by = payload.approved_by
-
     approval.approved_at = datetime.utcnow()
 
     await db.commit()
-
     await db.refresh(approval)
 
     return approval

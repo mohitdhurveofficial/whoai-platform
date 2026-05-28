@@ -1,6 +1,8 @@
 from fastapi import Header, HTTPException
 
-API_KEYS = []
+API_KEYS = [
+    "whoai-secret-key"
+]
 
 
 async def verify_api_key(

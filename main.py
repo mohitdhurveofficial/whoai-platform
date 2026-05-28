@@ -3,6 +3,7 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from logger_config import setup_logging
 from database.session import init_db
@@ -10,6 +11,7 @@ from database.session import init_db
 from routers import (
     agents,
     approvals,
+    auth,
     authorize,
     decisions,
     metrics,
@@ -21,6 +23,7 @@ from app.policy_engine.runtime_decision import (
     router as policy_router,
 )
 from app.api.logs import router as logs_router
+from app.api.approval_queue import router as approval_queue_router
 
 
 logger = setup_logging()
@@ -42,6 +45,17 @@ app = FastAPI(
     description="Runtime governance and authorization for autonomous AI agents.",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -88,6 +102,10 @@ async def root():
     return {
         "service": "WhoAI",
         "status": "running",
+        "version": "0.1.0",
+        "docs": "/docs",
+        "openapi": "/openapi.json",
+        "runtime_governance": True,
     }
 
 
@@ -97,6 +115,8 @@ async def health():
         "status": "ok",
     }
 
+ # Authentication router
+app.include_router(auth.router)
 
 # Existing routers
 app.include_router(agents.router, prefix="/api/v1")
@@ -107,6 +127,7 @@ app.include_router(decisions.router, prefix="/api/v1")
 app.include_router(metrics.router, prefix="/api/v1")
 
 
-# Runtime governance engine router
+# Runtime governance and approval workflow routers
 app.include_router(policy_router, prefix="/api/v1")
 app.include_router(logs_router, prefix="/api/v1")
+app.include_router(approval_queue_router, prefix="/api/v1")

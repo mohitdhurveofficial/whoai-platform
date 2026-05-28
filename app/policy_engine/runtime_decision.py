@@ -8,6 +8,7 @@ from database.models import Approval, ApprovalStatus
 from app.policy_engine.policy_evaluator import evaluate_action
 from app.policy_engine.trace_generator import generate_trace_id
 from app.policy_engine.audit_logger import log_runtime_decision
+from app.auth.dependencies import verify_api_key
 
 router = APIRouter()
 
@@ -22,7 +23,8 @@ class ActionRequest(BaseModel):
 @router.post("/evaluate")
 async def evaluate(
     request: ActionRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    api_key: str = Depends(verify_api_key)
 ):
 
     trace_id = generate_trace_id()
