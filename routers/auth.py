@@ -1,7 +1,16 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from datetime import datetime, timedelta, timezone
 
-from app.auth.jwt_handler import create_access_token
+import jwt
+from fastapi import APIRouter, HTTPException
+from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr
+
+from app.auth.jwt_handler import (
+    JWT_ALGORITHM,
+    JWT_SECRET,
+    create_access_token,
+    verify_access_token,
+)
 
 
 router = APIRouter(
@@ -10,39 +19,140 @@ router = APIRouter(
 )
 
 
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
-FAKE_ADMIN = {
-    "email": "admin@whoai.dev",
-    "password": "admin123",
-    "role": "admin",
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    role: str = "reviewer"
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+FAKE_USERS_DB = {
+    "admin@whoai.dev": {
+        "email": "admin@whoai.dev",
+        "hashed_password": pwd_context.hash("admin123"),
+        "role": "admin",
+    }
 }
+
+
+REFRESH_SECRET = "whoai-refresh-secret"
+REFRESH_EXPIRE_DAYS = 7
+
+
+@router.post("/register")
+async def register(payload: RegisterRequest):
+
+    if payload.email in FAKE_USERS_DB:
+        raise HTTPException(
+            status_code=400,
+            detail="User already exists"
+        )
+
+    FAKE_USERS_DB[payload.email] = {
+        "email": payload.email,
+        "hashed_password": pwd_context.hash(payload.password),
+        "role": payload.role,
+    }
+
+    return {
+        "message": "User registered successfully"
+    }
 
 
 @router.post("/login")
 async def login(payload: LoginRequest):
 
-    if payload.email != FAKE_ADMIN["email"]:
+    user = FAKE_USERS_DB.get(payload.email)
+
+    if not user:
         raise HTTPException(
             status_code=401,
             detail="Invalid credentials"
         )
 
-    if payload.password != FAKE_ADMIN["password"]:
+    valid_password = pwd_context.verify(
+        payload.password,
+        user["hashed_password"]
+    )
+
+    if not valid_password:
         raise HTTPException(
             status_code=401,
             detail="Invalid credentials"
         )
 
-    token = create_access_token({
-        "email": payload.email,
-        "role": FAKE_ADMIN["role"],
+    access_token = create_access_token({
+        "email": user["email"],
+        "role": user["role"],
     })
 
+    refresh_payload = {
+        "email": user["email"],
+        "exp": datetime.now(timezone.utc) + timedelta(days=REFRESH_EXPIRE_DAYS)
+    }
+
+    refresh_token = jwt.encode(
+        refresh_payload,
+        REFRESH_SECRET,
+        algorithm=JWT_ALGORITHM,
+    )
+
     return {
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
+        "role": user["role"],
+    }
+
+
+@router.post("/refresh")
+async def refresh_token(payload: RefreshRequest):
+
+    try:
+
+        decoded = jwt.decode(
+            payload.refresh_token,
+            REFRESH_SECRET,
+            algorithms=[JWT_ALGORITHM],
+        )
+
+        access_token = create_access_token({
+            "email": decoded["email"],
+            "role": "reviewer",
+        })
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+
+    except jwt.InvalidTokenError:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid refresh token"
+        )
+
+
+@router.get("/me")
+async def get_current_user(token: str):
+
+    payload = verify_access_token(token)
+
+    return {
+        "user": payload
     }
