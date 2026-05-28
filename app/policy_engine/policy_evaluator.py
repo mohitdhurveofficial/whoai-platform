@@ -1,3 +1,6 @@
+DEFAULT_REFUND_THRESHOLD = 1000
+
+
 def evaluate_action(
     agent,
     action,
@@ -5,9 +8,20 @@ def evaluate_action(
     resource,
     trace_id,
 ):
+    """
+    Temporary evaluator.
 
-    if action == "refund" and amount > 1000:
+    NOTE:
+    This is still using a hardcoded rule.
+    Phase 2 is only fully complete after policies are loaded
+    from the PostgreSQL policies table instead of using the
+    threshold below.
+    """
 
+    if (
+        action == "refund"
+        and amount > DEFAULT_REFUND_THRESHOLD
+    ):
         return {
             "trace_id": trace_id,
             "agent": agent,
