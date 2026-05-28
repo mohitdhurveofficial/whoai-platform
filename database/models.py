@@ -11,8 +11,6 @@ from sqlalchemy import (
     Enum,
 )
 
-from sqlalchemy.orm import relationship
-
 from database.session import Base
 
 
@@ -55,12 +53,6 @@ class Agent(Base):
         DateTime,
         default=datetime.utcnow,
         nullable=False
-    )
-
-    policies = relationship(
-        "Policy",
-        back_populates="agent",
-        cascade="all, delete-orphan"
     )
 
 
