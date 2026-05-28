@@ -110,13 +110,15 @@
           Runtime governance for AI agents
         </div>
 
-        <h1 class="max-w-3xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
-          Stop risky AI actions before they execute
+        <h1 class="max-w-4xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl lg:text-7xl">
+          AI agents can act.<br />
+          WhoAI decides whether they should.
         </h1>
 
-        <p class="mt-8 max-w-2xl text-xl leading-relaxed text-white/70">
-          WhoAI evaluates autonomous AI actions before execution, routes risky operations
-          for approval, and records every decision for auditability and runtime governance.
+        <p class="mt-8 max-w-3xl text-xl leading-relaxed text-white/70">
+          WhoAI is the runtime decision layer for autonomous AI agents.
+          It evaluates risky actions, enforces policy, routes approvals,
+          and records every outcome before execution.
         </p>
 
         <div class="mt-10 flex flex-wrap gap-4">
@@ -333,6 +335,109 @@ Response:
 
   </section>
 
+  <!-- Interactive Evaluator -->
+  <section id="evaluator" class="mx-auto max-w-7xl px-6 pb-28">
+
+    <div class="rounded-[32px] border border-white/10 bg-white/5 p-10 md:p-14">
+
+      <div class="mb-5 text-sm uppercase tracking-wide text-teal-400">
+        Interactive Runtime Evaluation
+      </div>
+
+      <h2 class="max-w-3xl text-4xl font-semibold tracking-tight">
+        Test how WhoAI evaluates autonomous AI actions
+      </h2>
+
+      <p class="mt-6 max-w-3xl text-lg leading-relaxed text-white/70">
+        Every sensitive action passes through the same runtime decision engine.
+        Select an action below to see how WhoAI evaluates risk,
+        routes approvals, and records outcomes before execution.
+      </p>
+
+      <div class="mt-10 grid gap-8 lg:grid-cols-2">
+
+        <div class="rounded-3xl border border-white/10 bg-black/30 p-6">
+
+          <label class="mb-4 block text-sm uppercase tracking-wide text-white/50">
+            Choose Action
+          </label>
+
+          <select
+            id="scenarioSelect"
+            class="w-full rounded-2xl border border-white/10 bg-[#0b1020] px-5 py-4 text-white outline-none"
+          >
+            <option value="refund">Issue refund: $5,000</option>
+            <option value="crm">Update CRM record</option>
+            <option value="email">Send customer email blast</option>
+            <option value="payout">Trigger vendor payout</option>
+          </select>
+
+          <div class="mt-6 rounded-3xl border border-white/10 bg-[#0b1020] p-6">
+
+            <div class="mb-3 text-sm uppercase tracking-wide text-teal-400">
+              Request Payload
+            </div>
+
+            <pre id="payloadBox" class="overflow-x-auto text-sm leading-7 text-white/80"></pre>
+
+          </div>
+
+        </div>
+
+        <div class="rounded-3xl border border-white/10 bg-black/30 p-6">
+
+          <div class="grid gap-5 md:grid-cols-2">
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div class="text-xs uppercase tracking-wide text-white/40">
+                Decision
+              </div>
+              <div id="decisionBox" class="mt-4 text-2xl font-semibold text-yellow-300">
+                Approval Required
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div class="text-xs uppercase tracking-wide text-white/40">
+                Risk Level
+              </div>
+              <div id="riskBox" class="mt-4 text-2xl font-semibold text-red-300">
+                High
+              </div>
+            </div>
+
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
+
+            <div class="text-xs uppercase tracking-wide text-white/40">
+              Reason
+            </div>
+
+            <div id="reasonBox" class="mt-4 text-lg text-white/80">
+              Refund exceeds runtime policy threshold.
+            </div>
+
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
+
+            <div class="mb-4 text-xs uppercase tracking-wide text-white/40">
+              Decision Timeline
+            </div>
+
+            <div id="timelineBox" class="space-y-3 text-sm text-white/70"></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
   <!-- Footer -->
   <section class="border-t border-white/10">
 
@@ -369,5 +474,101 @@ Response:
 
   </section>
 
+  <script>
+    const scenarios = {
+      refund: {
+        payload: `{
+  "agent": "support-agent",
+  "action": "refund",
+  "amount": 5000
+}`,
+        decision: 'Approval Required',
+        risk: 'High',
+        reason: 'Refund exceeds runtime policy threshold.',
+        timeline: [
+          'Agent submitted refund request',
+          'Policy threshold exceeded',
+          'Approval workflow triggered',
+          'Execution paused pending review'
+        ]
+      },
+      crm: {
+        payload: `{
+  "agent": "sales-agent",
+  "action": "update_crm_record",
+  "customer": "enterprise_account"
+}`,
+        decision: 'Allowed',
+        risk: 'Low',
+        reason: 'CRM update is within allowed operational policy.',
+        timeline: [
+          'CRM update request received',
+          'Risk evaluation completed',
+          'Policy passed successfully',
+          'Execution approved automatically'
+        ]
+      },
+      email: {
+        payload: `{
+  "agent": "growth-agent",
+  "action": "send_bulk_email",
+  "audience": 12000
+}`,
+        decision: 'Approval Required',
+        risk: 'Medium',
+        reason: 'Bulk outbound communication requires review.',
+        timeline: [
+          'Bulk email request submitted',
+          'Communication threshold detected',
+          'Compliance review triggered',
+          'Execution queued'
+        ]
+      },
+      payout: {
+        payload: `{
+  "agent": "finance-agent",
+  "action": "vendor_payout",
+  "amount": 12000
+}`,
+        decision: 'Denied',
+        risk: 'Critical',
+        reason: 'Requested payout violates financial policy.',
+        timeline: [
+          'Payout request received',
+          'Policy violation detected',
+          'Execution denied',
+          'Audit log recorded'
+        ]
+      }
+    };
+
+    const scenarioSelect = document.getElementById('scenarioSelect');
+    const payloadBox = document.getElementById('payloadBox');
+    const decisionBox = document.getElementById('decisionBox');
+    const riskBox = document.getElementById('riskBox');
+    const reasonBox = document.getElementById('reasonBox');
+    const timelineBox = document.getElementById('timelineBox');
+
+    function renderScenario(key) {
+      const data = scenarios[key];
+
+      payloadBox.textContent = data.payload;
+      decisionBox.textContent = data.decision;
+      riskBox.textContent = data.risk;
+      reasonBox.textContent = data.reason;
+
+      timelineBox.innerHTML = data.timeline.map(step => `
+        <div class="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+          ${step}
+        </div>
+      `).join('');
+    }
+
+    scenarioSelect.addEventListener('change', (e) => {
+      renderScenario(e.target.value);
+    });
+
+    renderScenario('refund');
+  </script>
 </body>
 </html>
