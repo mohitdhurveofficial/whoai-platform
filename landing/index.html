@@ -1,12 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>WhoAI — Runtime Governance for AI Agents</title>
 
+  <meta
+    name="description"
+    content="WhoAI evaluates AI actions before execution, routes risky operations for approval, and records every decision for accountability."
+  />
+
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            tealBrand: '#14b8a6'
+          }
+        }
+      }
+    }
+  </script>
 
   <style>
     html {
@@ -14,7 +32,8 @@
     }
 
     body {
-      background-color: #0b1020;
+      background: #0b1020;
+      font-feature-settings: "ss01" on, "cv02" on, "cv03" on;
     }
   </style>
 </head>
@@ -26,8 +45,11 @@
 
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
 
-      <a href="#" class="text-xl font-semibold tracking-tight text-white">
-        WhoAI
+      <a href="#" class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-500 text-black font-bold">
+          W
+        </div>
+        <span>WhoAI</span>
       </a>
 
       <nav class="hidden md:flex items-center gap-8 text-sm text-white/70">
@@ -36,12 +58,16 @@
           Product
         </a>
 
+        <a href="#flow" class="transition hover:text-white">
+          Flow
+        </a>
+
         <a href="#story" class="transition hover:text-white">
           Use Case
         </a>
 
         <a
-          href="https://whoai-api.onrender.com/docs"
+          href="https://whoai-api.vercel.app/docs"
           target="_blank"
           rel="noopener noreferrer"
           class="transition hover:text-white"
@@ -61,10 +87,10 @@
       </nav>
 
       <a
-        href="https://whoai-api.onrender.com/docs"
+        href="https://whoai-api.vercel.app/docs"
         target="_blank"
         rel="noopener noreferrer"
-        class="rounded-xl bg-teal-500 px-4 py-2 text-sm font-medium text-black transition hover:bg-teal-400"
+        class="rounded-2xl bg-teal-500 px-5 py-2.5 text-sm font-medium text-black transition hover:bg-teal-400"
       >
         View Live API
       </a>
@@ -74,30 +100,29 @@
   </header>
 
   <!-- Hero -->
-  <section class="mx-auto max-w-7xl px-6 py-24">
+  <section class="mx-auto max-w-7xl px-6 py-24 lg:py-32">
 
     <div class="grid items-center gap-20 lg:grid-cols-2">
 
-      <!-- Left -->
       <div>
 
         <div class="mb-6 text-sm uppercase tracking-[0.2em] text-teal-400">
           Runtime governance for AI agents
         </div>
 
-        <h1 class="text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
+        <h1 class="max-w-3xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
           Stop risky AI actions before they execute
         </h1>
 
-        <p class="mt-8 max-w-xl text-xl leading-relaxed text-white/70">
-          WhoAI is the governance layer for autonomous AI agents — enforcing policy,
-          routing sensitive actions for approval, and recording every decision.
+        <p class="mt-8 max-w-2xl text-xl leading-relaxed text-white/70">
+          WhoAI evaluates autonomous AI actions before execution, routes risky operations
+          for approval, and records every decision for auditability and runtime governance.
         </p>
 
         <div class="mt-10 flex flex-wrap gap-4">
 
           <a
-            href="https://whoai-api.onrender.com/docs"
+            href="https://whoai-api.vercel.app/docs"
             target="_blank"
             rel="noopener noreferrer"
             class="rounded-2xl bg-teal-500 px-6 py-3 font-medium text-black transition hover:bg-teal-400"
@@ -118,10 +143,10 @@
 
       </div>
 
-      <!-- Right -->
+      <!-- Approval Flow Card -->
       <div class="space-y-4">
 
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
           <div class="mb-2 text-sm text-white/50">Request</div>
           <div class="text-lg font-medium">
             AI support agent requests a $5,000 refund
@@ -133,7 +158,7 @@
             Approval Required
           </div>
           <div class="text-lg font-medium">
-            Policy threshold exceeded
+            Runtime policy threshold exceeded
           </div>
         </div>
 
@@ -142,7 +167,7 @@
             Review
           </div>
           <div class="text-lg font-medium">
-            Manager approval requested
+            Manager approval requested automatically
           </div>
         </div>
 
@@ -151,7 +176,7 @@
             Decision Logged
           </div>
           <div class="text-lg font-medium">
-            Refund approved and recorded
+            Approval recorded with policy trace and timestamp
           </div>
         </div>
 
@@ -162,19 +187,24 @@
   </section>
 
   <!-- Trust Strip -->
-  <section class="border-y border-white/10">
+  <section class="border-y border-white/10 bg-white/[0.02]">
 
-    <div class="mx-auto max-w-6xl px-6 py-6">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-8 px-6 py-6 text-sm text-white/50">
 
-      <div class="flex flex-wrap justify-center gap-6 text-sm text-white/50">
+      <div>Live API</div>
+      <div>Public Docs</div>
+      <div>Live Runtime Evaluation</div>
+      <div>Approval Workflow</div>
+      <div>Audit Logging</div>
 
-        <div>Live API</div>
-        <div>Public Docs</div>
-        <div>Approval Workflow</div>
-        <div>Audit Logging</div>
-        <div>GitHub Repo</div>
-
-      </div>
+      <a
+        href="https://github.com/mohitdhurveofficial/whoai-api"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="transition hover:text-white"
+      >
+        GitHub Repo
+      </a>
 
     </div>
 
@@ -186,24 +216,23 @@
     <div class="max-w-3xl">
 
       <h2 class="text-4xl font-semibold tracking-tight">
-        Autonomous agents need oversight
+        Autonomous agents need runtime oversight
       </h2>
 
       <div class="mt-10 space-y-5 text-lg text-white/70">
 
         <p>
-          AI agents can issue refunds, modify records,
-          and trigger sensitive business actions.
+          AI agents can issue refunds, trigger workflows,
+          modify records, and interact with production systems.
         </p>
 
         <p>
-          Without runtime governance, risky actions can execute
-          without review or accountability.
+          Traditional access control is not enough when autonomous systems
+          begin making business decisions independently.
         </p>
 
         <p>
-          Most teams have no approval layer between autonomous agents
-          and production systems.
+          Enterprises need runtime governance that evaluates actions before execution.
         </p>
 
       </div>
@@ -213,7 +242,7 @@
   </section>
 
   <!-- Flow -->
-  <section class="mx-auto max-w-7xl px-6 pb-28">
+  <section id="flow" class="mx-auto max-w-7xl px-6 pb-28">
 
     <div class="grid gap-6 md:grid-cols-4">
 
@@ -221,7 +250,7 @@
         <div class="mb-4 text-teal-400">01</div>
         <h3 class="mb-3 text-xl font-medium">Request</h3>
         <p class="text-white/60">
-          An AI agent submits a sensitive action.
+          An AI agent submits a sensitive business action.
         </p>
       </div>
 
@@ -229,7 +258,7 @@
         <div class="mb-4 text-teal-400">02</div>
         <h3 class="mb-3 text-xl font-medium">Evaluate</h3>
         <p class="text-white/60">
-          WhoAI checks the action against policy.
+          WhoAI checks the request against runtime policy.
         </p>
       </div>
 
@@ -237,7 +266,7 @@
         <div class="mb-4 text-teal-400">03</div>
         <h3 class="mb-3 text-xl font-medium">Review</h3>
         <p class="text-white/60">
-          High-risk actions are routed for approval.
+          High-risk actions are routed for human approval.
         </p>
       </div>
 
@@ -245,7 +274,7 @@
         <div class="mb-4 text-teal-400">04</div>
         <h3 class="mb-3 text-xl font-medium">Record</h3>
         <p class="text-white/60">
-          Every decision is logged for accountability.
+          Every decision is logged for accountability and audits.
         </p>
       </div>
 
@@ -268,16 +297,118 @@
 
       <p class="mt-8 max-w-3xl text-lg leading-relaxed text-white/70">
         An AI support agent attempts to issue a $5,000 refund.
-        WhoAI detects the action exceeds policy limits,
-        routes the request for human approval,
+        WhoAI detects the action exceeds runtime policy limits,
+        routes the request for approval,
         and records the final decision in an auditable log.
+      </p>
+
+      <div class="mt-10 overflow-x-auto rounded-3xl border border-white/10 bg-black/30 p-6">
+
+        <div class="mb-4 text-sm uppercase tracking-wide text-teal-400">
+          Live evaluation example
+        </div>
+
+        <pre class="text-sm leading-7 text-white/80">
+POST /api/v1/evaluate
+
+{
+  "agent": "support-agent",
+  "action": "refund",
+  "amount": 5000
+}
+
+Response:
+
+{
+  "agent": "support-agent",
+  "decision": "approval_required",
+  "risk_level": "high",
+  "reason": "refund exceeds threshold"
+}
+        </pre>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Capabilities -->
+  <section id="capabilities" class="mx-auto max-w-7xl px-6 pb-28">
+
+    <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+
+      <div class="rounded-[32px] border border-white/10 bg-white/5 p-10">
+
+        <div class="mb-5 text-sm uppercase tracking-wide text-teal-400">
+          Runtime protection
+        </div>
+
+        <h2 class="max-w-2xl text-4xl font-semibold tracking-tight">
+          Control autonomous AI actions where operational risk actually exists
+        </h2>
+
+        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-white/70">
+          WhoAI evaluates AI actions before execution, applies runtime policy,
+          routes sensitive actions for approval, and preserves a complete
+          decision trail for accountability.
+        </p>
+
+      </div>
+
+      <div class="grid gap-6">
+
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h3 class="text-lg font-semibold">Policy enforcement</h3>
+          <p class="mt-3 text-white/60">
+            Define which actions can execute automatically and which require review.
+          </p>
+        </div>
+
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h3 class="text-lg font-semibold">Approval routing</h3>
+          <p class="mt-3 text-white/60">
+            Escalate risky actions to managers or operators in real time.
+          </p>
+        </div>
+
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h3 class="text-lg font-semibold">Decision logging</h3>
+          <p class="mt-3 text-white/60">
+            Record every approval, denial, override, and runtime policy trace.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Why Now -->
+  <section class="mx-auto max-w-7xl px-6 pb-28">
+
+    <div class="rounded-[32px] border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-10 md:p-14">
+
+      <div class="mb-5 text-sm uppercase tracking-wide text-teal-400">
+        Why now
+      </div>
+
+      <h2 class="max-w-3xl text-4xl font-semibold tracking-tight">
+        AI systems are moving from answering questions to taking actions
+      </h2>
+
+      <p class="mt-8 max-w-3xl text-lg leading-relaxed text-white/70">
+        As autonomous AI agents begin issuing refunds, modifying records,
+        triggering workflows, and interacting with production systems,
+        governance must happen at runtime — not only in documentation.
       </p>
 
     </div>
 
   </section>
 
-  <!-- Footer CTA -->
+  <!-- Footer -->
   <section class="border-t border-white/10">
 
     <div class="mx-auto max-w-6xl px-6 py-24 text-center">
@@ -290,7 +421,7 @@
       <div class="mt-10 flex flex-wrap justify-center gap-4">
 
         <a
-          href="https://whoai-api.onrender.com/docs"
+          href="https://whoai-api.vercel.app/docs"
           target="_blank"
           rel="noopener noreferrer"
           class="rounded-2xl bg-teal-500 px-6 py-3 font-medium text-black transition hover:bg-teal-400"
