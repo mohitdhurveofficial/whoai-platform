@@ -15,12 +15,10 @@ load_dotenv()
 logger = setup_logging()
 
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    raise ValueError(
-        "DATABASE_URL is not set in environment variables or .env file"
-    )
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite+aiosqlite:///./whoai_test.db"
+)
 
 
 engine = create_async_engine(
