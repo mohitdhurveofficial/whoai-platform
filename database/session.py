@@ -21,11 +21,19 @@ DATABASE_URL = os.getenv(
 )
 
 
+
+engine_kwargs = {
+    "echo": False,
+    "future": True,
+}
+
+if not DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["pool_pre_ping"] = True
+
+
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,
-    future=True,
-    pool_pre_ping=True
+    **engine_kwargs,
 )
 
 
