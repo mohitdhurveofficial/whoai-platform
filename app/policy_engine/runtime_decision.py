@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from database.session import get_db
+from database.models import AgentMetric
 
 from app.policy_engine.policy_evaluator import evaluate_action
 from app.policy_engine.trace_generator import generate_trace_id
@@ -25,9 +27,8 @@ class ActionRequest(BaseModel):
 async def evaluate(
     request: ActionRequest,
     db: AsyncSession = Depends(get_db),
-    api_key: str = Depends(verify_api_key)
+    api_key=Depends(verify_api_key)
 ):
-
     trace_id = generate_trace_id()
 
     result = evaluate_action(
@@ -37,6 +38,25 @@ async def evaluate(
         resource=request.resource,
         trace_id=trace_id,
     )
+
+    metric_result = await db.execute(
+        select(AgentMetric).where(
+            AgentMetric.agent_id == 1
+        )
+    )
+
+    metric = metric_result.scalar_one_or_none()
+
+    if metric:
+        metric.authorize_count += 1
+    else:
+        metric = AgentMetric(
+            agent_id=1,
+            authorize_count=1,
+        )
+        db.add(metric)
+
+    await db.commit()
 
     log_runtime_decision(result)
 
