@@ -12,6 +12,7 @@ from routers import (
     agents,
     approvals,
     auth,
+    api_keys,
     authorize,
     decisions,
     metrics,
@@ -118,6 +119,7 @@ async def health():
 
  # Authentication router
 app.include_router(auth.router)
+app.include_router(api_keys.router, prefix="/api/v1")
 
 # Existing routers
 app.include_router(agents.router, prefix="/api/v1")
