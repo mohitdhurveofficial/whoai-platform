@@ -9,7 +9,6 @@ from database.session import get_db
 from schemas import ApprovalResponse, ApprovalUpdate
 
 router = APIRouter(
-    prefix="/api/v1",
     tags=["approvals"]
 )
 
