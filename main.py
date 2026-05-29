@@ -15,6 +15,7 @@ from routers import (
     api_keys,
     authorize,
     decisions,
+    doctor,
     metrics,
     policies,
     system,
@@ -128,6 +129,8 @@ app.include_router(authorize.router, prefix="/api/v1")
 app.include_router(approvals.router, prefix="/api/v1")
 app.include_router(decisions.router, prefix="/api/v1")
 app.include_router(metrics.router, prefix="/api/v1")
+# Doctor and system intelligence endpoints
+app.include_router(doctor.router)
 app.include_router(system.router, prefix="/api/v1")
 
 
