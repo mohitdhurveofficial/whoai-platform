@@ -7,6 +7,7 @@ from database.models import (
     Policy,
     APIKey,
     Approval,
+    ApprovalStatus,
     Decision,
 )
 from database.session import get_db
@@ -39,9 +40,33 @@ async def dashboard_overview(
         )
     ).scalar() or 0
 
-    approvals = (
+    approvals_pending = (
         await db.execute(
-            select(func.count()).select_from(Approval)
+            select(func.count())
+            .select_from(Approval)
+            .where(
+                Approval.status == ApprovalStatus.PENDING
+            )
+        )
+    ).scalar() or 0
+
+    approvals_approved = (
+        await db.execute(
+            select(func.count())
+            .select_from(Approval)
+            .where(
+                Approval.status == ApprovalStatus.APPROVED
+            )
+        )
+    ).scalar() or 0
+
+    approvals_rejected = (
+        await db.execute(
+            select(func.count())
+            .select_from(Approval)
+            .where(
+                Approval.status == ApprovalStatus.REJECTED
+            )
         )
     ).scalar() or 0
 
@@ -72,7 +97,9 @@ async def dashboard_overview(
         "agents": agents,
         "policies": policies,
         "api_keys": api_keys,
-        "approvals": approvals,
+        "approvals_pending": approvals_pending,
+        "approvals_approved": approvals_approved,
+        "approvals_rejected": approvals_rejected,
         "decisions": decisions,
         "health_score": health_score,
         "security_score": security_score,

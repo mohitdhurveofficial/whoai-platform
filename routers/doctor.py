@@ -1,5 +1,3 @@
-
-
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,20 +42,37 @@ async def doctor_report(
         100 - policies_count
     )
 
-    issues = []
+    readiness_score = 100
+
+    critical_issues = []
+    warnings = []
     recommendations = []
 
     if policies_count == 0:
-        issues.append("No policies configured")
+        critical_issues.append(
+            "No governance policies configured"
+        )
         recommendations.append(
             "Create governance policies"
         )
+        readiness_score -= 30
 
     if api_keys_count == 0:
-        issues.append("No API keys configured")
+        critical_issues.append(
+            "No API keys configured"
+        )
         recommendations.append(
             "Create at least one API key"
         )
+        readiness_score -= 20
+
+    if agents_count > policies_count:
+        warnings.append(
+            "Policy coverage is lower than agent count"
+        )
+        readiness_score -= 10
+
+    readiness_score = max(0, readiness_score)
 
     return {
         "health_score": health_score,
@@ -67,6 +82,8 @@ async def doctor_report(
         "agents": agents_count,
         "policies": policies_count,
         "api_keys": api_keys_count,
-        "issues": issues,
+        "readiness_score": readiness_score,
+        "critical_issues": critical_issues,
+        "warnings": warnings,
         "recommendations": recommendations,
     }
