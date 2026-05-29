@@ -39,9 +39,10 @@ async def evaluate(
         trace_id=trace_id,
     )
 
+    # Track metrics for this API key
     metric_result = await db.execute(
         select(AgentMetric).where(
-            AgentMetric.agent_id == 1
+            AgentMetric.agent_id == api_key.id
         )
     )
 
@@ -51,13 +52,14 @@ async def evaluate(
         metric.authorize_count += 1
     else:
         metric = AgentMetric(
-            agent_id=1,
+            agent_id=api_key.id,
             authorize_count=1,
         )
         db.add(metric)
 
     await db.commit()
 
+    # Save audit log
     log_runtime_decision(result)
 
     return result
