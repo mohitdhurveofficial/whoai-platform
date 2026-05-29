@@ -7,7 +7,7 @@ from database.session import get_db
 from app.policy_engine.policy_evaluator import evaluate_action
 from app.policy_engine.trace_generator import generate_trace_id
 from app.policy_engine.audit_logger import log_runtime_decision
-from app.auth.dependencies import verify_api_key
+from middleware.api_key_auth import verify_api_key
 
 router = APIRouter(
     tags=["runtime"],

@@ -1,0 +1,12 @@
+[
+  {
+    "trace_id": "whoai_9790fe42b6",
+    "agent": "support-agent",
+    "resource": "order_123",
+    "action": "refund",
+    "amount": 1500.0,
+    "decision": "approval_required",
+    "risk_level": "high",
+    "reason": "refund exceeds threshold"
+  }
+]
