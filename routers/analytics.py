@@ -51,3 +51,45 @@ async def risk_analytics():
         "high_risk": high_risk,
         "approval_required": approval_required,
     }
+
+
+@router.get("/decisions")
+async def decision_analytics():
+
+    if not LOG_FILE.exists():
+        return {
+            "total_decisions": 0,
+            "approved": 0,
+            "approval_required": 0,
+            "approval_rate": 0,
+        }
+
+    try:
+        logs = json.loads(LOG_FILE.read_text())
+    except Exception:
+        logs = []
+
+    total_decisions = len(logs)
+
+    approved = sum(
+        1 for log in logs
+        if log.get("decision") == "approved"
+    )
+
+    approval_required = sum(
+        1 for log in logs
+        if log.get("decision") == "approval_required"
+    )
+
+    approval_rate = (
+        round((approved / total_decisions) * 100, 2)
+        if total_decisions > 0
+        else 0
+    )
+
+    return {
+        "total_decisions": total_decisions,
+        "approved": approved,
+        "approval_required": approval_required,
+        "approval_rate": approval_rate,
+    }
