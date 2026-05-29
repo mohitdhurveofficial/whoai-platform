@@ -9,6 +9,7 @@ from database.models import (
     Approval,
     ApprovalStatus,
     Decision,
+    AgentMetric,
 )
 from database.session import get_db
 
@@ -163,4 +164,35 @@ async def recent_activity(
             }
             for a in recent_agents
         ],
+    }
+
+
+# Dashboard summary endpoint
+@router.get("/dashboard/summary")
+async def dashboard_summary(
+    db: AsyncSession = Depends(get_db)
+):
+    agents_count = await db.scalar(
+        select(func.count()).select_from(Agent)
+    )
+
+    api_keys_count = await db.scalar(
+        select(func.count()).select_from(APIKey)
+    )
+
+    metrics_result = await db.execute(
+        select(AgentMetric)
+    )
+
+    metrics = metrics_result.scalars().all()
+
+    total_authorizations = sum(
+        m.authorize_count
+        for m in metrics
+    )
+
+    return {
+        "total_agents": agents_count,
+        "total_api_keys": api_keys_count,
+        "total_authorizations": total_authorizations,
     }
