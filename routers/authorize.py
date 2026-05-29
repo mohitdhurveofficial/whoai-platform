@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
 import json
+import logging
 
 from database.session import get_db
 
@@ -22,6 +23,8 @@ from schemas import (
 
 from middleware.api_key_auth import verify_api_key
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -38,10 +41,18 @@ async def authorize(
 
     agent = result.scalar_one_or_none()
 
+    logger.warning(
+        f"AUTHORIZE REQUEST | agent_id={payload.agent_id} | action={payload.action_type} | agent_found={agent is not None}"
+    )
+
     if not agent:
+        logger.error(
+            f"AGENT NOT FOUND | agent_id={payload.agent_id}"
+        )
+
         raise HTTPException(
             status_code=404,
-            detail="Agent not found"
+            detail=f"Agent {payload.agent_id} not found"
         )
 
     # Kill switch
@@ -76,6 +87,10 @@ async def authorize(
     )
 
     policy = result.scalars().first()
+
+    logger.warning(
+        f"POLICY LOOKUP | agent={agent.name} | action={payload.action_type} | policy_found={policy is not None}"
+    )
 
     # No policy
     if not policy:
