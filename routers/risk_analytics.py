@@ -57,3 +57,7 @@ async def risk_analytics():
         "high_risk": high_risk,
         "approval_required": approval_required,
     }
+    return {
+    "file_exists": LOG_FILE.exists(),
+    "file_path": str(LOG_FILE),
+}
