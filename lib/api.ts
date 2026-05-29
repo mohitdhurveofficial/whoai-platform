@@ -37,3 +37,27 @@ export async function getApprovals() {
 export async function getDecisions() {
   return fetchJson("/api/v1/decisions");
 }
+
+export async function getMetrics() {
+  return fetchJson("/api/v1/metrics");
+}
+
+export async function getLogs() {
+  return fetchJson("/api/v1/logs");
+}
+
+export async function getRecentActivity() {
+  return fetchJson("/api/v1/dashboard/recent-activity");
+}
+
+export async function getSystemHealth() {
+  return fetchJson("/api/v1/system/health");
+}
+
+export async function getSystemReadiness() {
+  return fetchJson("/api/v1/system/readiness");
+}
+
+export async function getSystemDiagnostics() {
+  return fetchJson("/api/v1/system/diagnostics");
+}
