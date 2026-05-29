@@ -20,7 +20,7 @@ from schemas import (
     AuthorizeResponse
 )
 
-from auth import verify_api_key
+from middleware.api_key_auth import verify_api_key
 
 router = APIRouter()
 
@@ -29,18 +29,20 @@ router = APIRouter()
 async def authorize(
     payload: AuthorizeRequest,
     db: AsyncSession = Depends(get_db),
-    authenticated_agent: Agent = Depends(verify_api_key)
+    _authenticated_api_key = Depends(verify_api_key)
 ):
+    # API key has already been validated by verify_api_key.
+    result = await db.execute(
+        select(Agent).where(Agent.id == payload.agent_id)
+    )
 
-    # Verify API key belongs to agent
-    if authenticated_agent.id != payload.agent_id:
+    agent = result.scalar_one_or_none()
+
+    if not agent:
         raise HTTPException(
-            status_code=403,
-            detail="API key does not match agent_id"
+            status_code=404,
+            detail="Agent not found"
         )
-
-    # Use authenticated agent
-    agent = authenticated_agent
 
     # Kill switch
     if agent.status == AgentStatus.DISABLED:
