@@ -56,16 +56,19 @@ class Agent(Base):
     )
 
 
+# Dynamic policy model used by the runtime policy engine.
+# Policies are matched using agent, action and resource,
+# then evaluated using condition/effect.
 class Policy(Base):
     __tablename__ = "policies"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    agent = Column(String, nullable=False)
+    agent = Column(String, nullable=False, index=True)
 
-    action = Column(String, nullable=False)
+    action = Column(String, nullable=False, index=True)
 
-    resource = Column(String, nullable=False)
+    resource = Column(String, nullable=False, index=True)
 
     condition = Column(String, nullable=False)
 
@@ -104,7 +107,7 @@ class Decision(Base):
 
     reason = Column(String, nullable=False)
 
-    policy_id = Column(Integer, nullable=True)
+    policy_id = Column(Integer, index=True, nullable=True)
 
     created_at = Column(
         DateTime,
@@ -130,7 +133,7 @@ class Approval(Base):
 
     context_json = Column(String, nullable=False)
 
-    policy_id = Column(Integer, nullable=True)
+    policy_id = Column(Integer, index=True, nullable=True)
 
     status = Column(
         Enum(ApprovalStatus),

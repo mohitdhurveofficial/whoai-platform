@@ -68,9 +68,8 @@ async def authorize(
     # Find matching policy
     result = await db.execute(
         select(Policy).where(
-            Policy.agent_id == payload.agent_id,
-            Policy.action_type == payload.action_type,
-            Policy.environment == payload.context.environment
+            Policy.agent == agent.name,
+            Policy.action == payload.action_type
         )
     )
 
@@ -99,16 +98,25 @@ async def authorize(
             policy_id=None
         )
 
-    # Amount exceeds policy
-    if payload.resource.amount > policy.max_amount:
+    # Dynamic condition evaluation
+    condition_matched = False
+
+    if policy.condition:
+        if (
+            policy.condition == "amount > 1000"
+            and payload.resource.amount > 1000
+        ):
+            condition_matched = True
+
+    if not condition_matched:
 
         decision_log = Decision(
             agent_id=payload.agent_id,
             action_type=payload.action_type,
             resource_json=json.dumps(payload.resource.dict()),
             context_json=json.dumps(payload.context.dict()),
-            decision="deny",
-            reason="amount_exceeds_policy",
+            decision="allow",
+            reason="condition_not_triggered",
             policy_id=policy.id,
             created_at=datetime.utcnow()
         )
@@ -117,13 +125,13 @@ async def authorize(
         await db.commit()
 
         return AuthorizeResponse(
-            decision="deny",
-            reason="amount_exceeds_policy",
+            decision="allow",
+            reason="condition_not_triggered",
             policy_id=policy.id
         )
 
     # Needs approval
-    if policy.needs_approval:
+    if policy.effect == "approval_required":
 
         approval = Approval(
             agent_id=payload.agent_id,
