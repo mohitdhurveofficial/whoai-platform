@@ -1,6 +1,7 @@
 import { getApprovals } from "@/lib/api";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import ApprovalActions from "../components/ApprovalActions";
 
 export default async function ApprovalsPage() {
   const approvals = await getApprovals();
@@ -23,8 +24,10 @@ export default async function ApprovalsPage() {
                 <tr className="border-b">
                   <th className="text-left p-3">ID</th>
                   <th className="text-left p-3">Agent</th>
+                  <th className="text-left p-3">Action</th>
                   <th className="text-left p-3">Status</th>
                   <th className="text-left p-3">Created</th>
+                  <th className="text-left p-3">Actions</th>
                 </tr>
               </thead>
 
@@ -43,11 +46,29 @@ export default async function ApprovalsPage() {
                     </td>
 
                     <td className="p-3">
+                      {approval.action_type}
+                    </td>
+
+                    <td className="p-3">
                       {approval.status}
                     </td>
 
                     <td className="p-3">
-                      {approval.created_at}
+                      {new Date(
+                        approval.created_at
+                      ).toLocaleString()}
+                    </td>
+
+                    <td className="p-3">
+                      {approval.status === "pending" ? (
+                        <ApprovalActions
+                          approvalId={approval.id}
+                        />
+                      ) : (
+                        <span className="text-gray-500">
+                          Processed
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

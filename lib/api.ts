@@ -69,3 +69,23 @@ export async function getDecisionAnalytics() {
 export async function getRiskAnalytics() {
   return fetchJson("/api/v1/analytics/risk");
 }
+export async function updateApproval(
+  approvalId: number,
+  status: string
+) {
+  const response = await fetch(
+    `${API_URL}/api/v1/approvals/${approvalId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+        approved_by: "mohit",
+      }),
+    }
+  );
+
+  return response.json();
+}
