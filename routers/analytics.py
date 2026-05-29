@@ -1,8 +1,4 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from database.session import get_db
-from database.models import AgentMetric
+from fastapi import APIRouter
 
 router = APIRouter(
     prefix="/analytics",
@@ -10,26 +6,11 @@ router = APIRouter(
 )
 
 
-@router.get("/overview")
-async def analytics_overview(
-    db: AsyncSession = Depends(get_db)
-):
-    metrics = await db.execute(
-        AgentMetric.__table__.select()
-    )
-
-    rows = metrics.fetchall()
-
-    total_authorizations = sum(
-        row.authorize_count
-        for row in rows
-    )
-
+@router.get("/risk")
+async def risk_analytics():
     return {
-        "total_authorizations": total_authorizations,
-        "active_agents": len(rows),
-        "avg_authorizations": (
-            total_authorizations / len(rows)
-            if rows else 0
-        )
+        "low_risk": 0,
+        "medium_risk": 0,
+        "high_risk": 0,
+        "approval_required": 0,
     }
