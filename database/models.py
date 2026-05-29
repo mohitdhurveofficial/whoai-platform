@@ -64,15 +64,15 @@ class Policy(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    agent = Column(String, nullable=False, index=True)
+    agent = Column(String, nullable=True, index=True)
 
-    action = Column(String, nullable=False, index=True)
+    action = Column(String, nullable=True, index=True)
 
-    resource = Column(String, nullable=False, index=True)
+    resource = Column(String, nullable=True, index=True)
 
-    condition = Column(String, nullable=False)
+    condition = Column(String, nullable=True)
 
-    effect = Column(String, nullable=False)
+    effect = Column(String, nullable=True)
 
     risk_level = Column(
         String,
@@ -150,6 +150,8 @@ class Approval(Base):
         default=datetime.utcnow,
         nullable=False
     )
+
+
 class AgentMetric(Base):
     __tablename__ = "agent_metrics"
 
@@ -168,6 +170,37 @@ class AgentMetric(Base):
     )
 
     updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+
+# API Key model
+class APIKey(Base):
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(
+        String,
+        nullable=False
+    )
+
+    api_key = Column(
+        String,
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    created_at = Column(
         DateTime,
         default=datetime.utcnow,
         nullable=False
