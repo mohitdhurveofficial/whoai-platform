@@ -27,7 +27,6 @@ from app.policy_engine.runtime_decision import (
     router as policy_router,
 )
 from app.api.logs import router as logs_router
-from routers.governance import router as governance_router
 
 
 logger = setup_logging()
@@ -140,7 +139,3 @@ app.include_router(system.router, prefix="/api/v1")
 # Runtime governance and approval workflow routers
 app.include_router(policy_router, prefix="/api/v1")
 app.include_router(logs_router, prefix="/api/v1")
-app.include_router(
-    governance_router,
-    prefix="/api/v1"
-)
