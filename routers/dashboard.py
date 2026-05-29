@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from sqlalchemy import func, select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import (
@@ -78,4 +78,62 @@ async def dashboard_overview(
         "security_score": security_score,
         "policy_coverage": policy_coverage,
         "risk_score": risk_score,
+    }
+
+
+@router.get("/dashboard/recent-activity")
+async def recent_activity(
+    db: AsyncSession = Depends(get_db)
+):
+    recent_decisions = (
+        await db.execute(
+            select(Decision)
+            .order_by(desc(Decision.created_at))
+            .limit(10)
+        )
+    ).scalars().all()
+
+    recent_approvals = (
+        await db.execute(
+            select(Approval)
+            .order_by(desc(Approval.created_at))
+            .limit(10)
+        )
+    ).scalars().all()
+
+    recent_agents = (
+        await db.execute(
+            select(Agent)
+            .order_by(desc(Agent.created_at))
+            .limit(10)
+        )
+    ).scalars().all()
+
+    return {
+        "recent_decisions": [
+            {
+                "id": d.id,
+                "decision": d.decision,
+                "reason": d.reason,
+                "created_at": d.created_at,
+            }
+            for d in recent_decisions
+        ],
+        "recent_approvals": [
+            {
+                "id": a.id,
+                "status": str(a.status),
+                "created_at": a.created_at,
+            }
+            for a in recent_approvals
+        ],
+        "recent_agents": [
+            {
+                "id": a.id,
+                "name": a.name,
+                "status": str(a.status),
+                "created_at": a.created_at,
+            }
+            for a in recent_agents
+        ],
     }
