@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,10 +51,12 @@ async def evaluate(
 
     if metric:
         metric.authorize_count += 1
+        metric.updated_at = datetime.utcnow()
     else:
         metric = AgentMetric(
             agent_id=api_key.id,
             authorize_count=1,
+            updated_at=datetime.utcnow(),
         )
         db.add(metric)
 
