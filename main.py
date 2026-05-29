@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from logger_config import setup_logging
 from database.session import init_db
 
+
 from routers import (
     agents,
     approvals,
@@ -21,6 +22,8 @@ from routers import (
     policies,
     system,
 )
+
+from routers.activity import router as activity_router
 
 
 from app.policy_engine.runtime_decision import (
@@ -131,6 +134,12 @@ app.include_router(decisions.router, prefix="/api/v1")
 app.include_router(metrics.router, prefix="/api/v1")
 # Dashboard endpoints
 app.include_router(dashboard.router)
+
+app.include_router(
+    activity_router,
+    prefix="/api/v1"
+)
+
 # Doctor and system intelligence endpoints
 app.include_router(doctor.router)
 app.include_router(system.router, prefix="/api/v1")
