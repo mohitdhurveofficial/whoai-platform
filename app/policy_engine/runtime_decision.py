@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.session import get_db
-from database.models import Approval, ApprovalStatus
 
 from app.policy_engine.policy_evaluator import evaluate_action
 from app.policy_engine.trace_generator import generate_trace_id
@@ -38,26 +37,6 @@ async def evaluate(
         resource=request.resource,
         trace_id=trace_id,
     )
-
-    if result["decision"] == "approval_required":
-
-        approval = Approval(
-            agent_id=1,
-            action_type=request.action,
-            resource_json=request.resource,
-            context_json=str({
-                "amount": request.amount,
-                "agent": request.agent
-            }),
-            policy_id=1,
-            status=ApprovalStatus.PENDING
-        )
-
-        db.add(approval)
-
-        await db.commit()
-
-        await db.refresh(approval)
 
     log_runtime_decision(result)
 
