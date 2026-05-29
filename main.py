@@ -23,7 +23,9 @@ from routers import (
     system,
 )
 
+
 from routers.activity import router as activity_router
+from routers.analytics import router as analytics_router
 
 
 from app.policy_engine.runtime_decision import (
@@ -135,8 +137,14 @@ app.include_router(metrics.router, prefix="/api/v1")
 # Dashboard endpoints
 app.include_router(dashboard.router)
 
+
 app.include_router(
     activity_router,
+    prefix="/api/v1"
+)
+
+app.include_router(
+    analytics_router,
     prefix="/api/v1"
 )
 
