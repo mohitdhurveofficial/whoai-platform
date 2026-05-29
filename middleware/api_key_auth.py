@@ -7,7 +7,10 @@ from database.session import get_db
 
 
 async def verify_api_key(
-    x_api_key: str = Header(None),
+    x_api_key: str = Header(
+        None,
+        alias="X-API-Key"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     if not x_api_key:
@@ -15,6 +18,8 @@ async def verify_api_key(
             status_code=401,
             detail="Missing API key",
         )
+
+    print("API KEY RECEIVED:", x_api_key)
 
     result = await db.execute(
         select(APIKey).where(
@@ -28,7 +33,8 @@ async def verify_api_key(
     if not api_key:
         raise HTTPException(
             status_code=401,
-            detail="Invalid API key",
+            detail="" \
+            "Invalid API key",
         )
 
     # Return the validated API key record for downstream endpoints.
