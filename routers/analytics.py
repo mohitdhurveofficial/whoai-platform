@@ -1,10 +1,16 @@
+from fastapi import APIRouter
 import json
 from pathlib import Path
+
+router = APIRouter(
+    prefix="/analytics",
+    tags=["analytics"]
+)
 
 LOG_FILE = Path("app/logs/runtime_logs.json")
 
 
-@router.get("/analytics/risk")
+@router.get("/risk")
 async def risk_analytics():
 
     if not LOG_FILE.exists():
