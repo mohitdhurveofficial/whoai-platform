@@ -40,14 +40,14 @@ export default function Hero() {
       <div className="mt-7 flex flex-col gap-4 sm:flex-row">
         <Link
           href="/dashboard"
-          className="inline-flex h-[54px] items-center justify-center gap-3 rounded-full bg-[#071126] px-8 text-[14px] font-bold text-white shadow-xl shadow-black/12 transition hover:-translate-y-0.5"
+          className="shadow-button-dark inline-flex h-[54px] items-center justify-center gap-3 rounded-full bg-[#071126] px-8 text-[14px] font-bold text-white transition hover:-translate-y-0.5"
         >
           View Live Dashboard
           <ArrowRight size={18} className="text-orange-500" />
         </Link>
         <Link
           href="#"
-          className="inline-flex h-[54px] items-center justify-center rounded-full border border-black/6 bg-white px-8 text-[14px] font-bold text-[#071126] shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
+          className="shadow-button-light inline-flex h-[54px] items-center justify-center rounded-full border border-black/6 bg-white px-8 text-[14px] font-bold text-[#071126] transition hover:-translate-y-0.5"
         >
           Book a Demo
         </Link>
@@ -58,7 +58,7 @@ export default function Hero() {
           {avatars.map((avatar, index) => (
             <div
               key={avatar}
-              className={`h-8 w-8 rounded-full border-2 border-[#f8f5ef] bg-gradient-to-br ${avatar}`}
+              className={`shadow-logo-card h-8 w-8 rounded-full border-2 border-[#f8f5ef] bg-gradient-to-br ${avatar}`}
               aria-label={`Trusted team avatar ${index + 1}`}
             />
           ))}

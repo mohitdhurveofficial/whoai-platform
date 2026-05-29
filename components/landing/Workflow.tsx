@@ -57,7 +57,7 @@ export default function Workflow() {
                 initial={{ opacity: 0, x: 18 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.08, duration: 0.4 }}
-                className={`relative min-h-[78px] rounded-[16px] border px-7 py-4 shadow-[0_14px_34px_rgba(15,23,42,0.10)] transition hover:-translate-y-1 ${
+                className={`relative min-h-[78px] rounded-[16px] border px-7 py-4 shadow-[0_16px_38px_rgba(7,17,38,0.11),inset_0_1px_0_rgba(255,255,255,0.85)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(7,17,38,0.14)] ${
                   step.highlight
                     ? "border-orange-300 bg-orange-50"
                     : "border-black/5 bg-white"

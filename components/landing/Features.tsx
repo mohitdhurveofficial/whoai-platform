@@ -79,7 +79,7 @@ export default function Features() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.25 }}
                 transition={{ delay: index * 0.05 }}
-                className="group min-h-[190px] rounded-[18px] border border-black/5 bg-white/82 px-5 py-7 text-center shadow-[0_10px_28px_rgba(15,23,42,0.045)] transition hover:-translate-y-1 hover:shadow-xl"
+                className="group min-h-[190px] rounded-[18px] border border-black/5 bg-white/82 px-5 py-7 text-center shadow-[0_14px_34px_rgba(7,17,38,0.055),inset_0_1px_0_rgba(255,255,255,0.85)] transition hover:-translate-y-1 hover:shadow-[0_22px_54px_rgba(7,17,38,0.1)]"
               >
                 <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-[18px] ${feature.color}`}>
                   <Icon size={34} strokeWidth={1.9} />

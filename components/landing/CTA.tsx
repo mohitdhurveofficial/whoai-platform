@@ -29,14 +29,14 @@ export default function CTA() {
         <div className="mt-6 flex flex-col justify-center gap-7 sm:flex-row">
           <Link
             href="/dashboard"
-            className="inline-flex h-[48px] min-w-[210px] items-center justify-center gap-3 rounded-full bg-orange-500 px-7 text-[14px] font-black text-white shadow-xl shadow-orange-950/30 transition hover:-translate-y-0.5"
+            className="shadow-button-orange inline-flex h-[48px] min-w-[210px] items-center justify-center gap-3 rounded-full bg-orange-500 px-7 text-[14px] font-black text-white transition hover:-translate-y-0.5"
           >
             Start Free Trial
             <ArrowRight size={18} />
           </Link>
           <Link
             href="#"
-            className="inline-flex h-[48px] min-w-[210px] items-center justify-center rounded-full border border-white/14 bg-white px-7 text-[14px] font-black text-black transition hover:-translate-y-0.5"
+            className="shadow-button-light inline-flex h-[48px] min-w-[210px] items-center justify-center rounded-full border border-white/14 bg-white px-7 text-[14px] font-black text-black transition hover:-translate-y-0.5"
           >
             Book a Demo
           </Link>

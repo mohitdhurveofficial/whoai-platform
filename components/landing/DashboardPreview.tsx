@@ -73,23 +73,36 @@ const activityRows = [
 ];
 
 export default function DashboardPreview() {
-  const [currentTime, setCurrentTime] = useState("Live data");
+  const [localClock, setLocalClock] = useState({
+    dateTime: "Local time",
+    timezone: "Detecting timezone",
+  });
 
   useEffect(() => {
-    const formatDate = () =>
-      new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date());
+    const formatClock = () => {
+      const locale = navigator.language || "en-US";
+      const timezone =
+        Intl.DateTimeFormat().resolvedOptions().timeZone || "Local timezone";
+
+      return {
+        dateTime: new Intl.DateTimeFormat(locale, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZoneName: "short",
+        }).format(new Date()),
+        timezone,
+      };
+    };
 
     const firstTick = window.setTimeout(() => {
-      setCurrentTime(formatDate());
+      setLocalClock(formatClock());
     }, 0);
     const timer = window.setInterval(() => {
-      setCurrentTime(formatDate());
+      setLocalClock(formatClock());
     }, 60_000);
 
     return () => {
@@ -183,9 +196,10 @@ export default function DashboardPreview() {
                     Live governance telemetry across autonomous agents
                   </p>
                 </div>
-                <div className="flex h-11 items-center gap-3 rounded-xl border border-black/5 bg-white px-5 text-[12px] font-semibold text-[#071126] shadow-sm">
+                <div className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-black/5 bg-white px-5 py-2 text-[12px] font-semibold text-[#071126] shadow-sm">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  {currentTime}
+                  <span>{localClock.dateTime}</span>
+                  <span className="text-[#071126]/45">{localClock.timezone}</span>
                   <CalendarDays size={15} />
                 </div>
               </div>
