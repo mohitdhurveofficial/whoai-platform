@@ -269,3 +269,70 @@ https://whoai-api.onrender.com/health
 
 GitHub:
 https://github.com/mohitdhurveofficial/whoai-api
+# WhoAI — The Governance Layer for AI Agents
+
+Control, approve, audit, and secure AI actions before they happen.
+
+## The Problem
+AI agents can spend money, modify data, access systems, and make high-impact decisions. Yet, organizations lack runtime governance to control or approve these actions before they’re executed.
+
+## Why Existing Solutions Are Not Enough
+- Models generate decisions
+- Agent frameworks orchestrate workflows
+- Security tools protect infrastructure
+- Nobody governs AI actions at runtime
+
+## What Is WhoAI?
+WhoAI is the governance layer that sits between AI agents and real-world actions. It enforces policies, enables human approvals, and records every decision—before actions are executed.
+
+```text
+AI Agent
+    ↓
+   WhoAI
+    ↓
+Allow
+Deny
+Approve
+Audit
+    ↓
+Real-World Action
+```
+
+## Core Capabilities
+- Runtime Policy Enforcement
+- Human Approval Workflows
+- Audit Logging
+- Multi-Agent Governance
+- Risk-Based Decisioning
+- WhoAI Doctor Monitoring
+
+## Example
+An AI agent requests a $5,000 refund. WhoAI detects that approval is required (based on policy), routes the request to a manager, and only executes the refund if approved—logging the entire process.
+
+## Ideal Customers
+- AI startups
+- AI agencies
+- SaaS companies
+- Fintech
+- Healthcare
+- Enterprises
+- Internal AI teams
+
+## Why WhoAI Matters
+WhoAI delivers trust, compliance, oversight, and safe autonomy—so organizations can scale AI with confidence, meet regulatory requirements, and maintain control over AI-driven decisions.
+
+## Current Platform Status
+- Authentication
+- Dynamic Policy Engine
+- Approval Workflows
+- Decision Logging
+- REST API
+- PostgreSQL
+- WhoAI Doctor
+- Multi-Agent Support (In Progress)
+
+## Vision
+Every AI action should be governed before it is executed.
+
+Live API Docs: https://whoai-api.onrender.com/docs  
+GitHub: https://github.com/mohitdhurveofficial/whoai-api
