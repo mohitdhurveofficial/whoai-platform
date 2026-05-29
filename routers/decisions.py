@@ -7,10 +7,13 @@ from database.models import Decision
 
 from schemas import DecisionResponse
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/decisions",
+    tags=["decisions"],
+)
 
 
-@router.get("/decisions", response_model=list[DecisionResponse])
+@router.get("", response_model=list[DecisionResponse])
 async def list_decisions(
     limit: int = 50,
     db: AsyncSession = Depends(get_db)

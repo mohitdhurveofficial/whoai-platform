@@ -5,10 +5,13 @@ from sqlalchemy import select
 from database.session import get_db
 from database.models import AgentMetric
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/metrics",
+    tags=["metrics"],
+)
 
 
-@router.get("/metrics")
+@router.get("")
 async def list_metrics(
     db: AsyncSession = Depends(get_db)
 ):

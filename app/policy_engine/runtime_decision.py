@@ -10,7 +10,9 @@ from app.policy_engine.trace_generator import generate_trace_id
 from app.policy_engine.audit_logger import log_runtime_decision
 from app.auth.dependencies import verify_api_key
 
-router = APIRouter()
+router = APIRouter(
+    tags=["runtime"],
+)
 
 
 class ActionRequest(BaseModel):

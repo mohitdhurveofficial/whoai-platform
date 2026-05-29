@@ -4,7 +4,9 @@ from pathlib import Path
 from fastapi import APIRouter
 
 
-router = APIRouter()
+router = APIRouter(
+    tags=["logs"],
+)
 
 LOG_FILE = Path("app/logs/runtime_logs.json")
 

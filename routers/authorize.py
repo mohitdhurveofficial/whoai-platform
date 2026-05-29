@@ -25,10 +25,13 @@ from middleware.api_key_auth import verify_api_key
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/authorize",
+    tags=["authorization"],
+)
 
 
-@router.post("/authorize", response_model=AuthorizeResponse)
+@router.post("", response_model=AuthorizeResponse)
 async def authorize(
     payload: AuthorizeRequest,
     db: AsyncSession = Depends(get_db),

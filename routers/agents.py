@@ -11,10 +11,13 @@ from schemas import (
     AgentUpdate
 )
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/agents",
+    tags=["agents"],
+)
 
 
-@router.post("/agents", response_model=AgentResponse)
+@router.post("", response_model=AgentResponse)
 async def create_agent(
     payload: AgentCreate,
     db: AsyncSession = Depends(get_db)
@@ -37,7 +40,7 @@ async def create_agent(
     return agent
 
 
-@router.get("/agents", response_model=list[AgentResponse])
+@router.get("", response_model=list[AgentResponse])
 async def list_agents(
     db: AsyncSession = Depends(get_db)
 ):
@@ -49,7 +52,7 @@ async def list_agents(
     return agents
 
 
-@router.patch("/agents/{agent_id}", response_model=AgentResponse)
+@router.patch("/{agent_id}", response_model=AgentResponse)
 async def update_agent_status(
     agent_id: int,
     payload: AgentUpdate,
