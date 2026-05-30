@@ -1,143 +1,120 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, Download, ShieldCheck } from "lucide-react";
-import DecisionFilters, {
-  type DecisionFilter,
-} from "../components/DecisionFilters";
-import DecisionStatusBadge from "../components/DecisionStatusBadge";
-import RiskBadge from "../components/RiskBadge";
-import { decisions } from "@/lib/mockData";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { KpiCard } from "@/components/ui/KpiCard";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { DataTable } from "@/components/ui/DataTable";
+import { SearchBar } from "@/components/ui/SearchBar";
+import { FilterTabs } from "@/components/ui/FilterTabs";
+import { RiskBadge } from "@/components/ui/RiskBadge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { SlideOver } from "@/components/ui/SlideOver";
+import { MOCK_DECISIONS } from "@/lib/mock/decisions";
+import { MOCK_AGENTS } from "@/lib/mock/agents";
+import { Decision } from "@/lib/types/governance";
+import { Eye, Download } from "lucide-react";
+
+const FILTER_TABS = [
+	"All",
+	"Low Risk",
+	"Medium Risk",
+	"High Risk",
+	"Critical Risk",
+	"Needs Approval",
+	"Approved",
+	"Rejected",
+];
+
+function getRiskLevel(score: number) {
+	if (score >= 90) return "Critical";
+	if (score >= 70) return "High";
+	if (score >= 40) return "Medium";
+	return "Low";
+}
 
 export default function DecisionsPage() {
-  const [activeFilter, setActiveFilter] = useState<DecisionFilter>("All");
-  const [search, setSearch] = useState("");
+	const [searchQuery, setSearchQuery] = useState("");
+	const [activeTab, setActiveTab] = useState("All");
+	const [selectedDecision, setSelectedDecision] = useState<Decision | null>(null);
 
-  const filteredDecisions = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+	const filteredData = useMemo(() => {
+		const normalizedSearch = searchQuery.toLowerCase();
+		return MOCK_DECISIONS.filter((decision) => {
+			const agentName = MOCK_AGENTS.find(a => a.id === decision.agentId)?.name || "";
+			const matchesSearch =
+				decision.id.toLowerCase().includes(normalizedSearch) ||
+				decision.action.toLowerCase().includes(normalizedSearch) ||
+				agentName.toLowerCase().includes(normalizedSearch);
 
-    return decisions.filter((decision) => {
-      const matchesFilter =
-        activeFilter === "All" ||
-        decision.risk === activeFilter ||
-        decision.status === activeFilter;
+			const riskLevel = getRiskLevel(decision.riskScore);
 
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        [
-          decision.id,
-          decision.agent,
-          decision.action,
-          decision.policy,
-          decision.status,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedSearch);
+			const matchesTab =
+				activeTab === "All" ||
+				(activeTab === "Low Risk" && riskLevel === "Low") ||
+				(activeTab === "Medium Risk" && riskLevel === "Medium") ||
+				(activeTab === "High Risk" && riskLevel === "High") ||
+				(activeTab === "Critical Risk" && riskLevel === "Critical") ||
+				(activeTab === "Needs Approval" && decision.approvalStatus === "Pending") ||
+				(activeTab === "Approved" && decision.approvalStatus === "Approved") ||
+				(activeTab === "Rejected" && decision.approvalStatus === "Rejected");
 
-      return matchesFilter && matchesSearch;
-    });
-  }, [activeFilter, search]);
+			return matchesSearch && matchesTab;
+		});
+	}, [searchQuery, activeTab]);
 
-  return (
-    <main className="min-h-screen bg-[#f8f5ef] px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1320px]">
-        <section className="rounded-[32px] border border-black/5 bg-white/72 p-5 shadow-[0_24px_80px_rgba(7,17,38,0.07)] sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1.5 text-sm font-bold text-orange-700 ring-1 ring-orange-100">
-                <ShieldCheck size={16} />
-                Runtime Governance
-              </div>
-              <h1 className="mt-5 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
-                Decision Center
-              </h1>
-              <p className="mt-3 max-w-2xl text-base font-medium leading-7 text-slate-500">
-                Monitor every AI decision across your organization.
-              </p>
-            </div>
+	const columns = [
+		{ header: "Decision ID", accessorKey: "id" },
+		{ header: "Timestamp", accessorKey: "timestamp" },
+		{ header: "Agent", accessorKey: "agentId", cell: (item: any) => (MOCK_AGENTS.find(a => a.id === item.agentId)?.name || item.agentId) },
+		{ header: "Action", accessorKey: "action" },
+		{ header: "Risk Score", accessorKey: "riskScore", cell: (item: any) => <RiskBadge level={getRiskLevel(item.riskScore)} /> },
+		{ header: "Status", accessorKey: "approvalStatus", cell: (item: any) => <StatusBadge status={item.approvalStatus} /> },
+		{ header: "", cell: (item: any) => <button onClick={() => setSelectedDecision(item)} className="text-indigo-600">Review</button> },
+	];
 
-            <div className="flex flex-wrap gap-3">
-              <button className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-slate-700 ring-1 ring-black/8 transition hover:-translate-y-0.5">
-                <Download size={16} />
-                Export
-              </button>
-              <button className="inline-flex h-11 items-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-bold text-white shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5">
-                Open Audit Log
-                <ArrowUpRight size={16} />
-              </button>
-            </div>
-          </div>
+	return (
+		<div className="space-y-6 pb-12">
+			<PageHeader 
+				title="Decision Registry" 
+				description="Immutable ledger of all AI agent decisions and actions."
+				action={
+					<button className="flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 transition-all">
+						<Download className="h-4 w-4" />
+						Export Registry
+					</button>
+				}
+			/>
 
-          <div className="mt-8">
-            <DecisionFilters
-              activeFilter={activeFilter}
-              search={search}
-              onFilterChange={setActiveFilter}
-              onSearchChange={setSearch}
-            />
-          </div>
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<KpiCard title="Decisions Today" value={MOCK_DECISIONS.length} />
+				<KpiCard title="High Risk Decisions" value={MOCK_DECISIONS.filter(d => d.riskScore >= 70).length} />
+				<KpiCard title="Human Reviewed %" value={`${Math.round((MOCK_DECISIONS.filter(d => d.approvalStatus !== 'Pending').length / MOCK_DECISIONS.length) * 100)}%`} />
+				<KpiCard title="Avg Confidence Score" value={`${Math.round(MOCK_DECISIONS.reduce((acc, d) => acc + d.confidenceScore, 0) / MOCK_DECISIONS.length)}%`} />
+			</div>
 
-          <div className="mt-6 overflow-hidden rounded-[24px] border border-black/5 bg-white/86 shadow-[0_18px_50px_rgba(7,17,38,0.045)]">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-left">
-                <thead>
-                  <tr className="border-b border-black/5 bg-white/60 text-xs uppercase tracking-[0.14em] text-slate-400">
-                    <th className="px-6 py-4 font-black">Decision ID</th>
-                    <th className="px-6 py-4 font-black">Agent</th>
-                    <th className="px-6 py-4 font-black">Risk Score</th>
-                    <th className="px-6 py-4 font-black">Policy</th>
-                    <th className="px-6 py-4 font-black">Status</th>
-                    <th className="px-6 py-4 font-black">Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDecisions.map((decision) => (
-                    <tr
-                      key={decision.id}
-                      className="border-b border-black/5 transition last:border-b-0 hover:bg-orange-50/35"
-                    >
-                      <td className="px-6 py-5">
-                        <p className="font-black text-slate-950">{decision.id}</p>
-                        <p className="mt-1 text-sm font-medium text-slate-500">
-                          {decision.action}
-                        </p>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-semibold text-slate-700">
-                        {decision.agent}
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <RiskBadge risk={decision.risk} />
-                          <span className="text-sm font-black text-slate-950">
-                            {decision.riskScore}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 text-sm font-medium text-slate-600">
-                        {decision.policy}
-                      </td>
-                      <td className="px-6 py-5">
-                        <DecisionStatusBadge status={decision.status} />
-                      </td>
-                      <td className="px-6 py-5 text-sm font-medium text-slate-500">
-                        {decision.timestamp}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+			<SectionCard title="Registry Log">
+				<div className="space-y-4">
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+						<SearchBar placeholder="Search decisions by ID, agent, or action..." onChange={setSearchQuery} />
+						<div className="overflow-x-auto pb-2 sm:pb-0">
+							<FilterTabs tabs={FILTER_TABS} activeTab={activeTab} onChange={setActiveTab} />
+						</div>
+					</div>
 
-            <div className="flex flex-col gap-3 border-t border-black/5 px-6 py-4 text-sm font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-              <span>
-                Showing {filteredDecisions.length} of {decisions.length} decisions
-              </span>
-              <span>Updated from governance event stream</span>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+					<DataTable columns={columns} data={filteredData} keyExtractor={(item) => item.id} />
+				</div>
+			</SectionCard>
+
+			<SlideOver isOpen={!!selectedDecision} onClose={() => setSelectedDecision(null)} title="Decision Review Details">
+				{selectedDecision && (
+					<div className="p-4">
+						<h3 className="font-semibold">{selectedDecision.id}</h3>
+						<p className="text-sm mt-2">{selectedDecision.description}</p>
+					</div>
+				)}
+			</SlideOver>
+		</div>
+	);
 }
+
