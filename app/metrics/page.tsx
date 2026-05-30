@@ -1,38 +1,45 @@
-import { getMetrics } from "@/lib/api";
-import Sidebar from "@/app/components/Sidebar";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
+import { PageHeader } from "@/app/components/ui/PageHeader";
+import { getDashboardMetrics } from "@/lib/api";
 
 export default async function MetricsPage() {
-  const metrics = await getMetrics().catch(() => ({
-    error: "Unable to load metrics",
-  }));
+  const metrics = await getDashboardMetrics();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f5ef]">
-      <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Navbar />
-        <div className="flex-1 overflow-y-auto texture relative">
-          <main className="p-6 md:p-10 max-w-[1440px] mx-auto space-y-8 pb-20">
-            <div>
-              <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900">
-                Platform Metrics
-              </h1>
-              <p className="text-slate-500 font-medium mt-2 text-[15px]">
-                Technical telemetry and aggregate AI performance data.
-              </p>
-            </div>
+    <AppShell
+      title="Platform metrics"
+      description="Live platform telemetry, risk distribution, and operational performance for your AI governance stack."
+    >
+      <PageHeader
+        title="Metrics"
+        description="A unified view of system health, decision outcomes, and overall governance efficacy."
+      />
 
-            <div className="premium-panel glass rounded-[32px] p-6 shadow-premium overflow-hidden">
-              <div className="bg-slate-900 rounded-2xl p-6 overflow-x-auto shadow-inner ring-1 ring-slate-800">
-                <pre className="text-[13px] text-emerald-400 font-mono leading-relaxed">
-                  {JSON.stringify(metrics, null, 2)}
-                </pre>
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+        <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/30">
+          <h2 className="text-lg font-semibold text-slate-950">Platform snapshot</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {metrics.overview.slice(0, 4).map((item) => (
+              <div key={item.label} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm text-slate-500">{item.label}</p>
+                <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
               </div>
-            </div>
-          </main>
-        </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/30">
+          <h2 className="text-lg font-semibold text-slate-950">Risk distribution</h2>
+          <div className="mt-6 space-y-3">
+            {metrics.riskDistribution.map((item) => (
+              <div key={item.name} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-medium text-slate-700">{item.name}</p>
+                <p className="text-sm font-semibold text-slate-950">{Math.round((item.value / metrics.riskDistribution.reduce((sum, bucket) => sum + bucket.value, 0)) * 100)}%</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
-    </div>
+    </AppShell>
   );
 }

@@ -1,10 +1,17 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Activity,
+  AlertTriangle,
+  ArrowUpRight,
   BadgeDollarSign,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
   CreditCard,
   DatabaseZap,
   KeyRound,
   ReceiptText,
+  ShieldCheck,
 } from "lucide-react";
 
 export type RiskLevel = "High Risk" | "Medium Risk" | "Low Risk";
@@ -29,6 +36,57 @@ export type ApprovalRecord = {
   requestedAt: string;
   owner: string;
   icon: LucideIcon;
+};
+
+export type AgentRecord = {
+  id: string;
+  name: string;
+  owner: string;
+  status: "Active" | "Paused" | "Archived";
+  riskLevel: "High" | "Medium" | "Low";
+  lastActivity: string;
+  policies: string[];
+  decisions: number;
+  approvalRate: number;
+};
+
+export type PolicyRecord = {
+  id: string;
+  name: string;
+  category: string;
+  status: "Active" | "Paused" | "Draft";
+  lastUpdated: string;
+  assignedAgents: number;
+};
+
+export type AuditLogRecord = {
+  id: string;
+  timestamp: string;
+  event: string;
+  actor: string;
+  policy: string;
+  outcome: string;
+  detail: string;
+};
+
+export type ActivityEvent = {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  outcome: string;
+  icon: LucideIcon;
+};
+
+export type TrendPoint = {
+  label: string;
+  value: number;
+};
+
+export type RiskBucket = {
+  name: string;
+  value: number;
+  color: string;
 };
 
 export const decisions: DecisionRecord[] = [
@@ -302,14 +360,229 @@ export const approvals: ApprovalRecord[] = [
   },
 ];
 
-export const metrics = {
-  pending: 42,
-  approvedToday: 318,
-  rejectedToday: 19,
-  averageReviewTime: "4m 18s",
-  riskSummary: [
-    { name: "High Risk Requests", value: 12, fill: "#ef4444" },
-    { name: "Medium Risk Requests", value: 21, fill: "#f59e0b" },
-    { name: "Low Risk Requests", value: 9, fill: "#22c55e" },
+export const agents: AgentRecord[] = [
+  {
+    id: "agent-1",
+    name: "Revenue Ops Agent",
+    owner: "Revenue Desk",
+    status: "Active",
+    riskLevel: "High",
+    lastActivity: "2 minutes ago",
+    policies: ["Discount Policy", "Fraud Guardrail"],
+    decisions: 72,
+    approvalRate: 84,
+  },
+  {
+    id: "agent-2",
+    name: "Data Privacy Agent",
+    owner: "Privacy Ops",
+    status: "Active",
+    riskLevel: "High",
+    lastActivity: "5 minutes ago",
+    policies: ["GDPR Control", "Data Retention"],
+    decisions: 56,
+    approvalRate: 77,
+  },
+  {
+    id: "agent-3",
+    name: "Support Resolution Agent",
+    owner: "Support QA",
+    status: "Active",
+    riskLevel: "Medium",
+    lastActivity: "12 minutes ago",
+    policies: ["Refund Threshold", "Customer Safety"],
+    decisions: 132,
+    approvalRate: 92,
+  },
+  {
+    id: "agent-4",
+    name: "Developer Platform Agent",
+    owner: "Platform Security",
+    status: "Active",
+    riskLevel: "Medium",
+    lastActivity: "18 minutes ago",
+    policies: ["API Access", "Credential Management"],
+    decisions: 98,
+    approvalRate: 89,
+  },
+  {
+    id: "agent-5",
+    name: "Finance Agent",
+    owner: "Corporate Finance",
+    status: "Paused",
+    riskLevel: "Low",
+    lastActivity: "48 minutes ago",
+    policies: ["Payment Approval", "Invoice Control"],
+    decisions: 64,
+    approvalRate: 95,
+  },
+];
+
+export const policies: PolicyRecord[] = [
+  {
+    id: "policy-1",
+    name: "Enterprise Discount Guardrail",
+    category: "Finance",
+    status: "Active",
+    lastUpdated: "May 29, 2026",
+    assignedAgents: 3,
+  },
+  {
+    id: "policy-2",
+    name: "GDPR Data Deletion Control",
+    category: "Privacy",
+    status: "Active",
+    lastUpdated: "May 28, 2026",
+    assignedAgents: 2,
+  },
+  {
+    id: "policy-3",
+    name: "Refund Threshold Policy",
+    category: "Customer Service",
+    status: "Active",
+    lastUpdated: "May 27, 2026",
+    assignedAgents: 1,
+  },
+  {
+    id: "policy-4",
+    name: "Scoped API Access",
+    category: "Security",
+    status: "Active",
+    lastUpdated: "May 25, 2026",
+    assignedAgents: 2,
+  },
+  {
+    id: "policy-5",
+    name: "Vendor Change Review",
+    category: "Procurement",
+    status: "Paused",
+    lastUpdated: "May 23, 2026",
+    assignedAgents: 1,
+  },
+];
+
+export const auditLogs: AuditLogRecord[] = [
+  {
+    id: "log-1",
+    timestamp: "May 30, 2026 10:46 AM",
+    event: "Approval requested",
+    actor: "Finance Review",
+    policy: "External Transfer Approval",
+    outcome: "Pending",
+    detail: "External payment requires human review after threshold breach.",
+  },
+  {
+    id: "log-2",
+    timestamp: "May 30, 2026 10:39 AM",
+    event: "Policy violation detected",
+    actor: "Data Privacy Agent",
+    policy: "GDPR Data Deletion Control",
+    outcome: "Escalated",
+    detail: "Customer deletion request triggers privacy review.",
+  },
+  {
+    id: "log-3",
+    timestamp: "May 30, 2026 10:27 AM",
+    event: "Decision approved",
+    actor: "Revenue Desk",
+    policy: "Enterprise Discount Guardrail",
+    outcome: "Approved",
+    detail: "Strategic renewal pricing override granted.",
+  },
+  {
+    id: "log-4",
+    timestamp: "May 30, 2026 10:18 AM",
+    event: "Access request evaluated",
+    actor: "Platform Security",
+    policy: "Scoped API Access",
+    outcome: "Approved",
+    detail: "Temporary partner access granted for integration.",
+  },
+  {
+    id: "log-5",
+    timestamp: "May 30, 2026 9:54 AM",
+    event: "Refund review submitted",
+    actor: "Support QA",
+    policy: "Refund Threshold Policy",
+    outcome: "Pending",
+    detail: "Request exceeds automated refund limits.",
+  },
+];
+
+export const activityFeed: ActivityEvent[] = [
+  {
+    id: "activity-1",
+    title: "High-risk payment request queued",
+    description: "Payments Agent submitted an external transfer that requires executive review.",
+    time: "2 minutes ago",
+    outcome: "Pending",
+    icon: CreditCard,
+  },
+  {
+    id: "activity-2",
+    title: "Privacy policy triggered",
+    description: "Data Privacy Agent detected a GDPR deletion request during runtime.",
+    time: "8 minutes ago",
+    outcome: "Escalated",
+    icon: DatabaseZap,
+  },
+  {
+    id: "activity-3",
+    title: "Revenue override approved",
+    description: "Revenue Ops Agent received sign-off for a strategic pricing exception.",
+    time: "15 minutes ago",
+    outcome: "Approved",
+    icon: BadgeDollarSign,
+  },
+  {
+    id: "activity-4",
+    title: "API access scope validated",
+    description: "Developer Platform Agent requested partner access under platform controls.",
+    time: "22 minutes ago",
+    outcome: "Approved",
+    icon: KeyRound,
+  },
+  {
+    id: "activity-5",
+    title: "Customer refund flagged",
+    description: "Support Resolution Agent submitted an above-threshold refund request.",
+    time: "38 minutes ago",
+    outcome: "Pending",
+    icon: ReceiptText,
+  },
+];
+
+export const dashboardMetrics = {
+  overview: [
+    { label: "Governance Score", value: "92.4", detail: "Stable compliance across all agents." },
+    { label: "Active Agents", value: 18, detail: "Active workflows running now." },
+    { label: "Pending Approvals", value: 14, detail: "Decisions awaiting manual review." },
+    { label: "High Risk Decisions", value: 8, detail: "Priority items flagged by policies." },
+    { label: "Policy Violations", value: 4, detail: "Recent guardrail breaches." },
+    { label: "Decisions Today", value: 224, detail: "AI decisions processed this session." },
   ],
+  trend: [
+    { label: "Mon", value: 32 },
+    { label: "Tue", value: 38 },
+    { label: "Wed", value: 44 },
+    { label: "Thu", value: 52 },
+    { label: "Fri", value: 48 },
+    { label: "Sat", value: 38 },
+    { label: "Sun", value: 52 },
+  ] as TrendPoint[],
+  riskDistribution: [
+    { name: "High Risk", value: 8, color: "#ef4444" },
+    { name: "Medium Risk", value: 21, color: "#f59e0b" },
+    { name: "Low Risk", value: 13, color: "#22c55e" },
+  ] as RiskBucket[],
 };
+
+export const recentDecisions = decisions.slice(0, 5);
+
+export const policyCards = policies;
+
+export const approvalQueue = approvals;
+
+export const auditTimeline = auditLogs;
+
+export const systemActivity = activityFeed;

@@ -1,29 +1,98 @@
-import Sidebar from "@/app/components/Sidebar";
-import Navbar from "@/app/components/Navbar";
+"use client";
+
+import { useMemo, useState } from "react";
+import AppShell from "@/app/components/AppShell";
+import { PageHeader } from "@/app/components/ui/PageHeader";
+import { DataTable } from "@/app/components/ui/DataTable";
+import { StatusBadge } from "@/app/components/ui/StatusBadge";
+import { policies } from "@/lib/mockData";
+
+const statusVariant = (status: string) =>
+  status === "Active" ? "approved" : status === "Paused" ? "pending" : "rejected";
 
 export default function PoliciesPage() {
-  return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f5ef]">
-      <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Navbar />
-        <div className="flex-1 overflow-y-auto texture relative">
-          <main className="p-6 md:p-10 max-w-[1440px] mx-auto space-y-8 pb-20">
-            <div>
-              <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900">
-                Enterprise Policies
-              </h1>
-              <p className="text-slate-500 font-medium mt-2 text-[15px]">
-                Define and enforce rules across your autonomous AI agents.
-              </p>
-            </div>
+  const [selected, setSelected] = useState<string | null>(policies[0]?.id ?? null);
+  const policy = useMemo(() => policies.find((policy) => policy.id === selected) ?? policies[0], [selected]);
 
-            <div className="premium-panel glass rounded-[32px] p-12 text-center shadow-sm ring-1 ring-black/5">
-              <p className="text-slate-500 font-bold">Policy management interface coming soon.</p>
+  return (
+    <AppShell
+      title="Policy management"
+      description="Manage compliance rules, enforcement status, and agent assignments from a single enterprise policy hub."
+    >
+      <PageHeader
+        title="Policies"
+        description="Review, inspect, and manage enterprise policy coverage across all autonomous agents."
+      />
+
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/30">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Policy table</p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">Active governance rules</h2>
             </div>
-          </main>
+          </div>
+
+          <DataTable
+            columns={[
+              { header: "Name", accessor: "name" },
+              { header: "Category", accessor: "category" },
+              {
+                header: "Status",
+                cell: (row) => <StatusBadge label={row.status} variant={statusVariant(row.status)} />,
+              },
+              { header: "Updated", accessor: "lastUpdated" },
+              { header: "Assigned agents", accessor: "assignedAgents" },
+            ]}
+            data={policies}
+            keyExtractor={(item) => item.id}
+            emptyMessage="No policies available."
+          />
         </div>
+
+        <aside className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/30">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Policy detail</p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">{policy.name}</h2>
+            </div>
+            <StatusBadge label={policy.status} variant={statusVariant(policy.status)} />
+          </div>
+
+          <div className="mt-6 space-y-4 text-sm text-slate-600">
+            <div>
+              <p className="font-semibold text-slate-950">Category</p>
+              <p className="mt-2">{policy.category}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-950">Last updated</p>
+              <p className="mt-2">{policy.lastUpdated}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-950">Assigned agents</p>
+              <p className="mt-2">{policy.assignedAgents} agents</p>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-600">You can select a policy in the table to review its details and adjust assignments.</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3">
+            {policies.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setSelected(item.id)}
+                className={`rounded-3xl border p-4 text-left transition ${
+                  item.id === selected ? "border-sky-500 bg-sky-50 text-slate-950" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <p className="font-semibold">{item.name}</p>
+                <p className="mt-1 text-sm text-slate-500">{item.category}</p>
+              </button>
+            ))}
+          </div>
+        </aside>
       </div>
-    </div>
+    </AppShell>
   );
 }
