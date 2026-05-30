@@ -7,30 +7,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum MembershipRole {
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
   OWNER
   ADMIN
   REVIEWER
-  MEMBER
+  ANALYST
   VIEWER
 }
 
-enum AgentStatus {
+enum WorkspaceType {
+  PRODUCTION
+  STAGING
+  DEMO
+}
+
+enum AIWorkerStatus {
   ACTIVE
   PAUSED
   ARCHIVED
+  INACTIVE
+}
+
+enum PermissionAction {
+  READ
+  WRITE
+  EXECUTE
+  DELETE
+  ADMIN
+}
+
+enum PermissionResource {
+  CRM
+  EMAIL
+  CUSTOMER_DATA
+  PAYMENTS
+  PRODUCTION
+  INFRASTRUCTURE
+  AUDIT_LOGS
+  CUSTOM
+}
+
+enum PolicyStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+  DRAFT
+}
+
+enum PolicyEnforcementMode {
+  ALERT
+  REQUIRE_APPROVAL
+  BLOCK
+  MONITOR
 }
 
 enum DecisionStatus {
   PENDING
   APPROVED
   REJECTED
+  ESCALATED
 }
 
 enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+  ESCALATED
+  COMMENTED
 }
 
 enum RiskLevel {
@@ -40,124 +87,463 @@ enum RiskLevel {
   CRITICAL
 }
 
+enum InvestigationStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum AuditEventType {
+  AI_DECISION
+  AI_ACTION
+  POLICY_APPLIED
+  APPROVAL_REQUESTED
+  APPROVAL_GRANTED
+  APPROVAL_REJECTED
+  PERMISSION_GRANTED
+  PERMISSION_REVOKED
+  WORKER_CREATED
+  WORKER_UPDATED
+  WORKER_DELETED
+  POLICY_CREATED
+  POLICY_UPDATED
+  USER_CREATED
+  USER_DELETED
+  LOGIN
+  LOGOUT
+}
+
+// ============================================================================
+// ORGANIZATIONS & WORKSPACES
+// ============================================================================
+
 model Organization {
-  id          String       @id @default(cuid())
-  name        String
-  slug        String       @unique
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  members     Membership[]
-  agents      Agent[]
-  decisions   Decision[]
-  auditLogs   AuditLog[]
-
-  @@map("organizations")
-}
-
-model UserProfile {
-  id          String       @id
-  email       String       @unique
-  fullName    String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  memberships Membership[]
-  approvals   Approval[]
-  auditLogs   AuditLog[]
-
-  @@map("user_profiles")
-}
-
-model Membership {
-  id              String           @id @default(cuid())
-  userId          String
-  organizationId  String
-  role            MembershipRole
-
-  createdAt       DateTime         @default(now())
-
-  user            UserProfile      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, organizationId])
-  @@map("memberships")
-}
-
-model Agent {
-  id              String           @id @default(cuid())
-  organizationId  String
-
-  name            String
-  description     String?
-  status          AgentStatus      @default(ACTIVE)
-
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-
-  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  decisions       Decision[]
-
-  @@map("agents")
-}
-
-model Decision {
   id                String            @id @default(cuid())
-  organizationId    String
-  agentId           String
-
-  title             String
-  description       String?
-
-  riskScore         Int
-  confidenceScore   Int
-
-  riskLevel         RiskLevel
-  status            DecisionStatus    @default(PENDING)
+  name              String
+  slug              String            @unique
+  logo              String?
+  complianceLevel   String?
+  riskScore         Int               @default(50)
 
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
-  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  agent             Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  // Relations
+  workspaces        Workspace[]
+  members           TeamMember[]
+  teams             Team[]
+  settings          OrgSettings?
 
+  @@map("organizations")
+}
+
+model OrgSettings {
+  id                String            @id @default(cuid())
+  organizationId    String            @unique
+  
+  ssoEnabled        Boolean           @default(false)
+  twoFactorRequired Boolean           @default(false)
+  auditLogRetention Int               @default(365)
+  customBranding    Json?
+  
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("org_settings")
+}
+
+model Workspace {
+  id                String            @id @default(cuid())
+  organizationId    String
+  name              String
+  slug              String
+  type              WorkspaceType     @default(PRODUCTION)
+  description       String?
+  isDemo            Boolean           @default(false)
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiWorkers         AIWorker[]
+  policies          Policy[]
+  decisions         Decision[]
+  approvals         Approval[]
+  auditLogs         AuditLog[]
+  riskEvents        RiskEvent[]
+  investigations    Investigation[]
+  notifications     Notification[]
+
+  @@unique([organizationId, slug])
+  @@map("workspaces")
+}
+
+// ============================================================================
+// USERS & TEAMS
+// ============================================================================
+
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  fullName          String?
+  passwordHash      String?
+  profileImage      String?
+  
+  emailVerified     DateTime?
+  resetTokenHash    String?
+  resetTokenExpiry  DateTime?
+  
+  lastLogin         DateTime?
+  status            String            @default("active")
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  teamMembers       TeamMember[]
+  approvals         Approval[]
+  activityEvents    ActivityEvent[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+model Team {
+  id                String            @id @default(cuid())
+  organizationId    String
+  name              String
+  description       String?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members           TeamMember[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id                String            @id @default(cuid())
+  userId            String
+  organizationId    String
+  teamId            String?
+  role              UserRole          @default(VIEWER)
+  
+  joinedAt          DateTime          @default(now())
+
+  // Relations
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team              Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, organizationId])
+  @@map("team_members")
+}
+
+// ============================================================================
+// AI WORKFORCE & IDENTITY
+// ============================================================================
+
+model AIWorker {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  
+  name              String
+  description       String?
+  role              String
+  department        String?
+  owner             String?
+  status            AIWorkerStatus    @default(ACTIVE)
+  
+  riskScore         Int               @default(0)
+  riskLevel         RiskLevel         @default(LOW)
+  confidenceScore   Int               @default(0)
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  identity          AIWorkerIdentity?
+  permissions       AIPermission[]
+  decisions         Decision[]
+  activityEvents    ActivityEvent[]
+
+  @@map("ai_workers")
+}
+
+model AIWorkerIdentity {
+  id                String            @id @default(cuid())
+  aiWorkerId        String            @unique
+  
+  workerId          String            @unique
+  authState         String            @default("unauthenticated")
+  lastActivity      DateTime?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  aiWorker          AIWorker          @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+
+  @@map("ai_worker_identities")
+}
+
+model AIPermission {
+  id                String            @id @default(cuid())
+  aiWorkerId        String
+  
+  action            PermissionAction
+  resource          PermissionResource
+  scope             String?
+  isGranted         Boolean           @default(false)
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  aiWorker          AIWorker          @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+
+  @@unique([aiWorkerId, action, resource])
+  @@map("ai_permissions")
+}
+
+// ============================================================================
+// POLICIES & GOVERNANCE
+// ============================================================================
+
+model Policy {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  
+  name              String
+  description       String?
+  category          String
+  status            PolicyStatus      @default(DRAFT)
+  enforcementMode   PolicyEnforcementMode @default(REQUIRE_APPROVAL)
+  
+  owner             String?
+  version           Int               @default(1)
+  assignedAgentCount Int              @default(0)
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  versions          PolicyVersion[]
+
+  @@map("policies")
+}
+
+model PolicyVersion {
+  id                String            @id @default(cuid())
+  policyId          String
+  
+  version           Int
+  content           Json
+  rules             Json
+  
+  createdAt         DateTime          @default(now())
+
+  // Relations
+  policy            Policy            @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@unique([policyId, version])
+  @@map("policy_versions")
+}
+
+// ============================================================================
+// DECISIONS & APPROVALS
+// ============================================================================
+
+model Decision {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  aiWorkerId        String
+  
+  title             String
+  description       String?
+  context           Json?
+  
+  riskScore         Int
+  confidenceScore   Int
+  riskLevel         RiskLevel         @default(MEDIUM)
+  status            DecisionStatus    @default(PENDING)
+  
+  policiesApplied   String[]
+  outcome           String?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  aiWorker          AIWorker          @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
   approvals         Approval[]
 
   @@map("decisions")
 }
 
 model Approval {
-  id            String           @id @default(cuid())
+  id                String            @id @default(cuid())
+  workspaceId       String
+  decisionId        String
+  reviewerId        String
+  
+  status            ApprovalStatus    @default(PENDING)
+  comment           String?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-  decisionId    String
-  reviewerId    String
-
-  status        ApprovalStatus   @default(PENDING)
-  comment       String?
-
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-
-  decision      Decision         @relation(fields: [decisionId], references: [id], onDelete: Cascade)
-  reviewer      UserProfile      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  decision          Decision          @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  reviewer          User              @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@map("approvals")
 }
 
+// ============================================================================
+// RISK & INVESTIGATIONS
+// ============================================================================
+
+model RiskEvent {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  
+  title             String
+  description       String?
+  riskLevel         RiskLevel
+  status            String            @default("open")
+  severity          String
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  investigation     Investigation?
+
+  @@map("risk_events")
+}
+
+model Investigation {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  riskEventId       String            @unique
+  
+  status            InvestigationStatus @default(OPEN)
+  assignedTo        String?
+  findings          Json?
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  riskEvent         RiskEvent         @relation(fields: [riskEventId], references: [id], onDelete: Cascade)
+
+  @@map("investigations")
+}
+
+// ============================================================================
+// AUDIT & ACTIVITY
+// ============================================================================
+
 model AuditLog {
-  id              String          @id @default(cuid())
+  id                String            @id @default(cuid())
+  workspaceId       String
+  actorId           String?
+  
+  eventType         AuditEventType
+  resource          String?
+  action            String
+  payload           Json?
+  outcome           String?
+  
+  createdAt         DateTime          @default(now())
 
-  organizationId  String
-  actorId         String?
-
-  action          String
-  payload         Json?
-
-  createdAt       DateTime        @default(now())
-
-  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actor           UserProfile?    @relation(fields: [actorId], references: [id])
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor             User?             @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+model ActivityEvent {
+  id                String            @id @default(cuid())
+  
+  aiWorkerId        String?
+  userId            String?
+  
+  title             String
+  description       String?
+  outcome           String
+  icon              String?
+  
+  createdAt         DateTime          @default(now())
+
+  // Relations
+  aiWorker          AIWorker?         @relation(fields: [aiWorkerId], references: [id], onDelete: SetNull)
+  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("activity_events")
+}
+
+// ============================================================================
+// PLATFORM & INTEGRATIONS
+// ============================================================================
+
+model APIKey {
+  id                String            @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  keyHash           String
+  createdBy         String?
+  lastUsed          DateTime?
+  
+  createdAt         DateTime          @default(now())
+  expiresAt         DateTime?
+
+  @@unique([organizationId, keyHash])
+  @@map("api_keys")
+}
+
+model Integration {
+  id                String            @id @default(cuid())
+  organizationId    String
+  
+  name              String
+  type              String
+  config            Json
+  isActive          Boolean           @default(false)
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("integrations")
+}
+
+model Notification {
+  id                String            @id @default(cuid())
+  workspaceId       String
+  userId            String?
+  
+  title             String
+  message           String?
+  type              String
+  read              Boolean           @default(false)
+  
+  createdAt         DateTime          @default(now())
+
+  // Relations
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
