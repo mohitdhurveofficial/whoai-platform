@@ -351,6 +351,46 @@ export default function ApprovalsClient({ initialApprovals }: { initialApprovals
                     )}
                   </div>
                 </div>
+
+                {/* Enterprise Approval Chain */}
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                    <FileClock size={14} /> Approval Chain & SLA
+                  </p>
+                  <div className="bg-white p-5 rounded-2xl ring-1 ring-slate-100 shadow-sm">
+                    <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2.5 before:h-full before:w-0.5 before:bg-slate-100">
+                      <div className="relative flex items-center gap-4">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 border-4 border-white flex items-center justify-center shrink-0 z-10"><CheckCircle2 className="w-3 h-3 text-white" /></div>
+                        <div className="flex-1 flex justify-between items-center">
+                          <span className="text-sm font-bold text-slate-900">Agent Proposal</span>
+                          <span className="text-xs text-slate-500">Approved</span>
+                        </div>
+                      </div>
+                      <div className="relative flex items-center gap-4">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 border-4 border-white flex items-center justify-center shrink-0 z-10"><CheckCircle2 className="w-3 h-3 text-white" /></div>
+                        <div className="flex-1 flex justify-between items-center">
+                          <span className="text-sm font-bold text-slate-900">Compliance Check</span>
+                          <span className="text-xs text-slate-500">Automated</span>
+                        </div>
+                      </div>
+                      <div className="relative flex items-center gap-4">
+                        <div className={`w-5 h-5 rounded-full border-4 border-white flex items-center justify-center shrink-0 z-10 ${selectedApproval.status === 'pending' ? 'bg-orange-500' : selectedApproval.status === 'approved' ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                          {selectedApproval.status === 'pending' ? <Clock className="w-3 h-3 text-white" /> : selectedApproval.status === 'approved' ? <CheckCircle2 className="w-3 h-3 text-white" /> : <XCircle className="w-3 h-3 text-white" />}
+                        </div>
+                        <div className="flex-1 flex justify-between items-center">
+                          <span className="text-sm font-bold text-slate-900">Security Officer</span>
+                          <span className="text-xs font-semibold capitalize text-slate-500">{selectedApproval.status}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {selectedApproval.status === 'pending' && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-500">SLA Deadline</span>
+                        <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md">2h 15m remaining</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Actions Footer */}

@@ -51,8 +51,28 @@ export function PolicyEditor({ policy, onCancel, onSave }: PolicyEditorProps) {
         </div>
         
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 mt-4">
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rule Builder Builder functionality goes here in future phases.</p>
-          <p className="text-xs text-slate-500">Currently displaying read-only parameters.</p>
+          <p className="text-sm font-bold text-slate-900 dark:text-white mb-3">Policy Simulator</p>
+          <div className="space-y-3">
+             <div className="flex gap-2">
+               <select className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                 <option>Select Agent Action to Simulate</option>
+                 <option>Agent: Create Database Instance</option>
+                 <option>Agent: Modify IAM Role</option>
+                 <option>Agent: Send Email Campaign</option>
+               </select>
+               <Button variant="secondary" type="button">Run Test</Button>
+             </div>
+             <div className="p-3 bg-slate-900 rounded-lg font-mono text-xs text-slate-300">
+               &gt; Evaluating against active policy...<br/>
+               {policy.enforcementMode === "Block" ? (
+                 <span className="text-rose-400">&gt; OUTCOME: Action BLOCKED by policy rules.</span>
+               ) : policy.enforcementMode === "Require Approval" ? (
+                 <span className="text-amber-400">&gt; OUTCOME: Action FLAGGED. Requires Human Approval.</span>
+               ) : (
+                 <span className="text-emerald-400">&gt; OUTCOME: Action ALLOWED. Monitor only.</span>
+               )}
+             </div>
+          </div>
         </div>
       </div>
 

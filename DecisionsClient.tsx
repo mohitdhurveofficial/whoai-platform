@@ -10,7 +10,7 @@ import { FilterTabs } from "@/app/components/ui/FilterTabs";
 import { RiskBadge } from "@/app/components/ui/RiskBadge";
 import { StatusBadge } from "@/app/components/ui/StatusBadge";
 import { SlideOver } from "@/app/components/ui/SlideOver";
-import { ListChecks, AlertTriangle, UserCheck, Activity, Eye, Download } from "lucide-react";
+import { ListChecks, AlertTriangle, UserCheck, Activity, Eye, Download, ShieldCheck, Users } from "lucide-react";
 
 const FILTER_TABS = ["All", "Low Risk", "Medium Risk", "High Risk", "Critical Risk", "Needs Approval", "Approved", "Rejected"];
 
@@ -91,11 +91,13 @@ export default function DecisionsClient({ initialData }: { initialData: Decision
         }
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard title="Decisions Today" value={initialData.length} icon={ListChecks} />
-        <KpiCard title="High Risk Decisions" value={highRiskCount} icon={AlertTriangle} trend={highRiskCount > 0 ? "up" : "neutral"} trendValue="Needs attention" />
-        <KpiCard title="Human Reviewed %" value={`${reviewRate}%`} icon={UserCheck} />
-        <KpiCard title="Avg Confidence Score" value={`${avgConfidence}%`} icon={Activity} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <KpiCard title="Decisions Today" value={initialData.length} icon={ListChecks} trend="up" trendValue="vs yesterday" />
+        <KpiCard title="High-Risk Agents" value={highRiskCount} icon={AlertTriangle} trend={highRiskCount > 0 ? "down" : "neutral"} trendValue="Needs attention" />
+        <KpiCard title="Approvals Pending" value={initialData.filter(d => d.status === "PENDING").length} icon={UserCheck} trend="neutral" trendValue="In queue" />
+        <KpiCard title="Policy Coverage %" value="94%" icon={ShieldCheck} trend="up" trendValue="Target: 100%" />
+        <KpiCard title="Agents Governance" value="100%" icon={Users} trend="up" trendValue="All agents" />
+        <KpiCard title="Compliance Health" value="A+" icon={Activity} trend="up" trendValue="Stable" />
       </div>
 
       <SectionCard title="Ledger Log">
@@ -119,7 +121,28 @@ export default function DecisionsClient({ initialData }: { initialData: Decision
                 <div><dt className="text-slate-500 mb-1">Decision ID</dt><dd className="font-mono text-slate-900 font-medium">{selectedDecision.id}</dd></div>
                 <div><dt className="text-slate-500 mb-1">Timestamp</dt><dd className="text-slate-900">{new Date(selectedDecision.timestamp).toLocaleString()}</dd></div>
                 <div className="sm:col-span-2"><dt className="text-slate-500 mb-1">Action</dt><dd className="text-slate-900 font-medium">{selectedDecision.action}</dd></div>
+                <div><dt className="text-slate-500 mb-1">Risk Score</dt><dd className="text-slate-900 font-medium flex items-center gap-2"><span className={`w-2 h-2 rounded-full ${selectedDecision.riskLevel === 'CRITICAL' || selectedDecision.riskLevel === 'HIGH' ? 'bg-rose-500' : selectedDecision.riskLevel === 'MEDIUM' ? 'bg-amber-500' : 'bg-emerald-500'}`} /> {selectedDecision.riskScore} / 100</dd></div>
+                <div><dt className="text-slate-500 mb-1">AI Confidence</dt><dd className="text-slate-900 font-medium">{selectedDecision.confidenceScore}%</dd></div>
               </dl>
+            </section>
+            <section>
+              <h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4">Explainability & Reasoning</h3>
+              <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm text-slate-700 italic shadow-sm leading-relaxed">
+                Based on the context provided to <span className="font-semibold text-slate-900">{selectedDecision.agentName}</span>, the model determined that executing the action "{selectedDecision.action}" yields the highest probability of success. The action was evaluated against active IAM and operational policies, mapping to a {selectedDecision.riskLevel} risk tier.
+              </div>
+            </section>
+            <section>
+              <h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4">Micro-Audit Trail</h3>
+              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[5px] before:h-full before:w-[2px] before:bg-slate-100 pl-4">
+                <div className="relative flex justify-between items-center text-sm">
+                   <div className="absolute -left-[15px] top-1.5 w-2 h-2 rounded-full bg-blue-500 ring-4 ring-white" />
+                   <span className="text-slate-700 font-medium">Agent Proposed Action</span><span className="text-slate-500 text-xs font-mono">{new Date(selectedDecision.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div className="relative flex justify-between items-center text-sm">
+                   <div className="absolute -left-[15px] top-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-white" />
+                   <span className="text-slate-700 font-medium">Policy Engine Verification</span><span className="text-slate-500 text-xs font-mono">+ 120ms</span>
+                </div>
+              </div>
             </section>
           </div>
         )}

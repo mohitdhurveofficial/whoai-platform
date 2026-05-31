@@ -6,6 +6,8 @@ import { RegistryMetrics } from "./RegistryMetrics";
 import { RegistryFilters } from "./RegistryFilters";
 import { RegistryTable } from "./RegistryTable";
 import { RegistryDrawer } from "./RegistryDrawer";
+import { Button } from "@/app/components/ui/Button";
+import { Plus } from "lucide-react";
 import { mockWorkers } from "./mockData";
 
 type AIWorker = (typeof mockWorkers)[number];
@@ -36,7 +38,15 @@ export function RegistryClient() {
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20">
-      <PageHeader title="Registry Center" description="The central source of truth for every AI Worker across your enterprise." />
+      <PageHeader 
+        title="Agent Registry" 
+        description="The central enterprise inventory for every AI Worker." 
+        actions={
+          <Button variant="primary" icon={Plus}>
+            Register Agent
+          </Button>
+        }
+      />
       <RegistryMetrics data={data} />
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] p-6 shadow-sm">
         <RegistryFilters 

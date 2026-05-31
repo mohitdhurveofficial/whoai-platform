@@ -1,5 +1,6 @@
 import React from "react";
-import { X, ShieldAlert } from "lucide-react";
+import { X, ShieldAlert, Archive, Edit2, Ban } from "lucide-react";
+import { Button } from "@/app/components/ui/Button";
 import { RegistryStatusBadge } from "./RegistryStatusBadge";
 import { WorkerIdentityCard } from "./WorkerIdentityCard";
 import { WorkerPermissionsCard } from "./WorkerPermissionsCard";
@@ -52,6 +53,12 @@ export function RegistryDrawer({ isOpen, onClose, worker }: RegistryDrawerProps)
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><WorkerPermissionsCard worker={worker} /><WorkerToolsCard worker={worker} /></div>
           <WorkerPoliciesCard worker={worker} />
           <WorkerActivityCard worker={worker} />
+        </div>
+        
+        <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3 shrink-0">
+           <Button variant="ghost" className="flex-1" icon={Edit2}>Edit Agent</Button>
+           <Button variant="secondary" className="flex-1" icon={Ban}>Disable</Button>
+           <Button variant="danger" className="flex-1 text-rose-600" icon={Archive}>Archive</Button>
         </div>
       </div>
     </>
