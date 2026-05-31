@@ -1,3 +1,66 @@
+import React, { Suspense } from 'react';
+import MetricsGrid from './MetricsGrid';
+import DecisionChart from './DecisionChart';
+import RiskChart from './RiskChart';
+import RecentDecisions from './RecentDecisions';
+import ApprovalQueue from './ApprovalQueue';
+import AuditFeed from './AuditFeed';
+import SystemHealth from './SystemHealth';
+
+async function DashboardContent() {
+  // In production, fetch this dynamically:
+  // const dbDecisions = await prisma.decision.findMany({ ... })
+  // const dbApprovals = await prisma.approval.findMany({ ... })
+  
+  // Passing empty properties to trigger the production Empty/Zero States 
+  // until the Prisma DB data fetching is wired in.
+  const initialMetrics = {
+    activeWorkers: 0,
+    totalDecisions: 0,
+    pendingApprovals: 0,
+    riskEvents: 0,
+    governanceScore: 100,
+  };
+
+  return (
+    <div className="space-y-6">
+      <MetricsGrid data={initialMetrics} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <DecisionChart data={[]} />
+        </div>
+        <div>
+          <RiskChart data={[]} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <RecentDecisions decisions={[]} />
+          <ApprovalQueue approvals={[]} />
+        </div>
+        <div className="space-y-6">
+          <SystemHealth status="HEALTHY" />
+          <AuditFeed events={[]} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
-  return <div>Dashboard</div>;
+  return (
+    <div className="p-6 max-w-[1600px] mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Workspace Overview</h1>
+          <p className="text-sm text-slate-500 mt-1">Real-time governance activity and human-in-the-loop approvals.</p>
+        </div>
+      </div>
+      <Suspense fallback={<MetricsGrid isLoading={true} />}>
+        <DashboardContent />
+      </Suspense>
+    </div>
+  );
 }

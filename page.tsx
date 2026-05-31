@@ -7,7 +7,7 @@ export default async function DecisionsPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  const formatted = decisions.map(d => ({
+  const formatted = decisions.map((d) => ({
     id: d.id,
     timestamp: d.createdAt.toISOString(),
     agentId: d.aiWorkerId,
