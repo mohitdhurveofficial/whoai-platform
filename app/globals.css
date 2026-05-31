@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: "Axiforma";
   src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/7554ea643bf147df-s.p.woff2")
@@ -55,13 +57,28 @@
 }
 
 :root {
-  --background: #f8f5ef;
-  --foreground: #111111;
-  --muted: #6b6258;
-  --orange: #f97316;
-  --orange-dark: #c2410c;
+  --background: #f6f7f9;
+  --foreground: #101828;
+  --muted: #667085;
+  --surface: #ffffff;
+  --surface-subtle: #f9fafb;
+  --border: #d9e0ea;
+  --orange: #ea580c;
+  --orange-strong: #c2410c;
+  --orange-soft: #fff4ed;
+  --blue: #2563eb;
+  --success: #047857;
+  --warning: #b45309;
+  --critical: #be123c;
+  --disabled: #64748b;
   --navy: #0b1220;
-  --font-axiforma: "Axiforma", Arial, Helvetica, sans-serif;
+  --font-axiforma: "Axiforma", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 10px 28px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 24px 70px rgba(16, 24, 40, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
 * {
@@ -79,10 +96,23 @@ body {
   padding: 0;
 }
 
+html.dark {
+  --background: #0b1220;
+  --foreground: #f8fafc;
+  --muted: #94a3b8;
+  --surface: #111827;
+  --surface-subtle: #0f172a;
+  --border: #263244;
+  --orange-soft: rgba(234, 88, 12, 0.16);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-axiforma);
+  font-size: 14px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -139,14 +169,12 @@ a {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(26px) saturate(1.08);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(1.04);
 }
 
 .shadow-premium {
-  box-shadow:
-    0 28px 80px rgba(7, 17, 38, 0.075),
-    0 8px 22px rgba(7, 17, 38, 0.045);
+  box-shadow: var(--shadow-md);
 }
 
 .shadow-button-dark {
@@ -174,7 +202,7 @@ a {
 }
 
 .orange-gradient {
-  background: linear-gradient(105deg, #ff8a1f 0%, #ff6a00 42%, #f15a18 100%);
+  background: linear-gradient(105deg, #fb923c 0%, #ea580c 48%, #c2410c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -227,11 +255,88 @@ a {
 }
 
 .premium-panel {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.74)),
-    linear-gradient(115deg, rgba(249, 115, 22, 0.04), transparent 42%);
-  border: 1px solid rgba(7, 17, 38, 0.06);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 22px 70px rgba(7, 17, 38, 0.07);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--foreground);
+    letter-spacing: 0;
+  }
+
+  p,
+  span,
+  td,
+  th,
+  label,
+  input,
+  textarea,
+  select,
+  button {
+    letter-spacing: 0;
+  }
+
+  input,
+  textarea,
+  select {
+    color: var(--foreground);
+  }
+
+  ::selection {
+    background: rgba(234, 88, 12, 0.18);
+  }
+}
+
+@layer components {
+  .whoai-page {
+    min-height: 100vh;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 280px),
+      var(--background);
+    color: var(--foreground);
+  }
+
+  .dark .whoai-page {
+    background:
+      linear-gradient(180deg, rgba(30, 41, 59, 0.32), transparent 280px),
+      var(--background);
+  }
+
+  .whoai-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .whoai-card-hover {
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .whoai-card-hover:hover {
+    border-color: rgba(234, 88, 12, 0.32);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .whoai-section-title {
+    color: var(--foreground);
+    font-size: 0.95rem;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .whoai-muted {
+    color: var(--muted);
+  }
+
+  .whoai-focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.18);
+  }
 }

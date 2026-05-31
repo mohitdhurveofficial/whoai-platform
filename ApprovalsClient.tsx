@@ -12,7 +12,6 @@ import {
   Eye,
   X,
   Activity,
-  ShieldCheck,
   ChevronRight,
   Filter
 } from "lucide-react";
@@ -45,7 +44,10 @@ export default function ApprovalsClient({ initialApprovals }: { initialApprovals
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const pendingCount = approvals.filter((a) => a.status === "pending").length;
   const approvedCount = approvals.filter((a) => a.status === "approved").length;
@@ -133,10 +135,10 @@ export default function ApprovalsClient({ initialApprovals }: { initialApprovals
             <div className="pl-3 pr-2 text-slate-400 hidden sm:block">
               <Filter size={16} />
             </div>
-            {["all", "pending", "approved", "rejected"].map((status) => (
+            {(["all", "pending", "approved", "rejected"] satisfies Array<ApprovalStatus | "all">).map((status) => (
               <button
                 key={status}
-                onClick={() => setStatusFilter(status as any)}
+                onClick={() => setStatusFilter(status)}
                 className={`px-5 py-2 rounded-xl text-[13px] font-bold capitalize transition-all whitespace-nowrap ${
                   statusFilter === status
                     ? "bg-white text-slate-900 shadow-sm ring-1 ring-black/5"

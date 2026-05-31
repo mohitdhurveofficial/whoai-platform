@@ -17,9 +17,9 @@ interface MetricsGridProps {
 export default function MetricsGrid({ data, isLoading }: MetricsGridProps) {
   if (isLoading || !data) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-pulse">
+          <div key={i} className="whoai-card p-5 animate-pulse">
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-4"></div>
             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-2"></div>
             <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mt-2"></div>
@@ -38,14 +38,16 @@ export default function MetricsGrid({ data, isLoading }: MetricsGridProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
       {metrics.map((metric, idx) => (
-        <div key={idx} className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div key={idx} className="whoai-card whoai-card-hover p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">{metric.title}</h3>
-            <metric.icon className={`h-5 w-5 ${metric.alert ? 'text-amber-500' : 'text-blue-500'}`} />
+            <h3 className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{metric.title}</h3>
+            <span className={`rounded-lg p-2 ${metric.alert ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200' : 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-200'}`}>
+              <metric.icon className="h-4 w-4" />
+            </span>
           </div>
-          <p className="text-2xl font-semibold text-slate-900 dark:text-white">{metric.value}</p>
+          <p className="text-3xl font-semibold leading-none text-slate-950 dark:text-white">{metric.value}</p>
           <p className={`text-sm mt-2 ${metric.alert ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
             {metric.trend}
           </p>

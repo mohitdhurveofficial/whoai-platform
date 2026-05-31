@@ -14,14 +14,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const stored = localStorage.getItem("whoai-theme") as Theme | null;
-    if (stored) {
-      setTheme(stored);
-      if (stored === "dark") document.documentElement.classList.add("dark");
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-      document.documentElement.classList.add("dark");
-    }
+    const timer = window.setTimeout(() => {
+      const stored = localStorage.getItem("whoai-theme");
+      const nextTheme: Theme =
+        stored === "light" || stored === "dark"
+          ? stored
+          : window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+      setTheme(nextTheme);
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+      document.documentElement.style.colorScheme = nextTheme;
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const toggleTheme = () => {
@@ -29,6 +36,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const newTheme = prev === "light" ? "dark" : "light";
       localStorage.setItem("whoai-theme", newTheme);
       document.documentElement.classList.toggle("dark", newTheme === "dark");
+      document.documentElement.style.colorScheme = newTheme;
       return newTheme;
     });
   };

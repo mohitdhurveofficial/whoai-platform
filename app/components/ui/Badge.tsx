@@ -15,20 +15,20 @@ export function Badge({ children, variant = "secondary", showDot, icon: Icon }: 
     critical: tokens.colors.criticalBg,
     info: tokens.colors.infoBg,
     primary: tokens.colors.primaryLightBg,
-    secondary: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
+    secondary: tokens.colors.disabledBg,
   };
 
   const dotClasses = {
     success: "bg-emerald-500",
     warning: "bg-amber-500",
     critical: "bg-rose-500",
-    info: "bg-violet-500",
-    primary: "bg-blue-500",
+    info: "bg-blue-500",
+    primary: "bg-orange-500",
     secondary: "bg-slate-500",
   };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${variantClasses[variant]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold leading-none ${variantClasses[variant]}`}>
       {showDot && <span className={`h-1.5 w-1.5 rounded-full ${dotClasses[variant]}`}></span>}
       {Icon && <Icon className="h-3.5 w-3.5" />}
       {children}

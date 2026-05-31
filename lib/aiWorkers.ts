@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type AIWorkerCreateInput = {
   name: string;
@@ -12,7 +13,17 @@ async function getOrCreateDemoWorkspaceId() {
   return "demo-workspace";
 }
 
-function normalizeAIWorker(worker: any) {
+type AIWorkerWithDecisionCount = Prisma.AIWorkerGetPayload<{
+  include: {
+    _count: {
+      select: {
+        decisions: true;
+      };
+    };
+  };
+}>;
+
+function normalizeAIWorker(worker: AIWorkerWithDecisionCount) {
   return {
     id: worker.id,
     name: worker.name,

@@ -18,10 +18,10 @@ export async function GET(req: Request) {
       ""
     );
 
-    const payload: any =
+    const payload =
       verifyToken(token);
 
-    if (!payload) {
+    if (!payload || typeof payload !== "object" || !("userId" in payload) || typeof payload.userId !== "string") {
       return Response.json(
         { error: "Invalid token" },
         { status: 401 }

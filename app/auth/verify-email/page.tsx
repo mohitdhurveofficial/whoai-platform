@@ -16,8 +16,6 @@ export default function VerifyEmailPage() {
     if (resendCountdown > 0) {
       const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (resendCountdown === 0 && !canResend) {
-      setCanResend(true);
     }
   }, [resendCountdown, canResend]);
 
@@ -62,6 +60,7 @@ export default function VerifyEmailPage() {
   const handleResend = async () => {
     setCanResend(false);
     setResendCountdown(60);
+    window.setTimeout(() => setCanResend(true), 60000);
     // Placeholder: In production, resend verification email
   };
 
@@ -111,7 +110,7 @@ export default function VerifyEmailPage() {
       </button>
 
       <div className="text-center">
-        <p className="text-sm text-slate-600 mb-2">Didn't receive the code?</p>
+        <p className="text-sm text-slate-600 mb-2">Didn&apos;t receive the code?</p>
         <button
           type="button"
           onClick={handleResend}

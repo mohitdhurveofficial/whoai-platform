@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import DecisionMetrics from "@/app/components/decisions/DecisionMetrics";
 import DecisionTable from "@/app/components/decisions/DecisionTable";
 import DecisionFilters from "@/app/components/decisions/DecisionFilters";
@@ -12,7 +12,6 @@ import { PageHeader } from "@/app/components/ui/PageHeader";
 
 export default function DecisionsPage() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
-  const [filteredDecisions, setFilteredDecisions] = useState<Decision[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -25,7 +24,6 @@ export default function DecisionsPage() {
 
       setTimeout(() => {
         setDecisions(mockDecisions);
-        setFilteredDecisions(mockDecisions);
         setIsLoading(false);
       }, 800);
     };
@@ -33,21 +31,19 @@ export default function DecisionsPage() {
     fetchDecisions();
   }, []);
 
-  useEffect(() => {
+  const filteredDecisions = useMemo(() => {
     if (searchQuery.trim() === "") {
-      setFilteredDecisions(decisions);
-    } else {
-      const lowerQuery = searchQuery.toLowerCase();
-
-      setFilteredDecisions(
-        decisions.filter(
-          (decision) =>
-            decision.action.toLowerCase().includes(lowerQuery) ||
-            decision.workerName.toLowerCase().includes(lowerQuery) ||
-            decision.policy.toLowerCase().includes(lowerQuery)
-        )
-      );
+      return decisions;
     }
+
+    const lowerQuery = searchQuery.toLowerCase();
+
+    return decisions.filter(
+      (decision) =>
+        decision.action.toLowerCase().includes(lowerQuery) ||
+        decision.workerName.toLowerCase().includes(lowerQuery) ||
+        decision.policy.toLowerCase().includes(lowerQuery)
+    );
   }, [searchQuery, decisions]);
 
   const handleRowClick = (decision: Decision) => {

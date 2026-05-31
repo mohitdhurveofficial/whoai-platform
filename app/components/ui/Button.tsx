@@ -7,12 +7,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({ variant = "primary", icon: Icon, children, className = "", ...props }: ButtonProps) {
-  const baseClass = "flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200";
+  const baseClass = "inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold leading-5 transition-all duration-150 focus-visible:whoai-focus disabled:cursor-not-allowed disabled:opacity-55";
   const variantClass = {
     primary: tokens.colors.primaryBg,
     secondary: tokens.colors.secondaryBg,
-    danger: "bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-sm",
-    ghost: "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+    danger: "bg-white dark:bg-slate-950 border border-rose-200 dark:border-rose-800/70 text-rose-700 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-500/10 shadow-sm",
+    ghost: "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800",
   };
 
   return (

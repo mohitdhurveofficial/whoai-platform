@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { SectionCard } from "@/components/ui/SectionCard";
-import { DataTable } from "@/components/ui/DataTable";
+import { DataTable, type DataTableProps } from "@/components/ui/DataTable";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { FilterTabs } from "@/components/ui/FilterTabs";
 import { RiskBadge } from "@/components/ui/RiskBadge";
@@ -14,10 +14,21 @@ import { ListChecks, AlertTriangle, UserCheck, Activity, Eye, Download } from "l
 
 const FILTER_TABS = ["All", "Low Risk", "Medium Risk", "High Risk", "Critical Risk", "Needs Approval", "Approved", "Rejected"];
 
-export default function DecisionsClient({ initialData }: { initialData: any[] }) {
+type DecisionLedgerItem = {
+  id: string;
+  timestamp: string;
+  agentName: string;
+  action: string;
+  riskScore: number;
+  riskLevel: string;
+  confidenceScore: number;
+  status: string;
+};
+
+export default function DecisionsClient({ initialData }: { initialData: DecisionLedgerItem[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
-  const [selectedDecision, setSelectedDecision] = useState<any | null>(null);
+  const [selectedDecision, setSelectedDecision] = useState<DecisionLedgerItem | null>(null);
 
   const highRiskCount = initialData.filter(d => d.riskScore >= 70).length;
   const reviewedCount = initialData.filter(d => d.status !== "PENDING").length;
@@ -46,15 +57,15 @@ export default function DecisionsClient({ initialData }: { initialData: any[] })
     });
   }, [searchQuery, activeTab, initialData]);
 
-  const columns = [
-    { header: "Decision ID", accessorKey: "id", cell: (item: any) => <span className="font-mono text-xs text-slate-600">{item.id.substring(0,8)}</span> },
-    { header: "Timestamp", accessorKey: "timestamp", cell: (item: any) => <span className="text-slate-600">{new Date(item.timestamp).toLocaleString()}</span> },
-    { header: "Agent", accessorKey: "agentName", cell: (item: any) => <span className="font-medium text-slate-900">{item.agentName}</span> },
+  const columns: DataTableProps<DecisionLedgerItem>["columns"] = [
+    { header: "Decision ID", accessorKey: "id", cell: (item: DecisionLedgerItem) => <span className="font-mono text-xs text-slate-600">{item.id.substring(0,8)}</span> },
+    { header: "Timestamp", accessorKey: "timestamp", cell: (item: DecisionLedgerItem) => <span className="text-slate-600">{new Date(item.timestamp).toLocaleString()}</span> },
+    { header: "Agent", accessorKey: "agentName", cell: (item: DecisionLedgerItem) => <span className="font-medium text-slate-900">{item.agentName}</span> },
     { header: "Action", accessorKey: "action" },
-    { header: "Risk Score", accessorKey: "riskScore", cell: (item: any) => <RiskBadge level={item.riskLevel} /> },
-    { header: "Confidence", accessorKey: "confidenceScore", cell: (item: any) => <span className="text-slate-600">{item.confidenceScore}%</span> },
-    { header: "Status", accessorKey: "status", cell: (item: any) => <StatusBadge status={item.status} /> },
-    { header: "", cell: (item: any) => (
+    { header: "Risk Score", accessorKey: "riskScore", cell: (item: DecisionLedgerItem) => <RiskBadge level={item.riskLevel} /> },
+    { header: "Confidence", accessorKey: "confidenceScore", cell: (item: DecisionLedgerItem) => <span className="text-slate-600">{item.confidenceScore}%</span> },
+    { header: "Status", accessorKey: "status", cell: (item: DecisionLedgerItem) => <StatusBadge status={item.status} /> },
+    { header: "", cell: (item: DecisionLedgerItem) => (
         <button onClick={() => setSelectedDecision(item)} className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700">
           <Eye className="h-4 w-4" /> Review
         </button>

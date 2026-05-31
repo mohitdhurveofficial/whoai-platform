@@ -91,7 +91,7 @@ export default function DecisionDrawer({ decision, isOpen, onClose, onStatusChan
                   <p className="text-xs font-medium text-slate-500 mb-1">AI Reasoning</p>
                   <p className="text-sm text-slate-700 dark:text-slate-300 italic flex items-start gap-2">
                     <Activity className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
-                    "{decision.reason}"
+                    &quot;{decision.reason}&quot;
                   </p>
                 </div>
               )}

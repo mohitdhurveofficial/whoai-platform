@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import WorkforceMetrics from "@/app/components/agents/WorkforceMetrics";
 import WorkersTable from "@/app/components/agents/WorkersTable";
 import WorkerFilters from "@/app/components/agents/WorkerFilters";
@@ -12,7 +12,6 @@ import { PageHeader } from "@/app/components/ui/PageHeader";
 
 export default function AgentsPage() {
   const [workers, setWorkers] = useState<AIWorker[]>([]);
-  const [filteredWorkers, setFilteredWorkers] = useState<AIWorker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -25,7 +24,6 @@ export default function AgentsPage() {
 
       setTimeout(() => {
         setWorkers(mockWorkers);
-        setFilteredWorkers(mockWorkers);
         setIsLoading(false);
       }, 800);
     };
@@ -33,20 +31,18 @@ export default function AgentsPage() {
     fetchWorkers();
   }, []);
 
-  useEffect(() => {
+  const filteredWorkers = useMemo(() => {
     if (searchQuery.trim() === "") {
-      setFilteredWorkers(workers);
-    } else {
-      const lowerQuery = searchQuery.toLowerCase();
-
-      setFilteredWorkers(
-        workers.filter(
-          (worker) =>
-            worker.name.toLowerCase().includes(lowerQuery) ||
-            worker.department.toLowerCase().includes(lowerQuery)
-        )
-      );
+      return workers;
     }
+
+    const lowerQuery = searchQuery.toLowerCase();
+
+    return workers.filter(
+      (worker) =>
+        worker.name.toLowerCase().includes(lowerQuery) ||
+        worker.department.toLowerCase().includes(lowerQuery)
+    );
   }, [searchQuery, workers]);
 
   const handleRowClick = (worker: AIWorker) => {

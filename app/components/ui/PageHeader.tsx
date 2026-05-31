@@ -9,13 +9,15 @@ export interface PageHeaderProps {
 }
 
 export function PageHeader({ title, subtitle, description, actions }: PageHeaderProps) {
+  const supportingText = subtitle || description;
+
   return (
-    <div className={`${tokens.layout.pageHeader} flex justify-between items-start`}>
+    <div className={tokens.layout.pageHeader}>
       <div>
         <h1 className={tokens.layout.pageTitle}>{title}</h1>
-        ${(subtitle || description) && <p className={tokens.layout.pageSubtitle}>{subtitle || description}</p>}
+        {supportingText && <p className={tokens.layout.pageSubtitle}>{supportingText}</p>}
       </div>
-      {actions && <div>{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-3">{actions}</div>}
     </div>
   );
 }

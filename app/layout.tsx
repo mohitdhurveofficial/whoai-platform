@@ -67,7 +67,7 @@ export default function RootLayout({
   suppressHydrationWarning
   data-scroll-behavior="smooth"
 >
-      <body className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-950 dark:text-white antialiased transition-colors duration-200">
+      <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased transition-colors duration-200">
         <ThemeProvider>
           {children}
           <CommandPalette />

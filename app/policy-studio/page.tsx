@@ -21,7 +21,7 @@ type Policy = {
 };
 
 const CATEGORIES = ["Finance", "Compliance", "Security", "Operations", "Customer Service"];
-const ENFORCEMENT_MODES = ["ALERT", "REQUIRE_APPROVAL", "BLOCK", "MONITOR"];
+const ENFORCEMENT_MODES: Policy["enforcementMode"][] = ["ALERT", "REQUIRE_APPROVAL", "BLOCK", "MONITOR"];
 
 export default function PolicyStudioPage() {
   const [policies, setPolicies] = useState<Policy[]>([
@@ -100,7 +100,7 @@ export default function PolicyStudioPage() {
       name: newPolicy.name,
       category: newPolicy.category,
       status: "DRAFT",
-      enforcementMode: newPolicy.enforcementMode as any,
+      enforcementMode: newPolicy.enforcementMode,
       description: newPolicy.description,
       owner: "Current User",
       version: 1,
@@ -293,7 +293,7 @@ export default function PolicyStudioPage() {
                 <label className="text-sm font-semibold text-slate-700">Enforcement Mode</label>
                 <select
                   value={newPolicy.enforcementMode}
-                  onChange={(e) => setNewPolicy((p) => ({ ...p, enforcementMode: e.target.value }))}
+                  onChange={(e) => setNewPolicy((p) => ({ ...p, enforcementMode: e.target.value as Policy["enforcementMode"] }))}
                   className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 text-sm"
                 >
                   {ENFORCEMENT_MODES.map((mode) => (
