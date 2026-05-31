@@ -12,29 +12,29 @@ import {
 const steps = [
   {
     icon: Bot,
-    title: "AI Agent",
-    detail: "Requests an action",
+    title: "AI Worker Request",
+    detail: "Autonomous worker submits a task",
   },
   {
     icon: ShieldCheck,
-    title: "Policy Engine",
-    detail: "Evaluates policies",
+    title: "Policy Studio",
+    detail: "Policies evaluate the task",
   },
   {
     icon: TriangleAlert,
-    title: "Risk Detection",
-    detail: "Assesses risk level",
+    title: "Risk & Permission",
+    detail: "Assess risk and validate access",
   },
   {
     icon: UserRound,
-    title: "Human Approval",
-    detail: "Review & approve",
+    title: "Human Review",
+    detail: "Approve high-risk actions",
     highlight: true,
   },
   {
     icon: CheckCircle2,
-    title: "Execute Action",
-    detail: "Action is performed",
+    title: "Execute Safely",
+    detail: "Action runs with governance enforced",
   },
 ];
 

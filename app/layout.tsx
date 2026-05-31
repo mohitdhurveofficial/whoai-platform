@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CommandPalette } from "@/app/components/CommandPalette";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://whoai.ai"),
@@ -60,9 +61,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html
+  lang="en"
+  suppressHydrationWarning
+  data-scroll-behavior="smooth"
+>
       <body className="min-h-screen bg-slate-50 text-slate-950 antialiased">
         {children}
+        <CommandPalette />
       </body>
     </html>
   );

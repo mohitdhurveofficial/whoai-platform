@@ -1,9 +1,7 @@
-"use client";
-
-export default function ApprovalsClient() {
+export default function ApprovalsPage() {
   return (
     <div>
-      Approvals Client
+      Approvals Page
     </div>
   );
 }

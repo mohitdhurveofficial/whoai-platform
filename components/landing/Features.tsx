@@ -13,38 +13,38 @@ import {
 const features = [
   {
     icon: ShieldCheck,
-    title: "Runtime Policies",
-    description: "Define and enforce policies in real-time",
-    color: "text-orange-500 bg-orange-50",
+    title: "Identity & Auth",
+    description: "Enterprise-grade identity for each AI worker",
+    color: "text-sky-500 bg-sky-50",
   },
   {
     icon: Radar,
-    title: "Risk Detection",
-    description: "AI-powered risk assessment engine",
-    color: "text-emerald-500 bg-emerald-50",
+    title: "Permissions Engine",
+    description: "Granular access control and resource management",
+    color: "text-violet-500 bg-violet-50",
   },
   {
     icon: UsersRound,
-    title: "Human Approval",
-    description: "Route high-risk actions to human reviewers",
-    color: "text-orange-500 bg-orange-50",
+    title: "Approval Workflows",
+    description: "Human-in-the-loop for high-risk decisions",
+    color: "text-emerald-500 bg-emerald-50",
   },
   {
     icon: FileSearch,
-    title: "Audit Trail",
-    description: "Complete audit logs and decision history",
-    color: "text-violet-600 bg-violet-50",
+    title: "Audit & Compliance",
+    description: "Immutable logs for compliance and investigations",
+    color: "text-orange-500 bg-orange-50",
   },
   {
     icon: BarChart3,
-    title: "Analytics",
-    description: "Real-time insights and reporting",
+    title: "Intelligence Hub",
+    description: "Real-time metrics and decision analytics",
     color: "text-blue-600 bg-blue-50",
   },
   {
     icon: Network,
-    title: "Integrations",
-    description: "Seamless integration with your stack",
+    title: "Policy Studio",
+    description: "Enterprise policy creation and versioning",
     color: "text-cyan-500 bg-cyan-50",
   },
 ];
@@ -60,11 +60,11 @@ export default function Features() {
           className="mx-auto max-w-4xl text-center"
         >
           <h2 className="text-[28px] font-black leading-tight tracking-[-0.035em] text-[#071126] sm:text-[32px]">
-            Everything You Need To{" "}
-            <span className="orange-gradient">Govern AI Actions</span>
+            The Complete Platform For{" "}
+            <span className="orange-gradient">Managing AI Workers</span>
           </h2>
           <p className="mt-2 text-[14px] font-medium text-[#071126]">
-            Comprehensive runtime governance for your autonomous AI systems
+            Deploy autonomous agents with enterprise governance, compliance, and audit built-in
           </p>
         </motion.div>
 

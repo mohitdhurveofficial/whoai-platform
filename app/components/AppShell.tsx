@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import { CommandPalette } from "./CommandPalette";
 
 type AppShellProps = {
   title: string;
@@ -14,6 +15,8 @@ type AppShellProps = {
 export default function AppShell({ title, description, actions, children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
+      <CommandPalette />
+      
       <div className="md:flex">
         <Sidebar />
 
@@ -45,3 +48,4 @@ export default function AppShell({ title, description, actions, children }: AppS
     </div>
   );
 }
+

@@ -14,23 +14,27 @@ import {
   BarChart3,
   Users,
   Lock,
+  BookOpen,
 } from "lucide-react";
 import { OrgSwitcher } from "./OrgSwitcher";
 
 const navItems = [
   { label: "Mission Control", href: "/dashboard", icon: Home },
   { label: "AI Workforce", href: "/agents", icon: Cpu },
+  { label: "Permissions", href: "/permissions", icon: Lock },
   { label: "Decisions", href: "/decisions", icon: ClipboardList },
   { label: "Approvals", href: "/approvals", icon: ShieldCheck },
   { label: "Policies", href: "/policies", icon: FileText },
+  { label: "Policy Studio", href: "/policy-studio", icon: Sparkles },
   { label: "Risk Center", href: "/risks", icon: AlertTriangle },
-  { label: "Audit Logs", href: "/logs", icon: Sparkles },
-  { label: "Analytics", href: "/metrics", icon: BarChart3 },
+  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Audit & Trust", href: "/audit", icon: Sparkles },
 ];
 
 const settingsItems = [
   { label: "Team Management", href: "/team", icon: Users },
   { label: "Security", href: "/security", icon: Lock },
+  { label: "Developer Settings", href: "/dev-settings", icon: Settings },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
