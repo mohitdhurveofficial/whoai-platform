@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/app/components/ui/Button";
 import type { ExtendedPolicy } from "./types";
 
@@ -15,6 +15,15 @@ export function PolicyEditor({ policy, onCancel, onSave }: PolicyEditorProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(policy); // Mock save
+  };
+
+  const [testResult, setTestResult] = useState<string | null>(null);
+
+  const runSimulation = () => {
+    setTestResult("Evaluating...");
+    setTimeout(() => {
+      setTestResult("Complete");
+    }, 1200);
   };
 
   return (
@@ -60,16 +69,20 @@ export function PolicyEditor({ policy, onCancel, onSave }: PolicyEditorProps) {
                  <option>Agent: Modify IAM Role</option>
                  <option>Agent: Send Email Campaign</option>
                </select>
-               <Button variant="secondary" type="button">Run Test</Button>
+               <Button variant="secondary" type="button" onClick={runSimulation}>Run Test</Button>
              </div>
              <div className="p-3 bg-slate-900 rounded-lg font-mono text-xs text-slate-300">
-               &gt; Evaluating against active policy...<br/>
-               {policy.enforcementMode === "Block" ? (
-                 <span className="text-rose-400">&gt; OUTCOME: Action BLOCKED by policy rules.</span>
-               ) : policy.enforcementMode === "Require Approval" ? (
-                 <span className="text-amber-400">&gt; OUTCOME: Action FLAGGED. Requires Human Approval.</span>
-               ) : (
-                 <span className="text-emerald-400">&gt; OUTCOME: Action ALLOWED. Monitor only.</span>
+               {testResult === "Evaluating..." ? "> Running Policy Engine Simulation sandbox..." : (
+                 <>
+                   &gt; Evaluating against active policy...<br/>
+                   {policy.enforcementMode === "Block" ? (
+                     <span className="text-rose-400">&gt; OUTCOME: Action BLOCKED by policy rules.</span>
+                   ) : policy.enforcementMode === "Require Approval" ? (
+                     <span className="text-amber-400">&gt; OUTCOME: Action FLAGGED. Requires Human Approval.</span>
+                   ) : (
+                     <span className="text-emerald-400">&gt; OUTCOME: Action ALLOWED. Monitor only.</span>
+                   )}
+                 </>
                )}
              </div>
           </div>

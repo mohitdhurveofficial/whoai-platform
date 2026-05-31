@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { KpiCard } from "@/app/components/ui/KpiCard";
 import { SectionCard } from "@/app/components/ui/SectionCard";
@@ -8,12 +8,22 @@ import { Button } from "@/app/components/ui/Button";
 import { BrainCircuit, ShieldCheck, Download, Presentation, FileText, Activity } from "lucide-react";
 
 export function ReportsClient() {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = (reportName: string) => {
+    setIsExporting(true);
+    setTimeout(() => {
+      setIsExporting(false);
+      alert(`Successfully compiled and exported: ${reportName} (PDF)`);
+    }, 1500);
+  };
+
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">
       <PageHeader 
         title="Enterprise Trust Dashboard" 
         description="Boardroom-ready executive reporting and continuous compliance posture." 
-        actions={<Button variant="primary" icon={Download}>Export Executive Deck</Button>}
+        actions={<Button variant="primary" icon={Download} onClick={() => handleExport("Executive Board Deck")}>{isExporting ? "Generating Deck..." : "Export Executive Deck"}</Button>}
       />
 
       {/* AI Summary Block */}
@@ -49,7 +59,7 @@ export function ReportsClient() {
               <p className="text-sm text-slate-500 mt-1">Summary of agent activity, policy enforcements, and escalations.</p>
             </div>
             <div className="mt-auto w-full pt-4">
-              <Button variant="secondary" icon={Download} className="w-full">Download PDF</Button>
+              <Button variant="secondary" icon={Download} className="w-full" onClick={() => handleExport("Weekly Governance Brief")}>Download PDF</Button>
             </div>
           </div>
           <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50 dark:bg-slate-900 flex flex-col items-start gap-4 hover:shadow-md transition-shadow">
@@ -59,7 +69,7 @@ export function ReportsClient() {
               <p className="text-sm text-slate-500 mt-1">Detailed framework status, control efficacy, and audit evidence map.</p>
             </div>
             <div className="mt-auto w-full pt-4">
-              <Button variant="secondary" icon={Download} className="w-full">Download PDF</Button>
+              <Button variant="secondary" icon={Download} className="w-full" onClick={() => handleExport("Monthly Compliance Report")}>Download PDF</Button>
             </div>
           </div>
           <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50 dark:bg-slate-900 flex flex-col items-start gap-4 hover:shadow-md transition-shadow">
@@ -69,7 +79,7 @@ export function ReportsClient() {
               <p className="text-sm text-slate-500 mt-1">Systemic risk trends, macro vulnerabilities, and InfoSec alignment.</p>
             </div>
             <div className="mt-auto w-full pt-4">
-              <Button variant="secondary" icon={Download} className="w-full">Download PDF</Button>
+              <Button variant="secondary" icon={Download} className="w-full" onClick={() => handleExport("Quarterly Risk Assessment")}>Download PDF</Button>
             </div>
           </div>
         </div>

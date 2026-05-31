@@ -28,6 +28,7 @@ const mockEvidence: Evidence[] = [
 
 export function EvidenceClient() {
   const [search, setSearch] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const columns: DataTableProps<Evidence>["columns"] = [
     { header: "Evidence ID", cell: (item) => <span className="font-mono text-xs text-slate-500">{item.id}</span> },
@@ -37,15 +38,25 @@ export function EvidenceClient() {
     { header: "Policy Enforced", accessorKey: "policy" },
     { header: "Control Mapping", cell: (item) => <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-md">{item.framework}</span> },
     { header: "Status", cell: (item) => <StatusBadge label={item.status} variant={item.status === "Validated" ? "approved" : "pending"} /> },
-    { header: "Export", className: "text-right", cell: () => <Button variant="ghost" icon={Download}>PDF</Button> }
+    { header: "Export", className: "text-right", cell: (item) => <Button variant="ghost" icon={Download} onClick={() => alert(`Downloading cryptographic evidence package for ${item.id}...`)}>PDF</Button> }
   ];
+
+  const handleExportAll = () => {
+    setIsExporting(true);
+    setTimeout(() => {
+      setIsExporting(false);
+      alert("Complete Vault Archive exported securely to your system downloads.");
+    }, 1800);
+  };
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">
       <PageHeader 
         title="Evidence Vault" 
         description="Cryptographically secure log of compliance-relevant AI activities."
-        actions={<Button variant="secondary" icon={Download}>Export Vault Archive</Button>}
+        actions={<Button variant="secondary" icon={Download} onClick={handleExportAll}>
+          {isExporting ? "Compiling Archive..." : "Export Vault Archive"}
+        </Button>}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

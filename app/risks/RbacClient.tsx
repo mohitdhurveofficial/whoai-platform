@@ -42,7 +42,7 @@ export function RbacClient() {
         title="Role-Based Access Control" 
         description="Enterprise permissions matrix. Manage roles and access capabilities across the platform." 
         actions={
-          <Button variant="primary" icon={Shield}>
+          <Button variant="primary" icon={Shield} onClick={() => alert("Opening Custom Enterprise Role Builder...")}>
             Create Custom Role
           </Button>
         }

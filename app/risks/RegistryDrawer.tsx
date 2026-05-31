@@ -56,9 +56,9 @@ export function RegistryDrawer({ isOpen, onClose, worker }: RegistryDrawerProps)
         </div>
         
         <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3 shrink-0">
-           <Button variant="ghost" className="flex-1" icon={Edit2}>Edit Agent</Button>
-           <Button variant="secondary" className="flex-1" icon={Ban}>Disable</Button>
-           <Button variant="danger" className="flex-1 text-rose-600" icon={Archive}>Archive</Button>
+           <Button variant="ghost" className="flex-1" icon={Edit2} onClick={() => alert("Opening Advanced Agent Configuration...")}>Edit Agent</Button>
+           <Button variant="secondary" className="flex-1" icon={Ban} onClick={() => alert(`Agent ${worker.id} has been forcefully disabled.`)}>Disable</Button>
+           <Button variant="danger" className="flex-1 text-rose-600" icon={Archive} onClick={() => alert(`Agent ${worker.id} has been permanently archived.`)}>Archive</Button>
         </div>
       </div>
     </>

@@ -96,7 +96,7 @@ export function RiskDrawer({ isOpen, onClose, event }: RiskDrawerProps) {
             </h3>
             <div className="space-y-2">
               {event.recommendedActions.map((action, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl">
+                <div key={i} className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors" onClick={() => alert(`Executing automated remediation: ${action}`)}>
                   <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold">
                     {i + 1}
                   </div>

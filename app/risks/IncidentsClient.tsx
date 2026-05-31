@@ -31,13 +31,13 @@ export function IncidentsClient() {
 
   const columns: DataTableProps<Incident>["columns"] = [
     { header: "Incident ID", cell: (item) => <span className="font-mono font-bold text-slate-900 dark:text-white">{item.id}</span> },
-    { header: "Severity", cell: (item) => <StatusBadge label={item.severity.toUpperCase()} variant={item.severity as any} /> },
+    { header: "Severity", cell: (item) => <StatusBadge label={item.severity.toUpperCase()} variant={item.severity as "critical" | "high" | "medium" | "low"} /> },
     { header: "Status", cell: (item) => <span className={`font-semibold text-sm ${item.status === 'Resolved' ? 'text-emerald-600' : 'text-amber-600'}`}>{item.status}</span> },
     { header: "Agent", accessorKey: "agent" },
     { header: "Root Cause", cell: (item) => <span className="text-sm font-medium text-slate-600">{item.rootCause}</span> },
     { header: "Owner", accessorKey: "owner" },
     { header: "TTR", accessorKey: "timeToResolve" },
-    { header: "Actions", className: "text-right", cell: () => <Button variant="secondary">Manage</Button> }
+    { header: "Actions", className: "text-right", cell: (item) => <Button variant="secondary" onClick={() => alert(`Opening SecOps Workspace for ${item.id}...`)}>Manage</Button> }
   ];
 
   return (
@@ -45,7 +45,7 @@ export function IncidentsClient() {
       <PageHeader 
         title="Incident Management" 
         description="Track, investigate, and resolve AI governance breaches and high-risk alerts."
-        actions={<Button variant="danger" icon={ShieldAlert}>Declare Incident</Button>}
+        actions={<Button variant="danger" icon={ShieldAlert} onClick={() => alert("Initializing PagerDuty Incident Declaration Protocol...")}>Declare Incident</Button>}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

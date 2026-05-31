@@ -28,6 +28,7 @@ const mockFrameworks: Framework[] = [
 
 export function ComplianceClient() {
   const [frameworks] = useState<Framework[]>(mockFrameworks);
+  const [isScanning, setIsScanning] = useState(false);
 
   const columns: DataTableProps<Framework>["columns"] = [
     { header: "Framework", cell: (item) => <span className="font-bold text-slate-900 dark:text-white">{item.name}</span> },
@@ -42,16 +43,26 @@ export function ComplianceClient() {
         <span className={`font-bold ${item.findings > 0 ? "text-amber-500" : "text-slate-500"}`}>{item.findings}</span>
       ) 
     },
-    { header: "Risk Level", cell: (item) => <StatusBadge label={item.risk.toUpperCase()} variant={item.risk as any} /> },
-    { header: "Actions", className: "text-right", cell: () => <Button variant="ghost">Audit View</Button> }
+    { header: "Risk Level", cell: (item) => <StatusBadge label={item.risk.toUpperCase()} variant={item.risk as "low" | "medium" | "high"} /> },
+    { header: "Actions", className: "text-right", cell: (item) => <Button variant="ghost" onClick={() => alert(`Opening Full Audit View for ${item.name}...`)}>Audit View</Button> }
   ];
+
+  const handleScan = () => {
+    setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(false);
+      alert("Enterprise Gap Analysis Complete. 0 new high-risk findings detected.");
+    }, 2000);
+  };
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">
       <PageHeader 
         title="Compliance Center" 
         description="Track AI governance posture against global regulatory frameworks."
-        actions={<Button variant="primary" icon={ShieldCheck}>Run Gap Analysis</Button>}
+        actions={<Button variant="primary" icon={ShieldCheck} onClick={handleScan}>
+          {isScanning ? "Scanning Environment..." : "Run Gap Analysis"}
+        </Button>}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
