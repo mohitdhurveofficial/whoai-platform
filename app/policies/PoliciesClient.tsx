@@ -12,7 +12,7 @@ import { Button } from "@/app/components/ui/Button";
 import { Plus } from "lucide-react";
 
 export function PoliciesClient() {
-  const [data, setData] = useState<ExtendedPolicy[]>(mockPolicies);
+  const [data] = useState<ExtendedPolicy[]>(mockPolicies);
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [drawerOpen, setDrawerOpen] = useState(false);

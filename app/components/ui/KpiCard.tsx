@@ -11,8 +11,10 @@ type KpiCardProps = {
 
 export function KpiCard({ title, value, icon, trend, trendValue }: KpiCardProps) {
   // map incoming props to MetricCard props
-  const mappedTrend = trend === "up" || trend === true ? "positive" : trend === "down" ? "negative" : "neutral";
-  return <MetricCard label={title} value={value} icon={icon} trend={mappedTrend as any} detail={trendValue} />;
+  const mappedTrend: "positive" | "negative" | "neutral" =
+    trend === "up" || trend === true ? "positive" : trend === "down" ? "negative" : "neutral";
+
+  return <MetricCard label={title} value={value} icon={icon} trend={mappedTrend} detail={trendValue} />;
 }
 
 export default KpiCard;

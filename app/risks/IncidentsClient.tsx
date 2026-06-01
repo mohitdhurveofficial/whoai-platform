@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { KpiCard } from "@/app/components/ui/KpiCard";
 import { SectionCard } from "@/app/components/ui/SectionCard";
 import { DataTable, type DataTableProps } from "@/app/components/ui/DataTable";
 import { Button } from "@/app/components/ui/Button";
-import { StatusBadge } from "@/app/components/ui/StatusBadge";
+import { RiskBadge } from "@/app/components/ui/RiskBadge";
 import { SearchBar } from "@/app/components/ui/SearchBar";
 import { AlertTriangle, ShieldAlert, Clock, Target } from "lucide-react";
 
@@ -29,23 +29,30 @@ const mockIncidents: Incident[] = [
 export function IncidentsClient() {
   const [search, setSearch] = useState("");
 
-  const columns: DataTableProps<Incident>["columns"] = [
+  const columns: DataTableProps<Incident>["columns"] = useMemo(() => [
     { header: "Incident ID", cell: (item) => <span className="font-mono font-bold text-slate-900 dark:text-white">{item.id}</span> },
-    { header: "Severity", cell: (item) => <StatusBadge label={item.severity.toUpperCase()} variant={item.severity as "critical" | "high" | "medium" | "low"} /> },
+    { header: "Severity", cell: (item) => {
+        const level = item.severity.charAt(0).toUpperCase() + item.severity.slice(1).toLowerCase();
+        return <RiskBadge level={level as "Low" | "Medium" | "High" | "Critical"} />;
+      } },
     { header: "Status", cell: (item) => <span className={`font-semibold text-sm ${item.status === 'Resolved' ? 'text-emerald-600' : 'text-amber-600'}`}>{item.status}</span> },
     { header: "Agent", accessorKey: "agent" },
     { header: "Root Cause", cell: (item) => <span className="text-sm font-medium text-slate-600">{item.rootCause}</span> },
     { header: "Owner", accessorKey: "owner" },
     { header: "TTR", accessorKey: "timeToResolve" },
     { header: "Actions", className: "text-right", cell: (item) => <Button variant="secondary" onClick={() => alert(`Opening SecOps Workspace for ${item.id}...`)}>Manage</Button> }
-  ];
+  ], []);
+
+  const handleDeclareIncident = useCallback(() => {
+    alert("Initializing PagerDuty Incident Declaration Protocol...");
+  }, []);
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">
       <PageHeader 
         title="Incident Management" 
         description="Track, investigate, and resolve AI governance breaches and high-risk alerts."
-        actions={<Button variant="danger" icon={ShieldAlert} onClick={() => alert("Initializing PagerDuty Incident Declaration Protocol...")}>Declare Incident</Button>}
+        actions={<Button variant="danger" icon={ShieldAlert} onClick={handleDeclareIncident}>Declare Incident</Button>}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

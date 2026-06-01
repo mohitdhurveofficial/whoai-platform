@@ -1,11 +1,11 @@
 import React from "react";
-import { ReportsClient } from "./ReportsClient";
+import { RiskClient } from "./RiskClient";
 
 export const metadata = {
-  title: "Trust Dashboard | WHOAI",
-  description: "Executive boardroom reporting and AI trust metrics.",
+  title: "Risk Center | WHOAI",
+  description: "Enterprise control room for monitoring systemic AI risk and policy violations.",
 };
 
-export default function ReportsPage() {
-  return <ReportsClient />;
+export default function RiskPage() {
+  return <RiskClient />;
 }

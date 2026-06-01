@@ -3,7 +3,7 @@
 import AppShell from "@/app/components/AppShell";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, AlertTriangle, Users, Zap } from "lucide-react";
+import { TrendingUp, AlertTriangle, Zap } from "lucide-react";
 
 const decisionTrendData = [
   { date: "May 25", decisions: 245, approved: 198, rejected: 47 },

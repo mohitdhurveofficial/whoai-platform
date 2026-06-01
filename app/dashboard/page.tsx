@@ -24,7 +24,7 @@ async function DashboardContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6">
       <MetricsGrid data={initialMetrics} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -52,7 +52,7 @@ async function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 md:px-8 lg:px-10">
       <PageHeader 
         title="Workspace Overview" 
         subtitle="Real-time governance activity and human-in-the-loop approvals." 

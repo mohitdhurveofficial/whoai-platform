@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
 type SeedOptions = {
-  organizationId: string;
   workspaceId: string;
 };
 
-export async function seedDemoWorkspace({ organizationId, workspaceId }: SeedOptions) {
+export async function seedDemoWorkspace({ workspaceId }: SeedOptions) {
   try {
     // Seed AI Workers
     const workers = await prisma.aIWorker.createMany({

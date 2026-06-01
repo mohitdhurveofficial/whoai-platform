@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -11,18 +11,20 @@ interface DashboardThemeContextType {
 const DashboardThemeContext = createContext<DashboardThemeContextType | undefined>(undefined);
 
 export function DashboardThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") {
+      return "light";
+    }
 
-  useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("whoai-dashboard-theme") : null;
-    const nextTheme: Theme = stored === "light" || stored === "dark"
-      ? (stored as Theme)
-      : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+    const stored = localStorage.getItem("whoai-dashboard-theme");
+    if (stored === "light" || stored === "dark") {
+      return stored;
+    }
 
-    setTheme(nextTheme);
-  }, []);
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  });
 
   const toggleTheme = () => {
     setTheme((prev) => {
@@ -30,7 +32,7 @@ export function DashboardThemeProvider({ children }: { children: React.ReactNode
       try { localStorage.setItem("whoai-dashboard-theme", next); } catch {}
       return next;
     });
-  };
+  }; 
 
   // Wrap children in a container that will receive the "dark" class when theme === 'dark'.
   return (

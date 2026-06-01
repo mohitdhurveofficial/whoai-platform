@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { KpiCard } from "@/app/components/ui/KpiCard";
 import { SectionCard } from "@/app/components/ui/SectionCard";
@@ -10,13 +10,13 @@ import { BrainCircuit, ShieldCheck, Download, Presentation, FileText, Activity }
 export function ReportsClient() {
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExport = (reportName: string) => {
+  const handleExport = useCallback((reportName: string) => {
     setIsExporting(true);
     setTimeout(() => {
       setIsExporting(false);
       alert(`Successfully compiled and exported: ${reportName} (PDF)`);
     }, 1500);
-  };
+  }, []);
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">

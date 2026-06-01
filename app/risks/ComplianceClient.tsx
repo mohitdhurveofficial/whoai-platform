@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { KpiCard } from "@/app/components/ui/KpiCard";
 import { SectionCard } from "@/app/components/ui/SectionCard";
 import { DataTable, type DataTableProps } from "@/app/components/ui/DataTable";
 import { Button } from "@/app/components/ui/Button";
-import { StatusBadge } from "@/app/components/ui/StatusBadge";
+import { RiskBadge } from "@/app/components/ui/RiskBadge";
 import { ShieldCheck, FileCheck, AlertTriangle, Activity } from "lucide-react";
 
 type Framework = {
@@ -30,7 +30,7 @@ export function ComplianceClient() {
   const [frameworks] = useState<Framework[]>(mockFrameworks);
   const [isScanning, setIsScanning] = useState(false);
 
-  const columns: DataTableProps<Framework>["columns"] = [
+  const columns: DataTableProps<Framework>["columns"] = useMemo(() => [
     { header: "Framework", cell: (item) => <span className="font-bold text-slate-900 dark:text-white">{item.name}</span> },
     { header: "Readiness Score", cell: (item) => <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{item.score}%</span> },
     { header: "Controls", cell: (item) => (
@@ -43,17 +43,20 @@ export function ComplianceClient() {
         <span className={`font-bold ${item.findings > 0 ? "text-amber-500" : "text-slate-500"}`}>{item.findings}</span>
       ) 
     },
-    { header: "Risk Level", cell: (item) => <StatusBadge label={item.risk.toUpperCase()} variant={item.risk as "low" | "medium" | "high"} /> },
+    { header: "Risk Level", cell: (item) => {
+        const level = item.risk.charAt(0).toUpperCase() + item.risk.slice(1).toLowerCase();
+        return <RiskBadge level={level as "Low" | "Medium" | "High" | "Critical"} />;
+      } },
     { header: "Actions", className: "text-right", cell: (item) => <Button variant="ghost" onClick={() => alert(`Opening Full Audit View for ${item.name}...`)}>Audit View</Button> }
-  ];
+  ], []);
 
-  const handleScan = () => {
+  const handleScan = useCallback(() => {
     setIsScanning(true);
     setTimeout(() => {
       setIsScanning(false);
       alert("Enterprise Gap Analysis Complete. 0 new high-risk findings detected.");
     }, 2000);
-  };
+  }, []);
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">

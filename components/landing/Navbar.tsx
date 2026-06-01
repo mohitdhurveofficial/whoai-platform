@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { ChevronDown, Gamepad2, GitFork, X } from "lucide-react";
+import { Gamepad2, GitFork, X } from "lucide-react";
 
-const navItems = ["Product", "Solutions", "Pricing", "Docs", "Company"];
+const navItems = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Agents", href: "/agents" },
+  { label: "Policies", href: "/policies" },
+  { label: "Docs", href: "/docs" },
+];
 
 export default function Navbar() {
   return (
@@ -16,11 +21,8 @@ export default function Navbar() {
 
         <nav className="glass shadow-premium absolute left-1/2 top-6 hidden h-[68px] -translate-x-1/2 items-center gap-10 rounded-full border border-white/80 px-14 text-[15px] font-semibold text-[#071126] lg:flex">
           {navItems.map((item) => (
-            <Link key={item} href="#" className="flex items-center gap-1.5 transition hover:text-orange-600">
-              {item}
-              {(item === "Solutions" || item === "Company") && (
-                <ChevronDown size={14} strokeWidth={2.4} />
-              )}
+            <Link key={item.label} href={item.href} className="flex items-center gap-1.5 transition hover:text-orange-600">
+              {item.label}
             </Link>
           ))}
           <span className="absolute -bottom-3 left-1/2 h-6 w-6 -translate-x-1/2 rotate-45 border-b border-r border-white/80 bg-white/82" />
@@ -29,21 +31,21 @@ export default function Navbar() {
         <div className="flex items-center gap-5">
           <div className="hidden items-center gap-6 text-[#071126] md:flex">
             <Link
-              href="#"
+              href="https://github.com"
               aria-label="Github"
               className="transition hover:text-orange-600"
             >
               <GitFork size={22} strokeWidth={2.8} />
             </Link>
             <Link
-              href="#"
+              href="https://x.com"
               aria-label="X"
               className="transition hover:text-orange-600"
             >
               <X size={22} strokeWidth={2.8} />
             </Link>
             <Link
-              href="#"
+              href="https://discord.com"
               aria-label="Discord"
               className="transition hover:text-orange-600"
             >

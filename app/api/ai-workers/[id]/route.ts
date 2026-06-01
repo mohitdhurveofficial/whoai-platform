@@ -19,7 +19,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   try {
     const aiWorker = await updateAIWorker(id, updates);
     return NextResponse.json(aiWorker);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Unable to update AI worker." }, { status: 400 });
   }
 }
@@ -30,7 +30,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   try {
     await deleteAIWorker(id);
     return NextResponse.json({ deleted: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Unable to delete AI worker." }, { status: 400 });
   }
 }

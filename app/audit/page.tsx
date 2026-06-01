@@ -4,7 +4,7 @@ import { useState } from "react";
 import AppShell from "@/app/components/AppShell";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { StatusBadge } from "@/app/components/ui/StatusBadge";
-import { Download, Filter, Search } from "lucide-react";
+import { Download, Search } from "lucide-react";
 
 type AuditEvent = {
   id: string;

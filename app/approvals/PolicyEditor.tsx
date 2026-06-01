@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/app/components/ui/Button";
 import type { ExtendedPolicy } from "./types";
 
@@ -12,19 +12,19 @@ interface PolicyEditorProps {
 
 export function PolicyEditor({ policy, onCancel, onSave }: PolicyEditorProps) {
   // In a real implementation, we'd use local state for the form fields
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     onSave(policy); // Mock save
-  };
+  }, [onSave, policy]);
 
   const [testResult, setTestResult] = useState<string | null>(null);
 
-  const runSimulation = () => {
+  const runSimulation = useCallback(() => {
     setTestResult("Evaluating...");
     setTimeout(() => {
       setTestResult("Complete");
     }, 1200);
-  };
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">

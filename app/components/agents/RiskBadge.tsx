@@ -19,9 +19,14 @@ export default function RiskBadge({ level }: { level: RiskLevel }) {
       bg: 'bg-red-50 dark:bg-red-900/20',
       icon: ShieldAlert,
     },
+    Critical: {
+      color: 'text-rose-600 dark:text-rose-400',
+      bg: 'bg-rose-50 dark:bg-rose-900/20',
+      icon: ShieldAlert,
+    },
   };
 
-  const { color, bg, icon: Icon } = config[level];
+  const { color, bg, icon: Icon } = config[level as keyof typeof config];
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${color} ${bg}`}>

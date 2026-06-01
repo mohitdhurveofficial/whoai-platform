@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -69,12 +69,12 @@ export default function ApprovalsClient({ initialApprovals }: { initialApprovals
     });
   }, [approvals, search, statusFilter]);
 
-  const openDrawer = (approval: ApprovalData) => {
+  const openDrawer = useCallback((approval: ApprovalData) => {
     setSelectedApproval(approval);
     setIsDrawerOpen(true);
-  };
+  }, []);
 
-  const handleAction = async (newStatus: "approved" | "rejected") => {
+  const handleAction = useCallback(async (newStatus: "approved" | "rejected") => {
     if (!selectedApproval) return;
     setIsUpdating(true);
     
@@ -96,7 +96,7 @@ export default function ApprovalsClient({ initialApprovals }: { initialApprovals
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, [selectedApproval, initialApprovals]);
 
   return (
     <div className="flex-1 w-full min-h-screen pb-20">

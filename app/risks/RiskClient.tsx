@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { RiskMetrics } from "./RiskMetrics";
 import { RiskFilters } from "./RiskFilters";
@@ -29,6 +29,11 @@ export function RiskClient() {
       return matchesSearch && matchesSeverity;
     });
   }, [data, search, severityFilter]);
+
+  const handleViewDetails = useCallback((e: RiskEvent) => {
+    setActiveEvent(e);
+    setDrawerOpen(true);
+  }, []);
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20">
@@ -84,7 +89,7 @@ export function RiskClient() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] p-6 shadow-sm">
         <div className="mb-4"><h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Risk Events</h3></div>
         <RiskFilters search={search} onSearchChange={setSearch} severityFilter={severityFilter} onSeverityFilterChange={setSeverityFilter} />
-        <RiskTable data={filteredData} onViewDetails={(e) => { setActiveEvent(e); setDrawerOpen(true); }} />
+        <RiskTable data={filteredData} onViewDetails={handleViewDetails} />
       </div>
       <RiskDrawer isOpen={drawerOpen} event={activeEvent} onClose={() => setDrawerOpen(false)} />
     </div>

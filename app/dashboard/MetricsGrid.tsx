@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Activity, ShieldAlert, CheckCircle, Bot, ShieldCheck } from 'lucide-react';
 
 export interface MetricsData {
@@ -14,7 +14,7 @@ interface MetricsGridProps {
   isLoading?: boolean;
 }
 
-export default function MetricsGrid({ data, isLoading }: MetricsGridProps) {
+function MetricsGrid({ data, isLoading }: MetricsGridProps) {
   if (isLoading || !data) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -56,3 +56,5 @@ export default function MetricsGrid({ data, isLoading }: MetricsGridProps) {
     </div>
   );
 }
+
+export default memo(MetricsGrid);

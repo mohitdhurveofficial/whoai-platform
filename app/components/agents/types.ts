@@ -1,5 +1,5 @@
 export type WorkerStatus = 'Active' | 'Paused' | 'Maintenance';
-export type RiskLevel = 'Low' | 'Medium' | 'High';
+export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical';
 
 export interface AIWorker {
   id: string;

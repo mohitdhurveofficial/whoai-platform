@@ -1,6 +1,6 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
-import { Search, Bell, Settings } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 // Dashboard theme toggle removed to enforce global light mode
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

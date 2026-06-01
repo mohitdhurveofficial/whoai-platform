@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AppShell from "@/app/components/AppShell";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { StatusBadge } from "@/app/components/ui/StatusBadge";
-import { Plus, Edit, Eye, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, AlertCircle } from "lucide-react";
 
 type Policy = {
   id: string;
@@ -68,7 +68,6 @@ export default function PolicyStudioPage() {
 
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [newPolicy, setNewPolicy] = useState({
     name: "",
     category: CATEGORIES[0],

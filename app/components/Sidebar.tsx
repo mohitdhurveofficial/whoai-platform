@@ -14,6 +14,9 @@ import {
   BarChart3,
   Users,
   Lock,
+  Zap,
+  Briefcase,
+  FileCheck,
 } from "lucide-react";
 
 const navItems = [
@@ -26,6 +29,12 @@ const navItems = [
   { label: "Policy Studio", href: "/policy-studio", icon: Sparkles },
   { label: "Risk Center", href: "/risks", icon: AlertTriangle },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
+];
+
+const enterpriseItems = [
+  { label: "Executive Dashboard", href: "/executive-dashboard", icon: Briefcase },
+  { label: "Policy Simulator", href: "/policy-simulator-lab", icon: Zap },
+  { label: "Evidence Vault", href: "/evidence-vault", icon: FileCheck },
 ];
 
 const adminItems = [
@@ -65,6 +74,32 @@ export default function Sidebar() {
           </p>
 
           {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  active
+                    ? "bg-orange-50 text-orange-800 ring-1 ring-orange-200/70 dark:bg-orange-500/12 dark:text-orange-200 dark:ring-orange-400/20"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                }`}
+              >
+                <Icon className={`h-4.5 w-4.5 ${active ? "text-orange-700 dark:text-orange-200" : "text-slate-400 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-200"}`} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div>
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
+            Enterprise
+          </p>
+
+          {enterpriseItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
 

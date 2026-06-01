@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { KpiCard } from "@/app/components/ui/KpiCard";
 import { SectionCard } from "@/app/components/ui/SectionCard";
@@ -32,9 +32,6 @@ export default function DecisionsClient({ initialData }: { initialData: Decision
   const [isExporting, setIsExporting] = useState(false);
 
   const highRiskCount = initialData.filter(d => d.riskScore >= 70).length;
-  const reviewedCount = initialData.filter(d => d.status !== "PENDING").length;
-  const reviewRate = initialData.length ? Math.round((reviewedCount / initialData.length) * 100) : 0;
-  const avgConfidence = initialData.length ? Math.round(initialData.reduce((acc, d) => acc + d.confidenceScore, 0) / initialData.length) : 0;
 
   const filteredData = useMemo(() => {
     const normalizedSearch = searchQuery.toLowerCase();
@@ -58,12 +55,15 @@ export default function DecisionsClient({ initialData }: { initialData: Decision
     });
   }, [searchQuery, activeTab, initialData]);
 
-  const columns: DataTableProps<DecisionLedgerItem>["columns"] = [
+  const columns: DataTableProps<DecisionLedgerItem>["columns"] = useMemo(() => [
     { header: "Decision ID", accessorKey: "id", cell: (item: DecisionLedgerItem) => <span className="font-mono text-xs text-slate-600">{item.id.substring(0,8)}</span> },
     { header: "Timestamp", accessorKey: "timestamp", cell: (item: DecisionLedgerItem) => <span className="text-slate-600">{new Date(item.timestamp).toLocaleString()}</span> },
     { header: "Agent", accessorKey: "agentName", cell: (item: DecisionLedgerItem) => <span className="font-medium text-slate-900">{item.agentName}</span> },
     { header: "Action", accessorKey: "action" },
-    { header: "Risk Score", accessorKey: "riskScore", cell: (item: DecisionLedgerItem) => <RiskBadge level={item.riskLevel as "Low" | "Medium" | "High"} /> },
+    { header: "Risk Score", accessorKey: "riskScore", cell: (item: DecisionLedgerItem) => {
+        const level = item.riskLevel.charAt(0) + item.riskLevel.slice(1).toLowerCase();
+        return <RiskBadge level={level as "Low" | "Medium" | "High" | "Critical"} />;
+      } },
     { header: "Confidence", accessorKey: "confidenceScore", cell: (item: DecisionLedgerItem) => <span className="text-slate-600">{item.confidenceScore}%</span> },
     { header: "Status", accessorKey: "status", cell: (item: DecisionLedgerItem) => {
         const statusLabel = String(item.status);
@@ -77,15 +77,15 @@ export default function DecisionsClient({ initialData }: { initialData: Decision
         </button>
       )
     }
-  ];
+  ], []);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     setIsExporting(true);
     setTimeout(() => {
       setIsExporting(false);
       alert("Immutable AI Ledger exported as CSV securely to your device.");
     }, 1500);
-  };
+  }, []);
 
   return (
     <div className="space-y-6 pb-12">
@@ -137,7 +137,7 @@ export default function DecisionsClient({ initialData }: { initialData: Decision
             <section>
               <h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4">Explainability & Reasoning</h3>
               <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm text-slate-700 italic shadow-sm leading-relaxed">
-                Based on the context provided to <span className="font-semibold text-slate-900">{selectedDecision.agentName}</span>, the model determined that executing the action "{selectedDecision.action}" yields the highest probability of success. The action was evaluated against active IAM and operational policies, mapping to a {selectedDecision.riskLevel} risk tier.
+                Based on the context provided to <span className="font-semibold text-slate-900">{selectedDecision.agentName}</span>, the model determined that executing the action &quot;{selectedDecision.action}&quot; yields the highest probability of success. The action was evaluated against active IAM and operational policies, mapping to a {selectedDecision.riskLevel} risk tier.
               </div>
             </section>
             <section>

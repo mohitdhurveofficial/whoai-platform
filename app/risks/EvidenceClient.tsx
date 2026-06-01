@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { KpiCard } from "@/app/components/ui/KpiCard";
 import { SectionCard } from "@/app/components/ui/SectionCard";
@@ -30,7 +30,7 @@ export function EvidenceClient() {
   const [search, setSearch] = useState("");
   const [isExporting, setIsExporting] = useState(false);
 
-  const columns: DataTableProps<Evidence>["columns"] = [
+  const columns: DataTableProps<Evidence>["columns"] = useMemo(() => [
     { header: "Evidence ID", cell: (item) => <span className="font-mono text-xs text-slate-500">{item.id}</span> },
     { header: "Timestamp", cell: (item) => <span className="text-sm font-medium text-slate-700">{new Date(item.timestamp).toLocaleString()}</span> },
     { header: "Agent / Actor", cell: (item) => <span className="font-semibold text-slate-900 dark:text-white">{item.agent}</span> },
@@ -39,15 +39,15 @@ export function EvidenceClient() {
     { header: "Control Mapping", cell: (item) => <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-md">{item.framework}</span> },
     { header: "Status", cell: (item) => <StatusBadge label={item.status} variant={item.status === "Validated" ? "approved" : "pending"} /> },
     { header: "Export", className: "text-right", cell: (item) => <Button variant="ghost" icon={Download} onClick={() => alert(`Downloading cryptographic evidence package for ${item.id}...`)}>PDF</Button> }
-  ];
+  ], []);
 
-  const handleExportAll = () => {
+  const handleExportAll = useCallback(() => {
     setIsExporting(true);
     setTimeout(() => {
       setIsExporting(false);
       alert("Complete Vault Archive exported securely to your system downloads.");
     }, 1800);
-  };
+  }, []);
 
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20 p-6 md:p-10">

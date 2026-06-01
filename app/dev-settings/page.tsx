@@ -4,7 +4,7 @@ import { useState } from "react";
 import AppShell from "@/app/components/AppShell";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { StatusBadge } from "@/app/components/ui/StatusBadge";
-import { Copy, Eye, EyeOff, Plus, Trash2, Settings, Lock, Shield } from "lucide-react";
+import { Copy, Eye, Plus, Trash2, Settings, Lock, Shield } from "lucide-react";
 
 type APIKey = {
   id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 import { RegistryMetrics } from "./RegistryMetrics";
 import { RegistryFilters } from "./RegistryFilters";
@@ -36,6 +36,11 @@ export function RegistryClient() {
     });
   }, [data, search, statusFilter, deptFilter, riskFilter, platformFilter]);
 
+  const handleViewDetails = useCallback((w: AIWorker) => {
+    setActiveWorker(w);
+    setDrawerOpen(true);
+  }, []);
+
   return (
     <div className="max-w-[1440px] mx-auto space-y-6 pb-20">
       <PageHeader 
@@ -56,7 +61,7 @@ export function RegistryClient() {
           riskFilter={riskFilter} onRiskFilterChange={setRiskFilter}
           platformFilter={platformFilter} onPlatformFilterChange={setPlatformFilter}
         />
-        <RegistryTable data={filteredData} onViewDetails={(w) => { setActiveWorker(w); setDrawerOpen(true); }} />
+        <RegistryTable data={filteredData} onViewDetails={handleViewDetails} />
       </div>
       <RegistryDrawer isOpen={drawerOpen} worker={activeWorker} onClose={() => setDrawerOpen(false)} />
     </div>

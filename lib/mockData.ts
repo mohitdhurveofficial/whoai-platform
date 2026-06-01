@@ -1,17 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
   BadgeDollarSign,
-  CalendarDays,
-  CheckCircle2,
-  ClipboardList,
   CreditCard,
   DatabaseZap,
   KeyRound,
   ReceiptText,
-  ShieldCheck,
 } from "lucide-react";
 
 export type RiskLevel = "High Risk" | "Medium Risk" | "Low Risk";
