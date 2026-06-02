@@ -4,11 +4,11 @@ from sqlalchemy import select
 import secrets
 
 from database.session import get_db
-from database.models import AIWorker
+from database.models import Agent
 from schemas import (
-    AIWorkerCreate,
-    AIWorkerResponse,
-    AIWorkerUpdate
+    AgentCreate,
+    AgentResponse,
+    AgentUpdate
 )
 
 router = APIRouter(
@@ -17,19 +17,18 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=AIWorkerResponse)
+@router.post("", response_model=AgentResponse)
 async def create_agent(
-    payload: AIWorkerCreate,
+    payload: AgentCreate,
     db: AsyncSession = Depends(get_db)
 ):
 
-    ai_worker = AIWorker(
-        organization_id=payload.organization_id,
-        name=payload.name,
-        environment=payload.environment,
-        agent_token=secrets.token_urlsafe(32),
-        status="ACTIVE"
-    )
+    agent = Agent(
+    name=payload.name,
+    owner_email=payload.owner_email,
+    environment=payload.environment,
+    agent_token=secrets.token_urlsafe(32)
+)
 
     db.add(ai_worker)
 
@@ -40,27 +39,27 @@ async def create_agent(
     return ai_worker
 
 
-@router.get("", response_model=list[AIWorkerResponse])
+@router.get("", response_model=list[AgentResponse])
 async def list_agents(
     db: AsyncSession = Depends(get_db)
 ):
 
-    result = await db.execute(select(AIWorker))
+    result = await db.execute(select(Agent))
 
     ai_workers = result.scalars().all()
 
     return ai_workers
 
 
-@router.patch("/{ai_worker_id}", response_model=AIWorkerResponse)
+@router.patch("/{ai_worker_id}", response_model=AgentResponse)
 async def update_agent_status(
     ai_worker_id: str,
-    payload: AIWorkerUpdate,
+    payload: AgentUpdate,
     db: AsyncSession = Depends(get_db)
 ):
 
     result = await db.execute(
-        select(AIWorker).where(AIWorker.id == ai_worker_id)
+        select(Agent).where(Agent.id == ai_worker_id)
     )
 
     ai_worker = result.scalar_one_or_none()

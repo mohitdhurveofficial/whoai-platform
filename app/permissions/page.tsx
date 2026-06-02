@@ -15,7 +15,7 @@ type Permission = {
   createdAt: string;
 };
 
-type AIWorker = {
+type Agent = {
   id: string;
   name: string;
   role: string;
@@ -26,7 +26,7 @@ const ACTIONS = ["READ", "WRITE", "EXECUTE", "DELETE", "ADMIN"];
 const RESOURCES = ["CRM", "EMAIL", "CUSTOMER_DATA", "PAYMENTS", "PRODUCTION", "INFRASTRUCTURE", "AUDIT_LOGS", "CUSTOM"];
 
 export default function PermissionsPage() {
-  const [workers, setWorkers] = useState<AIWorker[]>([]);
+  const [workers, setWorkers] = useState<Agent[]>([]);
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +38,7 @@ export default function PermissionsPage() {
       try {
         const response = await fetch("/api/ai-workers");
         if (!response.ok) throw new Error("Failed to load workers");
-        const data: AIWorker[] = await response.json();
+        const data: Agent[] = await response.json();
         setWorkers(data);
         if (data.length > 0) {
           setSelectedWorkerId(data[0].id);

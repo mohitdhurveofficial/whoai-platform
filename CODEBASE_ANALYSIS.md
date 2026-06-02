@@ -43,7 +43,7 @@
 
 | Type | Imported By | Line |
 |------|-------------|------|
-| `AIWorker` | WorkerPoliciesCard.tsx, RegistryTable.tsx, RegistryClient.tsx, RegistryMetrics.tsx, WorkerIdentityCard.tsx, WorkerPermissionsCard.tsx, WorkerToolsCard.tsx, WorkerActivityCard.tsx | Multiple |
+| `Agent` | WorkerPoliciesCard.tsx, RegistryTable.tsx, RegistryClient.tsx, RegistryMetrics.tsx, WorkerIdentityCard.tsx, WorkerPermissionsCard.tsx, WorkerToolsCard.tsx, WorkerActivityCard.tsx | Multiple |
 | `RiskEvent` | RiskTable.tsx, RiskClient.tsx, RiskMetrics.tsx, RiskDrawer.tsx, RiskAlertFeed.tsx | Multiple |
 | `RiskAlert` | RiskAlertFeed.tsx | 3 |
 | `RiskSeverity` | RiskStatusBadge.tsx | 2 |
@@ -148,7 +148,7 @@
 |------|-------|------|----------|
 | RegistryClient.tsx | Missing export: mockWorkers | 9 | CRITICAL |
 | RiskClient.tsx | Missing exports: mockRiskEvents, mockRiskAlerts | 12 | CRITICAL |
-| types.ts | Missing: AIWorker, RiskEvent, RiskAlert, RiskSeverity, RiskStatus, WorkerStatus | N/A | CRITICAL |
+| types.ts | Missing: Agent, RiskEvent, RiskAlert, RiskSeverity, RiskStatus, WorkerStatus | N/A | CRITICAL |
 
 ### app/components/ui/
 | File | Issue | Line | Severity |

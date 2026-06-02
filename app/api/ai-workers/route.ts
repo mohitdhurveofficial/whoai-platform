@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const aiWorkers = await prisma.aIWorker.findMany();
-    return NextResponse.json(aiWorkers);
+    const agents = await prisma.agent.findMany();
+    return NextResponse.json(agents);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch AI Workers' }, { status: 500 });
   }
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const aiWorker = await prisma.aIWorker.create({
+    const agent = await prisma.agent.create({
       data: {
         organizationId: data.organizationId,
         name: data.name,
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(aiWorker, { status: 201 });
+    return NextResponse.json(agent, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create AI Worker' }, { status: 500 });
   }

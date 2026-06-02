@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { AIWorker } from './types';
+import { Agent } from './types';
 import WorkerStatusBadge from './WorkerStatusBadge';
 import RiskBadge from './RiskBadge';
 import { MoreHorizontal, Eye, Pause, Play, Edit, Trash2 } from 'lucide-react';
 
 interface WorkersTableProps {
-  workers: AIWorker[];
+  workers: Agent[];
   isLoading?: boolean;
-  onRowClick: (worker: AIWorker) => void;
+  onRowClick: (worker: Agent) => void;
 }
 
 export default function WorkersTable({ workers, isLoading, onRowClick }: WorkersTableProps) {

@@ -11,7 +11,7 @@ export async function PUT(
     const { id } = await context.params;
     const data = await request.json();
 
-    const aiWorker = await prisma.aIWorker.update({
+    const agent = await prisma.agent.update({
   where: { id },
   data: {
     name: data.name,
@@ -19,7 +19,7 @@ export async function PUT(
   },
 });
 
-    return NextResponse.json(aiWorker);
+    return NextResponse.json(agent);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update AI Worker' },
@@ -35,7 +35,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
 
-    await prisma.aIWorker.delete({
+    await prisma.agent.delete({
       where: { id },
     });
 

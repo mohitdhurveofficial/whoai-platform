@@ -7,7 +7,7 @@ type SeedOptions = {
 export async function seedDemoWorkspace({ organizationId }: SeedOptions) {
   try {
     // Seed AI Workers
-    const workers = await prisma.aIWorker.createMany({
+    const workers = await prisma.agent.createMany({
       data: [
         {
           id: "worker-default-1",
@@ -85,7 +85,7 @@ export async function seedDemoWorkspace({ organizationId }: SeedOptions) {
         {
           id: "decision-1",
           organizationId,
-          aiWorkerId: "worker-default-1",
+          agentId: "worker-default-1",
           policyId: "policy-1",
           actionType: "Provide Discount",
           resourceJson: "{\"discount\": 30}",
@@ -96,7 +96,7 @@ export async function seedDemoWorkspace({ organizationId }: SeedOptions) {
         {
           id: "decision-2",
           organizationId,
-          aiWorkerId: "worker-default-2",
+          agentId: "worker-default-2",
           policyId: "policy-2",
           actionType: "Delete Data",
           resourceJson: "{\"userId\": 123}",
