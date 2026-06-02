@@ -3,60 +3,62 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Assuming PostgreSQL with Supabase
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model Organization {
-  id         String   @id @default(cuid())
-  name       String
-  slug       String   @unique
-  stripeCustomerId String?  @unique
-  subscriptionTier String   @default("FREE") // FREE, STARTER, GROWTH, ENTERPRISE
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  users           User[]
-  aiWorkers       AIWorker[]
-  policies        Policy[]
-  decisions       Decision[]
-  approvals       Approval[]
-  auditLogs       AuditLog[]
-  metricSnapshots MetricSnapshot[]
-  risks           Risk[]
-  spendLogs       SpendLog[]
+  id               String           @id @default(cuid())
+  name             String
+  slug             String           @unique
+  stripeCustomerId String?          @unique
+  subscriptionTier String           @default("FREE")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  walletBalance    Float            @default(0.0)
+  aiTransactions   AITransaction[]
+  aiWorkers        AIWorker[]
+  approvals        Approval[]
+  auditLogs        AuditLog[]
+  decisions        Decision[]
+  metricSnapshots  MetricSnapshot[]
+  policies         Policy[]
+  risks            Risk[]
+  spendLogs        SpendLog[]
+  users            User[]
 }
 
 model User {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  email          String       @unique
-  passwordHash   String?      // Optional if using Supabase Auth
-  role           String       @default("VIEWER") // ADMIN, COMPLIANCE_OFFICER, VIEWER
-  createdAt      DateTime     @default(now())
-
-  approvalsReviewed Approval[]  @relation("ApprovalReviewer")
-  risksOwned     Risk[]
-  auditLogs      AuditLog[]
+  id                String       @id @default(cuid())
+  organizationId    String
+  email             String       @unique
+  passwordHash      String?
+  role              String       @default("VIEWER")
+  createdAt         DateTime     @default(now())
+  approvalsReviewed Approval[]   @relation("ApprovalReviewer")
+  auditLogs         AuditLog[]
+  risksOwned        Risk[]
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
 }
 
 model AIWorker {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  environment    String       // PRODUCTION, STAGING
-  agentToken     String       @unique
-  status         String       @default("ACTIVE")
-  createdAt      DateTime     @default(now())
-  
-  policies       Policy[]
-  decisions      Decision[]
-  spendLogs      SpendLog[]
+  id               String          @id @default(cuid())
+  organizationId   String
+  name             String
+  environment      String
+  agentToken       String          @unique
+  status           String          @default("ACTIVE")
+  trustCertificate String?         @unique
+  walletBalance    Float           @default(0.0)
+  createdAt        DateTime        @default(now())
+  transactions     AITransaction[]
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  decisions        Decision[]
+  policies         Policy[]
+  spendLogs        SpendLog[]
 
   @@index([organizationId])
   @@index([agentToken])
@@ -65,17 +67,16 @@ model AIWorker {
 model Policy {
   id             String       @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   aiWorkerId     String?
-  aiWorker       AIWorker?    @relation(fields: [aiWorkerId], references: [id], onDelete: SetNull)
   action         String
   resource       String
   condition      String
-  effect         String       // ALLOW, DENY, REQUIRE_APPROVAL
+  effect         String
   riskLevel      String       @default("MEDIUM")
   createdAt      DateTime     @default(now())
-  
   decisions      Decision[]
+  aiWorker       AIWorker?    @relation(fields: [aiWorkerId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([aiWorkerId])
@@ -84,19 +85,37 @@ model Policy {
 model Decision {
   id             String       @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   aiWorkerId     String
-  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
   policyId       String?
-  policy         Policy?      @relation(fields: [policyId], references: [id], onDelete: SetNull)
   actionType     String
   resourceJson   String
   contextJson    String
-  decision       String       // ALLOW, DENY, NEEDS_APPROVAL
+  decision       String
   reason         String
   createdAt      DateTime     @default(now())
-
   approval       Approval?
+  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policy         Policy?      @relation(fields: [policyId], references: [id])
+
+  @@index([organizationId])
+  @@index([aiWorkerId])
+  @@index([organizationId, createdAt])
+}
+
+model AITransaction {
+  id             String       @id @default(cuid())
+  organizationId String
+  aiWorkerId     String
+  type           String
+  amount         Float
+  currency       String       @default("USD")
+  counterpartyId String?
+  status         String       @default("COMPLETED")
+  evidenceId     String?
+  createdAt      DateTime     @default(now())
+  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([aiWorkerId])
@@ -106,14 +125,14 @@ model Decision {
 model Approval {
   id             String       @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   decisionId     String       @unique
-  decision       Decision     @relation(fields: [decisionId], references: [id], onDelete: Cascade)
-  status         String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  status         String       @default("PENDING")
   reviewerId     String?
-  reviewer       User?        @relation("ApprovalReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
   approvedAt     DateTime?
   createdAt      DateTime     @default(now())
+  decision       Decision     @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reviewer       User?        @relation("ApprovalReviewer", fields: [reviewerId], references: [id])
 
   @@index([organizationId])
   @@index([organizationId, status])
@@ -122,15 +141,15 @@ model Approval {
 model Risk {
   id             String       @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   title          String
   description    String?
-  severity       String       @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  severity       String       @default("MEDIUM")
   score          Float        @default(0.0)
-  status         String       @default("OPEN")   // OPEN, MITIGATED, CLOSED
+  status         String       @default("OPEN")
   ownerId        String?
-  owner          User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner          User?        @relation(fields: [ownerId], references: [id])
 
   @@index([organizationId])
   @@index([organizationId, createdAt])
@@ -139,13 +158,13 @@ model Risk {
 model AuditLog {
   id             String       @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String?
-  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   action         String
   resource       String
   metadataJson   String?
   createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id])
 
   @@index([organizationId])
 }
@@ -153,7 +172,6 @@ model AuditLog {
 model MetricSnapshot {
   id              String       @id @default(cuid())
   organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   aiSpend         Float        @default(0)
   aiSavings       Float        @default(0)
   roi             Float        @default(0)
@@ -162,6 +180,7 @@ model MetricSnapshot {
   risksOpen       Int          @default(0)
   complianceScore Float        @default(100.0)
   createdAt       DateTime     @default(now())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([organizationId, createdAt])
@@ -170,14 +189,14 @@ model MetricSnapshot {
 model SpendLog {
   id             String       @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   aiWorkerId     String
-  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
   model          String
   tokensUsed     Int
   costUsd        Float
   action         String
   createdAt      DateTime     @default(now())
+  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([organizationId, createdAt])
