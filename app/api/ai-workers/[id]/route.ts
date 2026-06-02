@@ -12,16 +12,12 @@ export async function PUT(
     const data = await request.json();
 
     const aiWorker = await prisma.aIWorker.update({
-      where: { id },
-      data: {
-        name: data.name,
-        role: data.role,
-        department: data.department,
-        owner: data.owner,
-        description: data.description,
-        status: data.status,
-      },
-    });
+  where: { id },
+  data: {
+    name: data.name,
+    status: data.status,
+  },
+});
 
     return NextResponse.json(aiWorker);
   } catch (error) {
