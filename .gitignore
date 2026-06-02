@@ -6,3 +6,29 @@ __pycache__/
 *.pyc
 
 node_modules
+# Next.js
+.next/
+out/
+
+# Build
+dist/
+build/
+
+# Typescript
+*.tsbuildinfo
+
+# Node
+node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Env
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
