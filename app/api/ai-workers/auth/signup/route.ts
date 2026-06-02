@@ -45,13 +45,13 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        name,
         email,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         role: "OWNER",
         organization: {
           create: {
             name: organizationName,
+            slug: organizationSlug,
           },    
         },
       },
@@ -61,7 +61,6 @@ export async function POST(req: Request) {
       success: true,
       user: {
         id: user.id,
-        name: user.name,
         email: user.email,
         role: user.role,
       },
