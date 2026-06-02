@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "start:frontend": "next dev --webpack",
+    "start:frontend": "next dev",
     "start:backend": ".venv/bin/uvicorn main:app --reload --port 8001",
     "build": "next build",
     "start": "next start",

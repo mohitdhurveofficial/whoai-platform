@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { CommandPalette } from "@/app/components/CommandPalette";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://whoai.ai"),
@@ -68,7 +67,6 @@ export default function RootLayout({
 >
      <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased transition-colors duration-200" style={{ colorScheme: 'light' }}>
        {children}
-       <CommandPalette />
      </body>
     </html>
   );

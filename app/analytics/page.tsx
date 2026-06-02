@@ -1,7 +1,5 @@
 "use client";
 
-import AppShell from "@/app/components/AppShell";
-import { PageHeader } from "@/app/components/ui/PageHeader";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { TrendingUp, AlertTriangle, Zap } from "lucide-react";
 
@@ -44,14 +42,11 @@ export default function AnalyticsPage() {
   const highRiskCount = riskDistribution.find((r) => r.name === "High Risk")?.value || 0;
 
   return (
-    <AppShell
-      title="Analytics"
-      description="OS-level insights into AI worker activity, decision intelligence, and compliance metrics."
-    >
-      <PageHeader
-        title="Analytics & Insights"
-        description="Real-time operational intelligence across your autonomous AI workforce."
-      />
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">Analytics & Insights</h1>
+        <p className="mt-2 text-slate-600">Real-time operational intelligence across your autonomous AI workforce.</p>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-4">
@@ -183,6 +178,6 @@ export default function AnalyticsPage() {
           ))}
         </div>
       </section>
-    </AppShell>
+    </div>
   );
 }

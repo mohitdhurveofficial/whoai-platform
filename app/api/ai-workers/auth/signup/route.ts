@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as {
+      email?: string;
+      password?: string;
+      organizationName?: string;
+    };
 
-    const { name, email, password } = body;
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json(

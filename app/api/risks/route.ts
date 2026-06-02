@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { createClient } from '@/utils/supabase/server';
+import { prisma } from '@/lib/prisma';
+import { verifyToken } from '@/lib/auth/jwt';
+import { cookies } from 'next/headers';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -17,16 +18,28 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const token = cookieStore.get("whoai_auth")?.value;
 
-    if (authError || !user) {
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const data = await request.json();
-    const organizationId = user.user_metadata?.organizationId;
-    const userId = user.id;
+    const payload = verifyToken(token);
+    if (!payload || typeof payload !== "object" || !("userId" in payload)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const data = (await request.json()) as {
+      title?: string;
+      description?: string;
+      severity?: string;
+      score?: number;
+      status?: string;
+    };
+
+    const organizationId = payload.organizationId as string | undefined;
+    const userId = payload.userId as string;
 
     if (!data.title || !organizationId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -40,6 +53,7 @@ export async function POST(request: Request) {
         severity: data.severity || 'MEDIUM',
         score: data.score || 0.0,
         status: data.status || 'OPEN',
+        ownerId: userId,
       },
     });
 

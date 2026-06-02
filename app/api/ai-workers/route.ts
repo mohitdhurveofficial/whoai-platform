@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -14,22 +14,24 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const data = (await request.json()) as {
+      name?: string;
+      environment?: string;
+      organizationId?: string;
+    };
     
     // Server-side validation
-    if (!data.name || !data.role || !data.department || !data.owner || !data.status || !data.workspaceId) {
+    if (!data.name || !data.environment || !data.organizationId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const aiWorker = await prisma.aIWorker.create({
       data: {
+        organizationId: data.organizationId,
         name: data.name,
-        role: data.role,
-        department: data.department,
-        owner: data.owner,
-        description: data.description,
-        status: data.status,
-        workspaceId: data.workspaceId,
+        environment: data.environment,
+        agentToken: crypto.randomUUID(),
+        status: "ACTIVE",
       },
     });
 

@@ -1,22 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth/jwt";
+import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
   try {
-    const auth =
-      req.headers.get("authorization");
+    const cookieStore = await cookies();
+    let token = cookieStore.get("whoai_auth")?.value;
 
-    if (!auth) {
+    if (!token) {
+      const auth = req.headers.get("authorization");
+      if (auth && auth.startsWith("Bearer ")) {
+        token = auth.replace("Bearer ", "");
+      }
+    }
+
+    if (!token) {
       return Response.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
-
-    const token = auth.replace(
-      "Bearer ",
-      ""
-    );
 
     const payload =
       verifyToken(token);
@@ -35,7 +38,6 @@ export async function GET(req: Request) {
         },
         select: {
           id: true,
-          name: true,
           email: true,
           role: true,
           createdAt: true,

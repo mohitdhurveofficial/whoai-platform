@@ -1,33 +1,45 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const evidence = await prisma.evidence.findMany({ orderBy: { createdAt: 'desc' } });
-    return NextResponse.json(evidence);
+    const approvals = await prisma.approval.findMany({ orderBy: { createdAt: 'desc' } });
+    return NextResponse.json(approvals);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch Evidence' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch approvals' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const evidence = await prisma.evidence.create({
+    const data = (await request.json()) as {
+      organizationId?: string;
+      decisionId?: string;
+      status?: string;
+      reviewerId?: string;
+    };
+
+    if (!data.organizationId || !data.decisionId) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const approval = await prisma.approval.create({
       data: {
-        workspaceId: data.workspaceId || "demo-workspace",
-        fileName: data.fileName,
-        fileType: data.fileType,
-        url: data.url,
+        organizationId: data.organizationId,
+        decisionId: data.decisionId,
+        status: data.status || 'PENDING',
+        reviewerId: data.reviewerId,
       }
     });
+
     await prisma.auditLog.create({
-      data: { action: 'EVIDENCE_UPLOADED', resource: evidence.id, workspaceId: evidence.workspaceId }
+      data: { action: 'APPROVAL_CREATED', resource: approval.id, organizationId: approval.organizationId }
     });
-    return NextResponse.json(evidence, { status: 201 });
+
+    return NextResponse.json(approval, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to upload Evidence metadata' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create approval' }, { status: 500 });
   }
 }

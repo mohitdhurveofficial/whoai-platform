@@ -1,12 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 export const revalidate = 0;
 
 export default async function EvidenceVaultPage() {
-  const evidenceFiles = await prisma.evidence.findMany({
+  const auditLogs = await prisma.auditLog.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { decision: true, policy: true }
   });
 
   return (
@@ -17,23 +15,26 @@ export default async function EvidenceVaultPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {evidenceFiles.map(file => (
-          <div key={file.id} className="bg-white p-6 rounded-xl border shadow-sm flex flex-col justify-between">
+        {auditLogs.length === 0 ? (
+          <div className="col-span-full p-8 text-center bg-white border rounded-xl shadow-sm text-slate-500">
+            No evidence records found in the vault.
+          </div>
+        ) : (
+          auditLogs.map(log => (
+            <div key={log.id} className="bg-white p-6 rounded-xl border shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-xs uppercase tracking-wide">
-                  {file.fileType}
+                  AUDIT
                 </div>
-                <h3 className="font-semibold text-slate-900 truncate" title={file.fileName}>{file.fileName}</h3>
+                <h3 className="font-semibold text-slate-900 truncate" title={log.action}>{log.action}</h3>
               </div>
-              <p className="text-sm text-slate-500 mb-4">Uploaded on {new Date(file.createdAt).toLocaleDateString()}</p>
+              <p className="text-sm text-slate-500 mb-4">Logged on {new Date(log.createdAt).toLocaleDateString()}</p>
+              <p className="text-sm text-slate-700 font-medium">Resource: {log.resource}</p>
             </div>
-            
-            <a href={file.url} target="_blank" rel="noreferrer" className="w-full text-center px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-200 transition">
-              View Evidence
-            </a>
           </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

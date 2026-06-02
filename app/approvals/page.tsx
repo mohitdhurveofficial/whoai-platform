@@ -1,13 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 
-const prisma = new PrismaClient();
 export const revalidate = 0;
 
 export default async function ApprovalQueuePage() {
-  const requests = await prisma.approvalRequest.findMany({
+  const requests = await prisma.approval.findMany({
     where: { status: 'PENDING' },
-    include: { decision: { include: { aiWorker: true } } },
+    include: { decision: { include: { aiWorker: true, policy: true } } },
     orderBy: { createdAt: 'asc' }
   });
 
@@ -30,12 +29,12 @@ export default async function ApprovalQueuePage() {
             <div key={req.id} className="flex justify-between items-center bg-white p-6 rounded-xl border shadow-sm">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-bold text-lg text-slate-900">{req.decision.title}</h3>
-                  <span className={`px-2 py-1 text-xs font-bold text-white rounded ${req.decision.riskLevel === 'CRITICAL' ? 'bg-red-700' : req.decision.riskLevel === 'HIGH' ? 'bg-red-500' : 'bg-yellow-500'}`}>
-                    {req.decision.riskLevel}
+                  <h3 className="font-bold text-lg text-slate-900">{req.decision.actionType}</h3>
+                  <span className={`px-2 py-1 text-xs font-bold text-white rounded ${req.decision.policy?.riskLevel === 'CRITICAL' ? 'bg-red-700' : req.decision.policy?.riskLevel === 'HIGH' ? 'bg-red-500' : 'bg-yellow-500'}`}>
+                    {req.decision.policy?.riskLevel || 'UNKNOWN'}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500">AI Worker: <span className="font-medium">{req.decision.aiWorker.name}</span> | Workflow Step: {req.currentStep}</p>
+                <p className="text-sm text-slate-500">AI Worker: <span className="font-medium">{req.decision.aiWorker.name}</span> | Status: {req.status}</p>
               </div>
               <div className="flex gap-2">
                 <button className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800">Review</button>

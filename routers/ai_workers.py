@@ -4,77 +4,77 @@ from sqlalchemy import select
 import secrets
 
 from database.session import get_db
-from database.models import Agent, AgentStatus
+from database.models import AIWorker
 from schemas import (
-    AgentCreate,
-    AgentResponse,
-    AgentUpdate
+    AIWorkerCreate,
+    AIWorkerResponse,
+    AIWorkerUpdate
 )
 
 router = APIRouter(
-    prefix="/agents",
-    tags=["agents"],
+    prefix="/ai-workers",
+    tags=["ai-workers"],
 )
 
 
-@router.post("", response_model=AgentResponse)
+@router.post("", response_model=AIWorkerResponse)
 async def create_agent(
-    payload: AgentCreate,
+    payload: AIWorkerCreate,
     db: AsyncSession = Depends(get_db)
 ):
 
-    agent = Agent(
+    ai_worker = AIWorker(
+        organization_id=payload.organization_id,
         name=payload.name,
-        owner_email=payload.owner_email,
         environment=payload.environment,
         agent_token=secrets.token_urlsafe(32),
-        status=AgentStatus.ACTIVE
+        status="ACTIVE"
     )
 
-    db.add(agent)
+    db.add(ai_worker)
 
     await db.commit()
 
-    await db.refresh(agent)
+    await db.refresh(ai_worker)
 
-    return agent
+    return ai_worker
 
 
-@router.get("", response_model=list[AgentResponse])
+@router.get("", response_model=list[AIWorkerResponse])
 async def list_agents(
     db: AsyncSession = Depends(get_db)
 ):
 
-    result = await db.execute(select(Agent))
+    result = await db.execute(select(AIWorker))
 
-    agents = result.scalars().all()
+    ai_workers = result.scalars().all()
 
-    return agents
+    return ai_workers
 
 
-@router.patch("/{agent_id}", response_model=AgentResponse)
+@router.patch("/{ai_worker_id}", response_model=AIWorkerResponse)
 async def update_agent_status(
-    agent_id: int,
-    payload: AgentUpdate,
+    ai_worker_id: str,
+    payload: AIWorkerUpdate,
     db: AsyncSession = Depends(get_db)
 ):
 
     result = await db.execute(
-        select(Agent).where(Agent.id == agent_id)
+        select(AIWorker).where(AIWorker.id == ai_worker_id)
     )
 
-    agent = result.scalar_one_or_none()
+    ai_worker = result.scalar_one_or_none()
 
-    if not agent:
+    if not ai_worker:
         raise HTTPException(
             status_code=404,
-            detail="Agent not found"
+            detail="AI Worker not found"
         )
 
-    agent.status = payload.status
+    ai_worker.status = payload.status
 
     await db.commit()
 
-    await db.refresh(agent)
+    await db.refresh(ai_worker)
 
-    return agent
+    return ai_worker
