@@ -148,6 +148,7 @@ app.include_router(
     prefix="/api/v1"
 )
 
+
 # Doctor and system intelligence endpoints
 app.include_router(doctor.router)
 app.include_router(system.router, prefix="/api/v1")

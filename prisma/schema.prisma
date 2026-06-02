@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Assuming PostgreSQL with Supabase
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Organization {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String   @unique
+  stripeCustomerId String?  @unique
+  subscriptionTier String   @default("FREE") // FREE, STARTER, GROWTH, ENTERPRISE
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  users           User[]
+  aiWorkers       AIWorker[]
+  policies        Policy[]
+  decisions       Decision[]
+  approvals       Approval[]
+  auditLogs       AuditLog[]
+  metricSnapshots MetricSnapshot[]
+  risks           Risk[]
+  spendLogs       SpendLog[]
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String       @unique
+  passwordHash   String?      // Optional if using Supabase Auth
+  role           String       @default("VIEWER") // ADMIN, COMPLIANCE_OFFICER, VIEWER
+  createdAt      DateTime     @default(now())
+
+  approvalsReviewed Approval[]  @relation("ApprovalReviewer")
+  risksOwned     Risk[]
+  auditLogs      AuditLog[]
+
+  @@index([organizationId])
+}
+
+model AIWorker {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  environment    String       // PRODUCTION, STAGING
+  agentToken     String       @unique
+  status         String       @default("ACTIVE")
+  createdAt      DateTime     @default(now())
+  
+  policies       Policy[]
+  decisions      Decision[]
+  spendLogs      SpendLog[]
+
+  @@index([organizationId])
+  @@index([agentToken])
+}
+
+model Policy {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiWorkerId     String?
+  aiWorker       AIWorker?    @relation(fields: [aiWorkerId], references: [id], onDelete: SetNull)
+  action         String
+  resource       String
+  condition      String
+  effect         String       // ALLOW, DENY, REQUIRE_APPROVAL
+  riskLevel      String       @default("MEDIUM")
+  createdAt      DateTime     @default(now())
+  
+  decisions      Decision[]
+
+  @@index([organizationId])
+  @@index([aiWorkerId])
+}
+
+model Decision {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiWorkerId     String
+  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  policyId       String?
+  policy         Policy?      @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  actionType     String
+  resourceJson   String
+  contextJson    String
+  decision       String       // ALLOW, DENY, NEEDS_APPROVAL
+  reason         String
+  createdAt      DateTime     @default(now())
+
+  approval       Approval?
+
+  @@index([organizationId])
+  @@index([aiWorkerId])
+  @@index([organizationId, createdAt])
+}
+
+model Approval {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  decisionId     String       @unique
+  decision       Decision     @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  status         String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewerId     String?
+  reviewer       User?        @relation("ApprovalReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  approvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+}
+
+model Risk {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  severity       String       @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  score          Float        @default(0.0)
+  status         String       @default("OPEN")   // OPEN, MITIGATED, CLOSED
+  ownerId        String?
+  owner          User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, createdAt])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action         String
+  resource       String
+  metadataJson   String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+model MetricSnapshot {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiSpend         Float        @default(0)
+  aiSavings       Float        @default(0)
+  roi             Float        @default(0)
+  decisions       Int          @default(0)
+  approvals       Int          @default(0)
+  risksOpen       Int          @default(0)
+  complianceScore Float        @default(100.0)
+  createdAt       DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, createdAt])
+}
+
+model SpendLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aiWorkerId     String
+  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  model          String
+  tokensUsed     Int
+  costUsd        Float
+  action         String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([organizationId, createdAt])
+}
