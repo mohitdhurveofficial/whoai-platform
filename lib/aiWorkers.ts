@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
-type AIWorkerCreateInput = {
+type AgentCreateInput = {
   name: string;
   environment: string;
 };
@@ -25,7 +25,8 @@ async function getOrCreateDemoWorkspaceId() {
   return organization.id;
 }
 
-type AIWorkerWithDecisionCount = Prisma.AIWorkerGetPayload<{
+
+type AgentWithDecisionCount = Prisma.AgentGetPayload<{
   include: {
     _count: {
       select: {
@@ -35,7 +36,7 @@ type AIWorkerWithDecisionCount = Prisma.AIWorkerGetPayload<{
   };
 }>;
 
-function normalizeAIWorker(worker: AIWorkerWithDecisionCount) {
+function normalizeAgent(worker: AgentWithDecisionCount) {
   const statusValue = worker.status ?? "ACTIVE";
 
   const status =
@@ -52,8 +53,8 @@ function normalizeAIWorker(worker: AIWorkerWithDecisionCount) {
   };
 }
 
-export async function getAIWorkers() {
-  const workers = await prisma.aIWorker.findMany({
+export async function getAgents() {
+  const workers = await prisma.agent.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
@@ -64,11 +65,11 @@ export async function getAIWorkers() {
     },
   });
 
-  return workers.map(normalizeAIWorker);
+  return workers.map(normalizeAgent);
 }
 
-export async function getAIWorkerById(id: string) {
-  const worker = await prisma.aIWorker.findUnique({
+export async function getAgentById(id: string) {
+  const worker = await prisma.agent.findUnique({
     where: { id },
     include: {
       _count: {
@@ -83,17 +84,17 @@ export async function getAIWorkerById(id: string) {
     return null;
   }
 
-  return normalizeAIWorker(worker);
+  return normalizeAgent(worker);
 }
 
-export async function createAIWorker(
-  data: AIWorkerCreateInput
+export async function createAgent(
+  data: AgentCreateInput
 ) {
   const organizationId =
     await getOrCreateDemoWorkspaceId();
 
   const worker =
-    await prisma.aIWorker.create({
+    await prisma.agent.create({
       data: {
         organizationId: organizationId,
         name: data.name,
@@ -110,17 +111,17 @@ export async function createAIWorker(
       },
     });
 
-  return normalizeAIWorker(worker);
+  return normalizeAgent(worker);
 }
 
-export async function updateAIWorker(
+export async function updateAgent(
   id: string,
-  data: Partial<AIWorkerCreateInput> & {
+  data: Partial<AgentCreateInput> & {
     status?: string;
   }
 ) {
   const worker =
-    await prisma.aIWorker.update({
+    await prisma.agent.update({
       where: { id },
       data: {
         ...data,
@@ -135,13 +136,13 @@ export async function updateAIWorker(
       },
     });
 
-  return normalizeAIWorker(worker);
+  return normalizeAgent(worker);
 }
 
-export async function deleteAIWorker(
+export async function deleteAgent(
   id: string
 ) {
-  return prisma.aIWorker.delete({
+  return prisma.agent.delete({
     where: { id },
   });
 }

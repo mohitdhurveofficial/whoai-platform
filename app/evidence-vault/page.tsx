@@ -29,7 +29,7 @@ export default async function EvidenceVaultPage() {
                 </div>
                 <h3 className="font-semibold text-slate-900 truncate" title={log.action}>{log.action}</h3>
               </div>
-              <p className="text-sm text-slate-500 mb-4">Logged on {new Date(log.createdAt).toLocaleDateString()}</p>
+              <p className="text-sm text-slate-500 mb-4">Logged on {log.createdAt ? new Date(log.createdAt).toLocaleDateString() : 'Unknown date'}</p>
               <p className="text-sm text-slate-700 font-medium">Resource: {log.resource}</p>
             </div>
           </div>

@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
+import type { Agent } from '@prisma/client';
 
 export const revalidate = 0;
 
 export default async function OrgChartPage() {
-  const workers = await prisma.aIWorker.findMany();
+  const workers = await prisma.agent.findMany();
 
 
   return (
@@ -18,7 +19,7 @@ export default async function OrgChartPage() {
           <p className="text-slate-500 text-center py-4">No AI hierarchy configured yet.</p>
         ) : (
           <div className="space-y-8">
-            {workers.map(worker => (
+            {workers.map((worker: Agent) => (
               <div key={worker.id} className="relative">
                 <div className="inline-block bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-sm">
                   {worker.name} <span className="font-normal text-slate-400 ml-2">({worker.environment})</span>

@@ -6,7 +6,7 @@ export const revalidate = 0;
 export default async function ApprovalQueuePage() {
   const requests = await prisma.approval.findMany({
     where: { status: 'PENDING' },
-    include: { decision: { include: { aiWorker: true, policy: true } } },
+    include: { decision: { include: { agent: true, policy: true } } },
     orderBy: { createdAt: 'asc' }
   });
 
@@ -34,7 +34,7 @@ export default async function ApprovalQueuePage() {
                     {req.decision.policy?.riskLevel || 'UNKNOWN'}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500">AI Worker: <span className="font-medium">{req.decision.aiWorker.name}</span> | Status: {req.status}</p>
+                <p className="text-sm text-slate-500">AI Worker: <span className="font-medium">{req.decision.agent.name}</span> | Status: {req.status}</p>
               </div>
               <div className="flex gap-2">
                 <button className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800">Review</button>

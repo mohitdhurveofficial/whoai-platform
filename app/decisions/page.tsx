@@ -6,7 +6,7 @@ interface Decision {
   id: string;
   title: string;
   description?: string;
-  aiWorkerId?: string;
+  AgentId?: string;
   riskScore: number;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | string;
   confidenceScore?: number;
@@ -16,7 +16,7 @@ interface Decision {
 interface DecisionFormData {
   title: string;
   description: string;
-  aiWorkerId: string;
+  AgentId: string;
   riskScore: number;
   confidenceScore: number;
   status: string;
@@ -27,7 +27,7 @@ export default function DecisionsPage() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
 
   const [formData, setFormData] = useState<DecisionFormData>({
-    title: '', description: '', aiWorkerId: '', riskScore: 0, confidenceScore: 0, status: ''
+    title: '', description: '', AgentId: '', riskScore: 0, confidenceScore: 0, status: ''
   });
 
   const fetchDecisions = async () => {
@@ -49,7 +49,7 @@ export default function DecisionsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
-    setFormData({ title: '', description: '', aiWorkerId: '', riskScore: 0, confidenceScore: 0, status: '' });
+    setFormData({ title: '', description: '', AgentId: '', riskScore: 0, confidenceScore: 0, status: '' });
     fetchDecisions();
   };
 
@@ -59,7 +59,7 @@ export default function DecisionsPage() {
       <form onSubmit={handleSubmit} className="space-y-4 mb-8 bg-gray-50 p-6 rounded shadow-sm">
         <input placeholder="Title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required className="border p-2 block w-full rounded" />
         <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} required className="border p-2 block w-full rounded" />
-        <input placeholder="AI Worker ID" value={formData.aiWorkerId} onChange={e => setFormData({...formData, aiWorkerId: e.target.value})} required className="border p-2 block w-full rounded" />
+        <input placeholder="AI Worker ID" value={formData.AgentId} onChange={e => setFormData({...formData, AgentId: e.target.value})} required className="border p-2 block w-full rounded" />
         <label className="block text-sm text-gray-700">Risk Score (0-100)</label>
         <input type="number" min="0" max="100" placeholder="Risk Score" value={formData.riskScore} onChange={e => setFormData({...formData, riskScore: Number(e.target.value)})} required className="border p-2 block w-full rounded" />
         <label className="block text-sm text-gray-700">Confidence Score</label>
@@ -77,7 +77,7 @@ export default function DecisionsPage() {
                 Risk: {decision.riskLevel}
               </span>
             </div>
-            <p className="text-gray-600 text-sm mb-2">AI Worker: {decision.aiWorkerId ?? 'N/A'} | Status: {decision.status} | Confidence: {decision.confidenceScore ?? 'N/A'} | Raw Score: {decision.riskScore}</p>
+            <p className="text-gray-600 text-sm mb-2">AI Worker: {decision.AgentId ?? 'N/A'} | Status: {decision.status} | Confidence: {decision.confidenceScore ?? 'N/A'} | Raw Score: {decision.riskScore}</p>
             <p className="text-gray-800">{decision.description ?? 'No description available'}</p>
           </div>
         ))}

@@ -1,6 +1,6 @@
-import { AIWorker } from './types';
+import { Agent } from './types';
 
-export const mockWorkers: AIWorker[] = [
+export const mockWorkers: Agent[] = [
   {
     id: 'wk-001',
     name: 'Customer Support Bot',

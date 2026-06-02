@@ -3,7 +3,7 @@ import { MoreVertical, Inbox } from 'lucide-react';
 
 export interface DecisionDTO {
   id: string;
-  aiWorkerName: string;
+  AgentName: string;
   title: string;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | string;
   confidenceScore: number;
@@ -63,7 +63,7 @@ export default function RecentDecisions({ decisions = [], isLoading }: RecentDec
                   <div className="font-medium text-slate-900 dark:text-white">{decision.title}</div>
                   <div className="text-xs text-slate-500">{new Date(decision.createdAt).toLocaleDateString()}</div>
                 </td>
-                <td className="px-6 py-4">{decision.aiWorkerName}</td>
+                <td className="px-6 py-4">{decision.AgentName}</td>
                 <td className="px-6 py-4">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${decision.riskLevel === 'LOW' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'}`}>
                     {decision.riskLevel}

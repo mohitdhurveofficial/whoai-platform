@@ -5,17 +5,17 @@ import WorkforceMetrics from "@/app/components/agents/WorkforceMetrics";
 import WorkersTable from "@/app/components/agents/WorkersTable";
 import WorkerFilters from "@/app/components/agents/WorkerFilters";
 import WorkerDrawer from "@/app/components/agents/WorkerDrawer";
-import { AIWorker } from "@/app/components/agents/types";
+import { Agent } from "@/app/components/agents/types";
 import { mockWorkers } from "@/app/components/agents/mockData";
 import WorkspaceLayout from "@/app/components/layouts/WorkspaceLayout";
 import { PageHeader } from "@/app/components/ui/PageHeader";
 
 export default function AgentsPage() {
-  const [workers, setWorkers] = useState<AIWorker[]>([]);
+  const [workers, setWorkers] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [selectedWorker, setSelectedWorker] = useState<AIWorker | null>(null);
+  const [selectedWorker, setSelectedWorker] = useState<Agent | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function AgentsPage() {
     );
   }, [searchQuery, workers]);
 
-  const handleRowClick = (worker: AIWorker) => {
+  const handleRowClick = (worker: Agent) => {
     setSelectedWorker(worker);
     setIsDrawerOpen(true);
   };

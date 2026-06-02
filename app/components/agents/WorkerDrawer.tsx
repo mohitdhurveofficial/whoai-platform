@@ -1,9 +1,9 @@
 import React from 'react';
-import { AIWorker } from './types';
+import { Agent } from './types';
 import { X, Shield, Activity, Calendar, FileText, CheckCircle } from 'lucide-react';
 
 interface WorkerDrawerProps {
-  worker: AIWorker | null;
+  worker: Agent | null;
   isOpen: boolean;
   onClose: () => void;
 }

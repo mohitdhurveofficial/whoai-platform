@@ -18,7 +18,7 @@ model Organization {
   updatedAt        DateTime         @updatedAt
   walletBalance    Float            @default(0.0)
   aiTransactions   AITransaction[]
-  aiWorkers        AIWorker[]
+  agents           Agent[]
   approvals        Approval[]
   auditLogs        AuditLog[]
   decisions        Decision[]
@@ -44,7 +44,7 @@ model User {
   @@index([organizationId])
 }
 
-model AIWorker {
+model Agent {
   id               String          @id @default(cuid())
   organizationId   String
   name             String
@@ -67,7 +67,7 @@ model AIWorker {
 model Policy {
   id             String       @id @default(cuid())
   organizationId String
-  aiWorkerId     String?
+  agentId        String?
   action         String
   resource       String
   condition      String
@@ -75,17 +75,17 @@ model Policy {
   riskLevel      String       @default("MEDIUM")
   createdAt      DateTime     @default(now())
   decisions      Decision[]
-  aiWorker       AIWorker?    @relation(fields: [aiWorkerId], references: [id])
+  agent          Agent?       @relation(fields: [agentId], references: [id])
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
-  @@index([aiWorkerId])
+  @@index([agentId])
 }
 
 model Decision {
   id             String       @id @default(cuid())
   organizationId String
-  aiWorkerId     String
+  agentId        String
   policyId       String?
   actionType     String
   resourceJson   String
@@ -94,19 +94,19 @@ model Decision {
   reason         String
   createdAt      DateTime     @default(now())
   approval       Approval?
-  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  agent          Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   policy         Policy?      @relation(fields: [policyId], references: [id])
 
   @@index([organizationId])
-  @@index([aiWorkerId])
+  @@index([agentId])
   @@index([organizationId, createdAt])
 }
 
 model AITransaction {
   id             String       @id @default(cuid())
   organizationId String
-  aiWorkerId     String
+  agentId        String
   type           String
   amount         Float
   currency       String       @default("USD")
@@ -114,11 +114,11 @@ model AITransaction {
   status         String       @default("COMPLETED")
   evidenceId     String?
   createdAt      DateTime     @default(now())
-  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  agent          Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
-  @@index([aiWorkerId])
+  @@index([agentId])
   @@index([organizationId, createdAt])
 }
 
@@ -189,13 +189,13 @@ model MetricSnapshot {
 model SpendLog {
   id             String       @id @default(cuid())
   organizationId String
-  aiWorkerId     String
+  agentId        String
   model          String
   tokensUsed     Int
   costUsd        Float
   action         String
   createdAt      DateTime     @default(now())
-  aiWorker       AIWorker     @relation(fields: [aiWorkerId], references: [id], onDelete: Cascade)
+  agent          Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
