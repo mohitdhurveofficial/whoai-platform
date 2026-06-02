@@ -32,3 +32,8 @@ __pycache__/
 
 # Logs
 *.log
+.next
+node_modules
+venv
+.venv
+tsconfig.tsbuildinfo
