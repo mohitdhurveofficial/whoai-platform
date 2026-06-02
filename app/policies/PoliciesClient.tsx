@@ -40,7 +40,7 @@ export function PoliciesClient() {
       const name = item.name || '';
       const desc = item.description || '';
       const owner = (item as any).owner || '';
-      const dept = (item as any).department || item.category || '';
+      const dept = (item as any).department || '';
 
       const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) ||
                             desc.toLowerCase().includes(search.toLowerCase()) ||

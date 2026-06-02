@@ -3,16 +3,13 @@ import type { Prisma } from "@prisma/client";
 
 type AIWorkerCreateInput = {
   name: string;
-  role: string;
-  department?: string;
-  owner?: string;
-  description?: string;
+  environment: string;
 };
 
 async function getOrCreateDemoWorkspaceId() {
   const existing = await prisma.organization.findFirst({
     where: {
-      name: "Demo Workspace",
+      slug: "demo-workspace",
     },
   });
 
@@ -21,6 +18,7 @@ async function getOrCreateDemoWorkspaceId() {
     (await prisma.organization.create({
       data: {
         name: "Demo Workspace",
+        slug: "demo-workspace",
       },
     }));
 
@@ -38,12 +36,7 @@ type AIWorkerWithDecisionCount = Prisma.AIWorkerGetPayload<{
 }>;
 
 function normalizeAIWorker(worker: AIWorkerWithDecisionCount) {
-  const riskLevelValue = worker.riskLevel ?? "LOW";
   const statusValue = worker.status ?? "ACTIVE";
-
-  const riskLevel =
-    riskLevelValue.charAt(0).toUpperCase() +
-    riskLevelValue.slice(1).toLowerCase();
 
   const status =
     statusValue.charAt(0).toUpperCase() +
@@ -52,20 +45,10 @@ function normalizeAIWorker(worker: AIWorkerWithDecisionCount) {
   return {
     id: worker.id,
     name: worker.name,
-    description: worker.description ?? "",
-    department: worker.department ?? "General",
+    environment: worker.environment,
     status,
-    riskLevel,
     decisionsToday: worker._count?.decisions ?? 0,
-    successRate: worker.confidenceScore ?? 0,
-    lastActivity: worker.createdAt.toISOString(),
-    assignedPolicies: [],
-    approvalRequirements:
-      (worker.riskScore ?? 0) >= 70
-        ? "Human approval required"
-        : "Auto-approval eligible",
     createdAt: worker.createdAt.toISOString(),
-    updatedAt: worker.createdAt.toISOString(),
   };
 }
 
@@ -112,17 +95,11 @@ export async function createAIWorker(
   const worker =
     await prisma.aIWorker.create({
       data: {
-        workspaceId: organizationId,
+        organizationId: organizationId,
         name: data.name,
-        role: data.role,
-        department:
-          data.department ?? "General",
-        owner:
-          data.owner ?? "AI Operations",
-        description: data.description,
+        environment: data.environment,
+        agentToken: crypto.randomUUID(),
         status: "ACTIVE",
-        riskScore: 0,
-        confidenceScore: 0,
       },
       include: {
         _count: {
@@ -147,12 +124,6 @@ export async function updateAIWorker(
       where: { id },
       data: {
         ...data,
-        department:
-          data.department ?? undefined,
-        owner:
-          data.owner ?? undefined,
-        description:
-          data.description ?? undefined,
         status: data.status,
       },
       include: {

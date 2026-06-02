@@ -4,7 +4,10 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const body = (await req.json()) as {
+    email?: string;
+    password?: string;
+  };
   const jwtSecret = process.env.NEXTAUTH_SECRET;
 
   if (!jwtSecret) {
@@ -14,17 +17,25 @@ export async function POST(req: Request) {
     );
   }
 
+  const { email, password } = body;
+
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: "Email and password are required" },
+      { status: 400 }
+    );
+  }
+
   const user = await prisma.user.findUnique({
     where: {
-      email: body.email,
+      email,
     },
     select: {
       id: true,
       email: true,
-      password: true,
+      passwordHash: true,
       role: true,
       organizationId: true,
-      name: true,
     },
   });
 
@@ -36,8 +47,8 @@ export async function POST(req: Request) {
   }
 
   const validPassword = await bcrypt.compare(
-    body.password,
-    user.password
+    password,
+    user.passwordHash || ""
   );
 
   if (!validPassword) {
@@ -65,7 +76,6 @@ export async function POST(req: Request) {
     token,
     user: {
       id: user.id,
-      name: user.name,
       email: user.email,
       role: user.role,
       organizationId: user.organizationId,

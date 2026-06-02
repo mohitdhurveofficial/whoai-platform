@@ -12,7 +12,7 @@ export async function updateApprovalStatus(id: string, status: "APPROVED" | "REJ
 
     await prisma.decision.update({
       where: { id: approval.decisionId },
-      data: { status }
+      data: { decision: status === "APPROVED" ? "ALLOW" : "DENY" }
     });
 
     revalidatePath("/approvals");
