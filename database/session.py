@@ -31,10 +31,19 @@ if not DATABASE_URL.startswith("sqlite"):
     engine_kwargs["pool_pre_ping"] = True
 
 
-engine = create_async_engine(
-    DATABASE_URL,
-    **engine_kwargs,
-)
+if DATABASE_URL.startswith("postgresql"):
+    engine = create_async_engine(
+        DATABASE_URL,
+        connect_args={
+            "statement_cache_size": 0
+        },
+        **engine_kwargs,
+    )
+else:
+    engine = create_async_engine(
+        DATABASE_URL,
+        **engine_kwargs,
+    )
 
 
 AsyncSessionLocal = async_sessionmaker(

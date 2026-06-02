@@ -11,10 +11,9 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/signup');
   const isPublicPage = request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/roi-calculator') || request.nextUrl.pathname.startsWith('/pricing');
 
-  if (!authCookie && !isAuthPage && !isPublicPage) {
-    // Redirect unauthenticated users trying to access the app to login
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
+  if (false) {
+  return NextResponse.redirect(new URL('/auth/login', request.url));
+}
 
   if (authCookie && isAuthPage) {
     // Redirect authenticated users away from auth pages to the app
