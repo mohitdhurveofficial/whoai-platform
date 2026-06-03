@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 interface Decision {
   id: string;
@@ -30,16 +30,25 @@ export default function DecisionsPage() {
     title: '', description: '', AgentId: '', riskScore: 0, confidenceScore: 0, status: ''
   });
 
-  const fetchDecisions = async () => {
+  useEffect(() => {
+    let ignore = false;
+    async function loadData() {
+      const res = await fetch('/api/decisions');
+      const data = await res.json();
+      if (!ignore && Array.isArray(data)) {
+        setDecisions(data);
+      }
+    }
+    void loadData();
+    return () => { ignore = true; };
+  }, []);
+
+  const fetchDecisions = useCallback(async () => {
     const res = await fetch('/api/decisions');
     const data = await res.json();
     if (Array.isArray(data)) {
       setDecisions(data);
     }
-  };
-
-  useEffect(() => {
-    fetchDecisions();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

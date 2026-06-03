@@ -128,7 +128,8 @@ app.include_router(auth.router)
 app.include_router(api_keys.router, prefix="/api/v1")
 
 # Existing routers
-#app.include_router(ai_workers.router, prefix="/api/v1")
+app.include_router(ai_workers.router, prefix="/api/v1")
+# app.include_router(gateway.router, prefix="/api/v1")
 app.include_router(policies.router, prefix="/api/v1")
 app.include_router(authorize.router, prefix="/api/v1")
 app.include_router(approvals.router, prefix="/api/v1")

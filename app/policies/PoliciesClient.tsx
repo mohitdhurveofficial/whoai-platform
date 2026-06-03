@@ -39,8 +39,9 @@ export function PoliciesClient() {
     return data.filter((item) => {
       const name = item.name || '';
       const desc = item.description || '';
-      const owner = (item as any).owner || '';
-      const dept = (item as any).department || '';
+      const policyItem = item as ExtendedPolicy & { owner?: string; department?: string };
+      const owner = policyItem.owner || '';
+      const dept = policyItem.department || '';
 
       const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) ||
                             desc.toLowerCase().includes(search.toLowerCase()) ||

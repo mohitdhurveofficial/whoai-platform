@@ -11,7 +11,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json(risks);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch Risks' }, { status: 500 });
   }
 }
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(risk, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create Risk' }, { status: 500 });
   }
 }

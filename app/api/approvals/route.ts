@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const approvals = await prisma.approval.findMany({ orderBy: { createdAt: 'desc' } });
     return NextResponse.json(approvals);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch approvals' }, { status: 500 });
   }
 }
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(approval, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create approval' }, { status: 500 });
   }
 }

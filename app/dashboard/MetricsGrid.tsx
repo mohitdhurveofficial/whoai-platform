@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Activity, ShieldAlert, CheckCircle, Bot, DollarSign, ArrowRightLeft } from 'lucide-react';
+import { Activity, CheckCircle, Bot, DollarSign, ArrowRightLeft } from 'lucide-react';
 
 export interface MetricsData {
   activeWorkers: number;

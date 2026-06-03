@@ -24,19 +24,19 @@ async def create_agent(
 ):
 
     agent = Agent(
-    name=payload.name,
-    owner_email=payload.owner_email,
-    environment=payload.environment,
-    agent_token=secrets.token_urlsafe(32)
-)
+        name=payload.name,
+        owner_email=payload.owner_email,
+        environment=payload.environment,
+        agent_token=secrets.token_urlsafe(32),
+    )
 
-    db.add(ai_worker)
+    db.add(agent)
 
     await db.commit()
 
-    await db.refresh(ai_worker)
+    await db.refresh(agent)
 
-    return ai_worker
+    return agent
 
 
 @router.get("", response_model=list[AgentResponse])
@@ -46,34 +46,34 @@ async def list_agents(
 
     result = await db.execute(select(Agent))
 
-    ai_workers = result.scalars().all()
+    agents = result.scalars().all()
 
-    return ai_workers
+    return agents
 
 
-@router.patch("/{ai_worker_id}", response_model=AgentResponse)
+@router.patch("/{agent_id}", response_model=AgentResponse)
 async def update_agent_status(
-    ai_worker_id: str,
+    agent_id: int,
     payload: AgentUpdate,
     db: AsyncSession = Depends(get_db)
 ):
 
     result = await db.execute(
-        select(Agent).where(Agent.id == ai_worker_id)
+        select(Agent).where(Agent.id == agent_id)
     )
 
-    ai_worker = result.scalar_one_or_none()
+    agent = result.scalar_one_or_none()
 
-    if not ai_worker:
+    if not agent:
         raise HTTPException(
             status_code=404,
             detail="AI Worker not found"
         )
 
-    ai_worker.status = payload.status
+    agent.status = payload.status
 
     await db.commit()
 
-    await db.refresh(ai_worker)
+    await db.refresh(agent)
 
-    return ai_worker
+    return agent

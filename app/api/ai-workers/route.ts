@@ -1,42 +1,60 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+
+const API_URL = "http://127.0.0.1:8001/api/v1/ai-workers";
 
 export async function GET() {
+  console.log("GET /api/ai-workers called");
+
   try {
-    const agents = await prisma.agent.findMany();
-    return NextResponse.json(agents);
+    const response = await fetch(API_URL);
+
+    console.log("Backend status:", response.status);
+
+    const text = await response.text();
+
+    console.log("Backend response:", text);
+
+    return new Response(text, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch AI Workers' }, { status: 500 });
+    console.error("ROUTE ERROR:", error);
+
+    return NextResponse.json(
+      { error: String(error) },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const data = (await request.json()) as {
-      name?: string;
-      environment?: string;
-      organizationId?: string;
-    };
-    
-    // Server-side validation
-    if (!data.name || !data.environment || !data.organizationId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    const body = await request.json();
 
-    const agent = await prisma.agent.create({
-      data: {
-        organizationId: data.organizationId,
-        name: data.name,
-        environment: data.environment,
-        agentToken: crypto.randomUUID(),
-        status: "ACTIVE",
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(body),
     });
 
-    return NextResponse.json(agent, { status: 201 });
+    const data = await response.json();
+
+    return NextResponse.json(data, {
+      status: response.status,
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create AI Worker' }, { status: 500 });
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Failed to create AI Worker" },
+      { status: 500 }
+    );
   }
 }

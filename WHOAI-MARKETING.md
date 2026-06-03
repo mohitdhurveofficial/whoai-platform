@@ -268,7 +268,11 @@ Health Endpoint:
 https://whoai-api.onrender.com/health
 
 GitHub:
-https://github.com/mohitdhurveofficial/whoai-api
+https://github.com/body: JSON.stringify({
+  name,
+  environment,
+  organizationId: orgId,
+}),dhurveofficial/whoai-api
 # WhoAI — The Governance Layer for AI Agents
 
 Control, approve, audit, and secure AI actions before they happen.

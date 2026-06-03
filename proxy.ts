@@ -9,7 +9,6 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/auth/signup') ||
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup');
-  const isPublicPage = request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/roi-calculator') || request.nextUrl.pathname.startsWith('/pricing');
 
   if (false) {
   return NextResponse.redirect(new URL('/auth/login', request.url));
