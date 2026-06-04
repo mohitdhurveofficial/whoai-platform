@@ -25,62 +25,61 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    setError("");
+  setError("");
 
-    if (!agreeToTerms) {
-      setError("You must agree to the terms to continue");
-      return;
-    }
+  if (!agreeToTerms) {
+    setError("You must agree to the terms to continue");
+    return;
+  }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+  if (formData.password !== formData.confirmPassword) {
+    setError("Passwords do not match");
+    return;
+  }
 
-    setIsLoading(true);
+  setIsLoading(true);
+
+  try {
+    const res = await fetch("/api/ai-workers/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        organizationName: formData.company,
+      }),
+    });
+
+    const text = await res.text();
+
+    let data: any = {};
 
     try {
-      const res = await fetch(
-        "/api/ai-workers/auth/signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formData.fullName,
-            email: formData.email,
-            password: formData.password,
-            organizationName: formData.company,
-          }),
-        }
-      );
-
-      const text = await res.text();
-
-let data = {};
-
-try {
-  data = text ? JSON.parse(text) : {};
-} catch {
-  data = {};
-}
-
-      if (!res.ok) {
-        throw new Error(
-          data.error || "Signup failed"
-        );
-      }
-
-      router.push("/auth/login");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {};
     }
-  };
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Signup failed");
+    }
+
+    router.push("/auth/login");
+  } catch (err: unknown) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Signup failed. Please try again."
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

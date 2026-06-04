@@ -62,15 +62,7 @@ export default function LoginPage() {
         }),
       });
 
-      const text = await res.text();
-
-let data = {};
-
-try {
-  data = text ? JSON.parse(text) : {};
-} catch {
-  data = {};
-}
+      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || "Login failed");
