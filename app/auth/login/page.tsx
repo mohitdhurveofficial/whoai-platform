@@ -62,24 +62,35 @@ export default function LoginPage() {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed");
+      let data: any = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = {};
       }
 
-      if (!data.token) {
+      if (!res.ok) {
+        throw new Error(data?.error || "Login failed");
+      }
+
+      if (!data?.token) {
         throw new Error("Token not received");
       }
 
-      localStorage.setItem("token", data.token);
+      // Set the cookie expected by middleware and lib/auth.ts
+      document.cookie = `whoai_auth=${data.token}; path=/; max-age=86400; SameSite=Lax`;
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("is_authenticated", "true");
 
       router.refresh();
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      setError(
+        err instanceof Error ? err.message : "Authentication failed"
+      );
     } finally {
       setIsLoading(false);
     }
