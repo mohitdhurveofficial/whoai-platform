@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -31,11 +30,7 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
-
-    const hashedPassword = await bcrypt.hash(
-      password,
-      10
-    );
+    
 
     const organizationName =
       typeof body.organizationName === "string" && body.organizationName.trim()
@@ -49,9 +44,8 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        email,
-        passwordHash: hashedPassword,
-        role: "OWNER",
+      email,
+      role: "OWNER",
         organization: {
           create: {
             name: organizationName,

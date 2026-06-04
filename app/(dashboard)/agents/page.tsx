@@ -73,22 +73,22 @@ export default async function AgentsPage() {
                 <tr key={agent.id} className="hover:bg-[#FAFAFA] transition-colors group">
                   <td className="px-6 py-4">
                     <div className="font-semibold text-[#111111]">{agent.name}</div>
-                    <div className="text-[12px] font-medium text-[#888888] mt-0.5">{agent.description || "No description"}</div>
+                    <div className="text-[12px] font-medium text-[#888888] mt-0.5">{"No description"}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F5F5F5] text-[#111111] font-medium text-[12px] border border-[#EEE8E2]">
-                      {agent.role || "General"}
+                      {"General"}
                     </span>
                   </td>
                   <td className="px-6 py-4 font-semibold text-[#111111] text-right">
                     {new Date(agent.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 font-mono text-[#111111] text-right">
-                    {agent.agentToken.slice(0, 8)}...
+                    {agent.apiKey.slice(0, 8)}...
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="text-[13px] font-medium text-[#111111]">
-                      {agent.description || "No description"}
+                      {agent.clientId}
                     </div>
                   </td>
                   <td className="px-6 py-4">

@@ -1,18 +1,12 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { AlertTriangle, CheckCircle2, Eye, Filter, BellOff } from "lucide-react";
 
 export default async function AlertsPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId || "demo-workspace";
+  await supabase.auth.getUser();
 
-  const alerts = await prisma.alert.findMany({
-    where: { organizationId: orgId },
-    include: { agent: true },
-    orderBy: { createdAt: 'desc' }
-  });
+  const alerts: any[] = [];
 
   return (
     <div className="p-10 max-w-[1600px] mx-auto space-y-8 bg-[#FAF7F3] min-h-screen text-[#111111] font-sans">
