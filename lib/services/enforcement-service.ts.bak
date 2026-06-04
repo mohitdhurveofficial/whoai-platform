@@ -1,8 +1,0 @@
-// 1.5 Permission Check
-// Permissions model is not present in current Prisma schema.
-// Skip resource-level permission enforcement for now.
-if (actionContext.targetResource) {
-  console.warn(
-    `Permission check skipped for resource: ${actionContext.targetResource}`
-  );
-}
