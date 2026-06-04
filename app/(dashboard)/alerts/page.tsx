@@ -51,7 +51,7 @@ export default async function AlertsPage() {
                   <td className="px-6 py-4">
                     <div className="font-semibold text-[#111111] flex items-center gap-2">
                       {alert.type === 'ANOMALY' || alert.type === 'COST_SPIKE' ? <AlertTriangle className="h-4 w-4 text-[#FF6B00]" /> : <AlertTriangle className="h-4 w-4 text-[#DC2626]" />}
-                      {alert.title}
+                      {alert.type}
                     </div>
                     <div className="text-[13px] font-medium text-[#666666] mt-1 max-w-[400px] truncate">{alert.message}</div>
                   </td>
@@ -70,15 +70,15 @@ export default async function AlertsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${alert.resolved ? 'bg-[#047857]' : 'bg-[#FF6B00]'}`}></div>
-                      <span className={`text-[12px] font-semibold ${alert.resolved ? 'text-[#047857]' : 'text-[#FF6B00]'}`}>
-                        {alert.resolved ? 'Resolved' : 'Active'}
+                      <div className={`w-2 h-2 rounded-full ${alert.status === "RESOLVED" ? 'bg-[#047857]' : 'bg-[#FF6B00]'}`}></div>
+                      <span className={`text-[12px] font-semibold ${alert.status === "RESOLVED" ? 'text-[#047857]' : 'text-[#FF6B00]'}`}>
+                        {alert.status === "RESOLVED" ? 'Resolved' : 'Active'}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {!alert.resolved && (
+                      {!(alert.status === "RESOLVED") && (
                         <button title="Resolve" className="p-1.5 text-[#888888] hover:bg-[#F0FDF4] hover:text-[#047857] rounded transition-colors"><CheckCircle2 className="h-4 w-4" /></button>
                       )}
                       <button title="Ignore" className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#111111] rounded transition-colors"><BellOff className="h-4 w-4" /></button>
