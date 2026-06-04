@@ -1,134 +1,140 @@
-import React from "react";
-import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
-import { Search, Filter, MoreVertical, Plus, Play, Pause, Trash2, BarChart2, Bot } from "lucide-react";
+"use client";
 
-export default async function AgentsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId || "demo-workspace";
+import React, { useState } from "react";
+import Link from "next/link";
+import { useAgents } from "@/lib/hooks/useAgents";
+import { Search, Filter, MoreVertical, Plus, Bot, Eye, Edit2, Trash2 } from "lucide-react";
 
-  const agents = await prisma.agent.findMany({
-    where: { organizationId: orgId },
-    orderBy: { createdAt: 'desc' }
-  });
+export default function AgentsPage() {
+  const { agents, loading, deleteAgent } = useAgents();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
+
+  const filteredAgents = agents.filter(a => 
+    a.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleDelete = async () => {
+    if (deleteModal.id) {
+      await deleteAgent(deleteModal.id);
+      setDeleteModal({ isOpen: false, id: null });
+      setDropdownOpen(null);
+    }
+  };
 
   return (
     <div className="p-10 max-w-[1600px] mx-auto space-y-8 bg-[#FAF7F3] min-h-screen text-[#111111] font-sans">
-      
-      {/* HEADER */}
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight text-[#111111]">AI Agents</h1>
-          <p className="mt-1.5 text-[15px] text-[#666666]">Manage registered agents, monitor status, and review activity.</p>
+          <p className="mt-1.5 text-[15px] text-[#666666]">Manage registered agents, monitor status, and review budgets.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-[#FF6B00] text-white px-4 py-2.5 rounded-md shadow-sm text-[13px] font-medium hover:bg-[#E65A00] transition-colors">
+          <Link href="/agents/new" className="flex items-center gap-2 bg-[#FF6B00] text-white px-4 py-2.5 rounded-md shadow-sm text-[13px] font-medium hover:bg-[#E65A00] transition-colors">
             <Plus className="h-4 w-4" />
-            New Agent
-          </button>
+            Create Agent
+          </Link>
         </div>
       </header>
 
-      {/* TOOLBAR */}
       <div className="flex items-center justify-between gap-4 bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-2 shadow-sm">
         <div className="flex items-center gap-2 flex-1 pl-2">
           <Search className="h-4 w-4 text-[#888888]" />
           <input 
             type="text" 
-            placeholder="Search agents by name, role, or status..." 
+            placeholder="Search agents by name..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-[13px] font-medium outline-none placeholder:text-[#A3A3A3] text-[#111111]"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 bg-[#FAFAFA] border border-[#EEE8E2] px-3 py-1.5 rounded text-[13px] font-medium text-[#666666] hover:bg-[#F5F5F5] transition-colors">
-            <Filter className="h-3.5 w-3.5" /> Status
-          </button>
-          <button className="flex items-center gap-2 bg-[#FAFAFA] border border-[#EEE8E2] px-3 py-1.5 rounded text-[13px] font-medium text-[#666666] hover:bg-[#F5F5F5] transition-colors">
-            <Filter className="h-3.5 w-3.5" /> Role
-          </button>
-          <button className="flex items-center gap-2 bg-[#FAFAFA] border border-[#EEE8E2] px-3 py-1.5 rounded text-[13px] font-medium text-[#666666] hover:bg-[#F5F5F5] transition-colors">
-            <Filter className="h-3.5 w-3.5" /> Created Date
-          </button>
-        </div>
       </div>
 
-      {/* TABLE */}
-      <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl shadow-sm overflow-hidden flex flex-col">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-[13px]">
-            <thead className="bg-[#FAFAFA] border-b border-[#EEE8E2]">
-              <tr>
-                <th className="px-6 py-4 font-semibold text-[#888888]">Agent Details</th>
-                <th className="px-6 py-4 font-semibold text-[#888888]">Role</th>
-                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Created</th>
-                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Token</th>
-                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Description</th>
-                <th className="px-6 py-4 font-semibold text-[#888888]">Status</th>
-                <th className="px-6 py-4 text-right font-semibold text-[#888888]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EEE8E2]">
-              {agents.map((agent) => (
-                <tr key={agent.id} className="hover:bg-[#FAFAFA] transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-[#111111]">{agent.name}</div>
-                    <div className="text-[12px] font-medium text-[#888888] mt-0.5">{"No description"}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F5F5F5] text-[#111111] font-medium text-[12px] border border-[#EEE8E2]">
-                      {"General"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-[#111111] text-right">
-                    {new Date(agent.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 font-mono text-[#111111] text-right">
-                    {agent.apiKey.slice(0, 8)}...
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="text-[13px] font-medium text-[#111111]">
-                      {agent.clientId}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${agent.status === 'ACTIVE' ? 'bg-[#047857]' : 'bg-[#A3A3A3]'}`}></div>
-                      <span className={`text-[12px] font-semibold ${agent.status === 'ACTIVE' ? 'text-[#047857]' : 'text-[#888888]'}`}>
-                        {agent.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {agent.status === 'ACTIVE' ? (
-                        <button title="Pause Agent" className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#111111] rounded transition-colors"><Pause className="h-4 w-4" /></button>
-                      ) : (
-                        <button title="Resume Agent" className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#047857] rounded transition-colors"><Play className="h-4 w-4" /></button>
-                      )}
-                      <button title="View Analytics" className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#FF6B00] rounded transition-colors"><BarChart2 className="h-4 w-4" /></button>
-                      <button title="Delete Agent" className="p-1.5 text-[#888888] hover:bg-[#FFF0F0] hover:text-[#DC2626] rounded transition-colors"><Trash2 className="h-4 w-4" /></button>
-                      <button className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#111111] rounded transition-colors"><MoreVertical className="h-4 w-4" /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {agents.length === 0 && (
+      <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center text-[#888888]">Loading agents...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[13px]">
+              <thead className="bg-[#FAFAFA] border-b border-[#EEE8E2]">
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
-                    <Bot className="h-10 w-10 text-[#DCD5CD] mx-auto mb-4" />
-                    <h3 className="text-[16px] font-bold text-[#111111]">No agents found</h3>
-                    <p className="text-[13px] text-[#888888] mt-1 max-w-sm mx-auto">You haven&apos;t registered any AI agents yet. Register your first agent to start managing and monitoring activity.</p>
-                    <button className="mt-6 bg-[#111111] text-white px-4 py-2 rounded font-medium text-[13px] shadow-sm hover:bg-[#222222] transition-colors">
-                      Register Agent
-                    </button>
-                  </td>
+                  <th className="px-6 py-4 font-semibold text-[#888888]">Name</th>
+                  <th className="px-6 py-4 font-semibold text-[#888888]">Status</th>
+                  <th className="px-6 py-4 font-semibold text-[#888888] text-right">Daily Budget</th>
+                  <th className="px-6 py-4 font-semibold text-[#888888] text-right">Monthly Budget</th>
+                  <th className="px-6 py-4 font-semibold text-[#888888] text-right">Created Date</th>
+                  <th className="px-6 py-4 text-right font-semibold text-[#888888]">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[#EEE8E2]">
+                {filteredAgents.map((agent) => (
+                  <tr key={agent.id} className="hover:bg-[#FAFAFA] transition-colors group">
+                    <td className="px-6 py-4 font-semibold text-[#111111]">{agent.name}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${agent.status === 'ACTIVE' ? 'bg-[#047857]' : agent.status === 'PAUSED' ? 'bg-[#FFB020]' : 'bg-[#DC2626]'}`}></div>
+                        <span className={`text-[12px] font-semibold ${agent.status === 'ACTIVE' ? 'text-[#047857]' : agent.status === 'PAUSED' ? 'text-[#FFB020]' : 'text-[#DC2626]'}`}>
+                          {agent.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-[#111111] text-right">${Number(agent.dailyBudget).toFixed(2)}</td>
+                    <td className="px-6 py-4 font-mono text-[#111111] text-right">${Number(agent.monthlyBudget).toFixed(2)}</td>
+                    <td className="px-6 py-4 font-semibold text-[#111111] text-right">
+                      {new Date(agent.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-right relative">
+                      <button onClick={() => setDropdownOpen(dropdownOpen === agent.id ? null : agent.id)} className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#111111] rounded transition-colors inline-block">
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {dropdownOpen === agent.id && (
+                        <div className="absolute right-8 top-10 w-32 bg-white border border-[#EEE8E2] rounded-md shadow-lg z-10 py-1 text-left">
+                          <Link href={`/agents/${agent.id}`} className="flex items-center gap-2 px-3 py-2 hover:bg-[#F5F5F5] text-[13px] text-[#111111]">
+                            <Eye className="h-3.5 w-3.5" /> View
+                          </Link>
+                          <Link href={`/agents/${agent.id}/edit`} className="flex items-center gap-2 px-3 py-2 hover:bg-[#F5F5F5] text-[13px] text-[#111111]">
+                            <Edit2 className="h-3.5 w-3.5" /> Edit
+                          </Link>
+                          <button onClick={() => setDeleteModal({ isOpen: true, id: agent.id })} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#FFF0F0] text-[13px] text-[#DC2626]">
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {filteredAgents.length === 0 && !loading && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <Bot className="h-10 w-10 text-[#DCD5CD] mx-auto mb-4" />
+                      <h3 className="text-[16px] font-bold text-[#111111]">No agents found</h3>
+                      <p className="text-[13px] text-[#888888] mt-1 max-w-sm mx-auto">Create your first agent to start managing limits.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Agent?</h3>
+            <p className="text-gray-600 text-sm mb-6">This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteModal({ isOpen: false, id: null })} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                Cancel
+              </button>
+              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

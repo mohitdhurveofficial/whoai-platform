@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useAgents } from "@/lib/hooks/useAgents";
 import {
   DollarSign,
   Activity,
@@ -61,6 +62,13 @@ const spendByModelData = [
 ];
 
 export default function DashboardPage() {
+  const { agents } = useAgents();
+
+  const totalAgents = agents.length;
+  const activeAgents = agents.filter(a => a.status === 'ACTIVE').length;
+  const pausedAgents = agents.filter(a => a.status === 'PAUSED').length;
+  const totalMonthlyBudget = agents.reduce((sum, a) => sum + Number(a.monthlyBudget), 0);
+
   return (
     <div className="p-10 max-w-[1600px] mx-auto space-y-10">
       
@@ -92,26 +100,13 @@ export default function DashboardPage() {
         
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Total Spend</span>
-            <div className="p-1.5 bg-[#FFF5F0] rounded text-[#FF6B00]"><DollarSign className="h-4 w-4" /></div>
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Total Agents</span>
+            <div className="p-1.5 bg-[#F5F5F5] rounded text-[#111111]"><Bot className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">$28,472.63</div>
-            <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#047857]">
-              <TrendingUp className="h-3.5 w-3.5" /> +12.4% <span className="text-[#A3A3A3] font-normal ml-1">vs last mo</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Today&apos;s Spend</span>
-            <div className="p-1.5 bg-[#FFF5F0] rounded text-[#FF6B00]"><Activity className="h-4 w-4" /></div>
-          </div>
-          <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">$823.47</div>
-            <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#047857]">
-              <TrendingUp className="h-3.5 w-3.5" /> +8.7% <span className="text-[#A3A3A3] font-normal ml-1">vs yesterday</span>
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{totalAgents}</div>
+            <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#888888]">
+              Total registered
             </div>
           </div>
         </div>
@@ -119,25 +114,38 @@ export default function DashboardPage() {
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Active Agents</span>
-            <div className="p-1.5 bg-[#F5F5F5] rounded text-[#111111]"><Bot className="h-4 w-4" /></div>
+            <div className="p-1.5 bg-[#F0FDF4] rounded text-[#16A34A]"><Bot className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">27</div>
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{activeAgents}</div>
             <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#047857]">
-              <TrendingUp className="h-3.5 w-3.5" /> +3 <span className="text-[#A3A3A3] font-normal ml-1">new this week</span>
+              Currently running
             </div>
           </div>
         </div>
 
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Tokens Processed</span>
-            <div className="p-1.5 bg-[#F5F5F5] rounded text-[#111111]"><Activity className="h-4 w-4" /></div>
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Paused Agents</span>
+            <div className="p-1.5 bg-[#FFFBEB] rounded text-[#D97706]"><Bot className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">48.2M</div>
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{pausedAgents}</div>
+            <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#D97706]">
+              Stopped manually
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Total Monthly Budget</span>
+            <div className="p-1.5 bg-[#FFF5F0] rounded text-[#FF6B00]"><DollarSign className="h-4 w-4" /></div>
+          </div>
+          <div className="mt-4">
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">${totalMonthlyBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#FF6B00]">
-              <TrendingUp className="h-3.5 w-3.5" /> +15.3% <span className="text-[#A3A3A3] font-normal ml-1">volume jump</span>
+              Combined limit
             </div>
           </div>
         </div>
