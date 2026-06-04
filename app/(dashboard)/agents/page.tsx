@@ -73,7 +73,7 @@ export default async function AgentsPage() {
                 <tr key={agent.id} className="hover:bg-[#FAFAFA] transition-colors group">
                   <td className="px-6 py-4">
                     <div className="font-semibold text-[#111111]">{agent.name}</div>
-                    <div className="text-[12px] font-medium text-[#888888] mt-0.5">{agent.environment} · {agent.owner}</div>
+                    <div className="text-[12px] font-medium text-[#888888] mt-0.5">{agent.description || "No description"}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F5F5F5] text-[#111111] font-medium text-[12px] border border-[#EEE8E2]">
