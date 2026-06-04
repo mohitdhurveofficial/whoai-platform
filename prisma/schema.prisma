@@ -1,5 +1,4 @@
 generator client {
-
   provider = "prisma-client-js"
 }
 
@@ -9,125 +8,132 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Organization {
-  id            String         @id @default(cuid())
-  name          String
-  slug          String         @unique
-  users         User[]
-  agents        Agent[]
-  conversations Conversation[]
-  spendLogs     SpendLog[]
-  alerts        Alert[]
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-}
-
-model User {
-  id             String       @id @default(cuid())
-  email          String       @unique
-  name           String?
-  passwordHash   String
-  role           UserRole     @default(MEMBER)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @default(now()) @updatedAt
-}
-
-enum UserRole {
-  OWNER
-  ADMIN
-  MEMBER
+enum OrgTier {
+  STARTUP
+  GROWTH
+  ENTERPRISE
+  VPC
 }
 
 enum AgentStatus {
   ACTIVE
-  INACTIVE
+  PAUSED
+  QUARANTINED
+  TERMINATED
+}
+
+enum PolicyAction {
+  ALLOW
+  DENY
+  REQUIRE_APPROVAL
+  FLAG
+}
+
+model Organization {
+  id            String    @id @default(uuid())
+  name          String
+  slug          String    @unique
+  tier          OrgTier   @default(STARTUP)
+  
+  // Enterprise Security
+  kmsKeyArn     String?   // For BYOK (Bring Your Own Key)
+  enforceSso    Boolean   @default(false)
+  
+  users         User[]
+  agents        Agent[]
+  policies      Policy[]
+  activityLogs  ActivityLog[]
+  subscription  Subscription?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  role           String       @default("DEVELOPER") // OWNER, ADMIN, SECURITY_OPERATOR, FINOPS, DEVELOPER
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  createdAt      DateTime     @default(now())
 }
 
 model Agent {
-  id             String         @id @default(cuid())
-  organizationId String
-  name           String
-  createdAt      DateTime       @default(now())
-  agentToken     String         @unique @default(uuid())
-  description    String?
-  instructions   String?
-  role           String?
-  updatedAt      DateTime       @updatedAt
-  status         AgentStatus    @default(ACTIVE)
+  id              String      @id @default(uuid())
+  name            String
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  // Identity (Workload Identity / OIDC)
+  clientId        String      @unique
+  clientSecret    String      // Hashed Service Account Secret
+  apiKey          String      @unique @default(cuid())
+  scopes          String[]    @default(["llm:read", "llm:write"])
 
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  alerts         Alert[]
-  conversations  Conversation[]
-  spendLogs      SpendLog[]
+  // Financial Controls
+  status          AgentStatus @default(ACTIVE)
+  dailyBudget     Decimal     @db.Decimal(18, 4)
+  monthlyBudget   Decimal     @db.Decimal(18, 4)
+  currentDailySpend Decimal    @default(0) @db.Decimal(18, 4)
 
-  @@index([organizationId])
-  @@index([agentToken])
+  spendLogs       SpendLog[]
+
+  createdAt       DateTime    @default(now())
+  @@index([organizationId, status])
 }
 
-model Conversation {
-  id             String       @id @default(cuid())
-  agentId        String
-  agent          Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  messages       Message[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+model Policy {
+  id              String       @id @default(uuid())
+  name            String
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  
+  ruleDsl         String       // CEL (Common Expression Language) expression
+  action          PolicyAction @default(ALLOW)
+  priority        Int          @default(100)
+  isActive        Boolean      @default(true)
 
-  @@index([organizationId])
-  @@index([agentId])
-  @@index([createdAt])
-}
-
-model Message {
-  id             String       @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  role           String       // 'user' or 'assistant'
-  content        String
-  createdAt      DateTime     @default(now())
-
-  @@index([conversationId])
+  createdAt       DateTime     @default(now())
 }
 
 model SpendLog {
-  id             String       @id @default(cuid())
+  id              String   @id @default(uuid())
+  agentId         String
+  agent           Agent    @relation(fields: [agentId], references: [id])
+  organizationId  String
+  
+  model           String   // e.g. gpt-4o, claude-3.5-sonnet
+  provider        String   // e.g. openai, anthropic
+  tokensIn        Int
+  tokensOut       Int
+  cost            Decimal  @db.Decimal(18, 8)
+  
+  metadata        Json?    // Session ID, request hashes, traces
 
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  agentId        String
-  agent          Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
-
-  model          String
-  totalTokens    Int
-  costUsd        Float
-
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId])
-  @@index([agentId])
+  createdAt       DateTime @default(now())
+  // Note: Partitioned by createdAt at the DB level via TimescaleDB
+  @@index([organizationId, createdAt])
 }
 
-model Alert {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  agentId        String?
-  agent          Agent?       @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  type           String       // 'COST_SPIKE', 'BUDGET_EXCEEDED'
-  message        String
-  severity       String       // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
-  status         AlertStatus  @default(OPEN)
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId])
+model ActivityLog {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  actorId         String
+  actorType       String   // USER | AGENT
+  action          String
+  resource        String
+  payload         Json
+  createdAt       DateTime @default(now())
 }
 
-enum AlertStatus {
-  OPEN
-  RESOLVED
+model Subscription {
+  id              String   @id @default(uuid())
+  organizationId  String   @unique
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  stripeId        String?  @unique
+  plan            String   @default("FREE")
+  status          String   @default("ACTIVE")
+  currentPeriodEnd DateTime?
 }
