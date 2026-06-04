@@ -20,7 +20,7 @@ export default async function AgentsPage() {
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight text-[#111111]">AI Agents</h1>
-          <p className="mt-1.5 text-[15px] text-[#666666]">Manage agent budgets, monitor spend, and enforce usage limits.</p>
+          <p className="mt-1.5 text-[15px] text-[#666666]">Manage registered agents, monitor status, and review activity.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 bg-[#FF6B00] text-white px-4 py-2.5 rounded-md shadow-sm text-[13px] font-medium hover:bg-[#E65A00] transition-colors">
@@ -36,7 +36,7 @@ export default async function AgentsPage() {
           <Search className="h-4 w-4 text-[#888888]" />
           <input 
             type="text" 
-            placeholder="Search agents by name, owner, or environment..." 
+            placeholder="Search agents by name, role, or status..." 
             className="w-full text-[13px] font-medium outline-none placeholder:text-[#A3A3A3] text-[#111111]"
           />
         </div>
@@ -45,10 +45,10 @@ export default async function AgentsPage() {
             <Filter className="h-3.5 w-3.5" /> Status
           </button>
           <button className="flex items-center gap-2 bg-[#FAFAFA] border border-[#EEE8E2] px-3 py-1.5 rounded text-[13px] font-medium text-[#666666] hover:bg-[#F5F5F5] transition-colors">
-            <Filter className="h-3.5 w-3.5" /> Department
+            <Filter className="h-3.5 w-3.5" /> Role
           </button>
           <button className="flex items-center gap-2 bg-[#FAFAFA] border border-[#EEE8E2] px-3 py-1.5 rounded text-[13px] font-medium text-[#666666] hover:bg-[#F5F5F5] transition-colors">
-            <Filter className="h-3.5 w-3.5" /> Cost Range
+            <Filter className="h-3.5 w-3.5" /> Created Date
           </button>
         </div>
       </div>
@@ -60,10 +60,10 @@ export default async function AgentsPage() {
             <thead className="bg-[#FAFAFA] border-b border-[#EEE8E2]">
               <tr>
                 <th className="px-6 py-4 font-semibold text-[#888888]">Agent Details</th>
-                <th className="px-6 py-4 font-semibold text-[#888888]">Model</th>
-                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Today&apos;s Spend</th>
-                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Monthly Spend</th>
-                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Budget Assigned</th>
+                <th className="px-6 py-4 font-semibold text-[#888888]">Role</th>
+                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Created</th>
+                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Token</th>
+                <th className="px-6 py-4 font-semibold text-[#888888] text-right">Description</th>
                 <th className="px-6 py-4 font-semibold text-[#888888]">Status</th>
                 <th className="px-6 py-4 text-right font-semibold text-[#888888]">Actions</th>
               </tr>
@@ -77,18 +77,19 @@ export default async function AgentsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-2.5 py-1 rounded bg-[#F5F5F5] text-[#111111] font-medium text-[12px] border border-[#EEE8E2]">
-                      {agent.model}
+                      {agent.role || "General"}
                     </span>
                   </td>
                   <td className="px-6 py-4 font-semibold text-[#111111] text-right">
-                    ${((agent.dailyBudget || 0) * 0.1).toFixed(2)} {/* Mock spend calculation */}
+                    {new Date(agent.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 font-bold text-[#111111] text-right">
-                    ${((agent.monthlyBudget || 0) * 0.4).toFixed(2)} {/* Mock spend calculation */}
+                  <td className="px-6 py-4 font-mono text-[#111111] text-right">
+                    {agent.agentToken.slice(0, 8)}...
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="text-[13px] font-medium text-[#111111]">${agent.dailyBudget?.toFixed(2) || '0.00'} / day</div>
-                    <div className="text-[11px] font-medium text-[#A3A3A3] mt-0.5">${agent.monthlyBudget?.toFixed(2) || '0.00'} / mo</div>
+                    <div className="text-[13px] font-medium text-[#111111]">
+                      {agent.description || "No description"}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
@@ -117,7 +118,7 @@ export default async function AgentsPage() {
                   <td colSpan={7} className="px-6 py-12 text-center">
                     <Bot className="h-10 w-10 text-[#DCD5CD] mx-auto mb-4" />
                     <h3 className="text-[16px] font-bold text-[#111111]">No agents found</h3>
-                    <p className="text-[13px] text-[#888888] mt-1 max-w-sm mx-auto">You haven&apos;t registered any AI agents yet. Register your first agent to start tracking spend.</p>
+                    <p className="text-[13px] text-[#888888] mt-1 max-w-sm mx-auto">You haven&apos;t registered any AI agents yet. Register your first agent to start managing and monitoring activity.</p>
                     <button className="mt-6 bg-[#111111] text-white px-4 py-2 rounded font-medium text-[13px] shadow-sm hover:bg-[#222222] transition-colors">
                       Register Agent
                     </button>
