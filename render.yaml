@@ -3,8 +3,8 @@ services:
     name: whoai-api
     runtime: python
 
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: pip install -r requirements.txt
 
-    startCommand: "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 10000"
+    startCommand: alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port $PORT
 
     healthCheckPath: /health
