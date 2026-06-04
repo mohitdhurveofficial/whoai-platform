@@ -70,11 +70,16 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error(error);
+  console.error("SIGNUP ERROR:", error);
 
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    {
+      error: String(error),
+      stack:
+        process.env.NODE_ENV !== "production"
+          ? (error as Error)?.stack
+          : undefined,
+    },
+    { status: 500 }
+  );
 }

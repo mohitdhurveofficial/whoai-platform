@@ -37,3 +37,5 @@ node_modules
 venv
 .venv
 tsconfig.tsbuildinfo.env
+.vercel
+.env*
