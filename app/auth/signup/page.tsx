@@ -58,7 +58,15 @@ export default function SignupPage() {
         }
       );
 
-      const data = await res.json();
+      const text = await res.text();
+
+let data = {};
+
+try {
+  data = text ? JSON.parse(text) : {};
+} catch {
+  data = {};
+}
 
       if (!res.ok) {
         throw new Error(
