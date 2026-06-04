@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function proxy(request: NextRequest) {
-  // Mock authentication check - in production this would verify a JWT or Session Cookie
+export function middleware(request: NextRequest) {
   const authCookie = request.cookies.get('whoai_auth');
+
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/auth/login') ||
     request.nextUrl.pathname.startsWith('/auth/signup') ||
@@ -11,7 +11,6 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/signup');
 
   if (authCookie && isAuthPage) {
-    // Redirect authenticated users away from auth pages to the app
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

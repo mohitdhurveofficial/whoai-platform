@@ -30,7 +30,6 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
-    
 
     const organizationName =
       typeof body.organizationName === "string" && body.organizationName.trim()
