@@ -6,7 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 import pytest
 from httpx import AsyncClient, ASGITransport
 
-from main import app
+from runtime.main import app
 
 
 @pytest.fixture
