@@ -36,4 +36,4 @@ __pycache__/
 node_modules
 venv
 .venv
-tsconfig.tsbuildinfo
+tsconfig.tsbuildinfo.env
