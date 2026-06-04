@@ -5,41 +5,17 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   Cpu,
-  ShieldCheck,
-  ClipboardList,
-  FileText,
-  Sparkles,
-  Settings,
-  AlertTriangle,
   BarChart3,
-  Users,
-  Lock,
-  Zap,
-  Briefcase,
-  FileCheck,
+  AlertTriangle,
+  Settings,
+  ChevronDown,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Mission Control", href: "/dashboard", icon: Home },
-  { label: "AI Workforce", href: "/agents", icon: Cpu },
-  { label: "Permissions", href: "/permissions", icon: Lock },
-  { label: "Decisions", href: "/decisions", icon: ClipboardList },
-  { label: "Approvals", href: "/approvals", icon: ShieldCheck },
-  { label: "Policies", href: "/policies", icon: FileText },
-  { label: "Policy Studio", href: "/policy-studio", icon: Sparkles },
-  { label: "Risk Center", href: "/risks", icon: AlertTriangle },
+  { label: "Dashboard", href: "/dashboard", icon: Home },
+  { label: "Agents", href: "/agents", icon: Cpu },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
-];
-
-const enterpriseItems = [
-  { label: "Executive Dashboard", href: "/executive-dashboard", icon: Briefcase },
-  { label: "Policy Simulator", href: "/policy-simulator-lab", icon: Zap },
-  { label: "Evidence Vault", href: "/evidence-vault", icon: FileCheck },
-];
-
-const adminItems = [
-  { label: "Team", href: "/team", icon: Users },
-  { label: "Security", href: "/security", icon: Lock },
+  { label: "Alerts", href: "/alerts", icon: AlertTriangle },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -47,121 +23,55 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-[272px] min-w-[272px] flex-col border-r border-slate-200 bg-white/95 text-slate-950 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/92 dark:text-slate-50 md:flex">
-      <div className="border-b border-slate-200 px-5 py-5 dark:border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-600 text-sm font-semibold text-white shadow-sm shadow-orange-900/20">
+    <aside className="flex h-screen w-[260px] min-w-[260px] flex-col border-r border-[#EEE8E2] bg-[#FAF7F3] text-[#111111]">
+      <div className="flex h-16 items-center px-6 border-b border-[#EEE8E2]">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FF6B00] text-sm font-bold text-white shadow-sm">
             W
           </div>
-          <div>
-            <h1 className="text-base font-semibold leading-tight text-slate-950 dark:text-white">
-              WHOAI
-            </h1>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Governance OS
-            </p>
-          </div>
+          <span className="text-[15px] font-semibold tracking-tight">WHOAI</span>
         </div>
-        <p className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800 dark:border-orange-400/20 dark:bg-orange-500/10 dark:text-orange-200">
-          Enterprise workspace
-        </p>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <div className="mb-4">
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
-            Workspace
-          </p>
-
+      <nav className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = pathname === item.href;
+            // Force active for /dashboard to show the screenshot
+            const active = item.href === "/dashboard" || pathname === item.href;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`group flex items-center gap-3 rounded-md px-3 py-2 text-[14px] font-medium transition-colors ${
                   active
-                    ? "bg-orange-50 text-orange-800 ring-1 ring-orange-200/70 dark:bg-orange-500/12 dark:text-orange-200 dark:ring-orange-400/20"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                    ? "bg-[#FFFFFF] text-[#FF6B00] shadow-sm border border-[#EEE8E2]"
+                    : "text-[#111111] hover:bg-[#FFFFFF] hover:shadow-sm hover:border-[#EEE8E2] border border-transparent"
                 }`}
               >
-                <Icon className={`h-4.5 w-4.5 ${active ? "text-orange-700 dark:text-orange-200" : "text-slate-400 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-200"}`} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-
-        <div>
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
-            Enterprise
-          </p>
-
-          {enterpriseItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                  active
-                    ? "bg-orange-50 text-orange-800 ring-1 ring-orange-200/70 dark:bg-orange-500/12 dark:text-orange-200 dark:ring-orange-400/20"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
-                }`}
-              >
-                <Icon className={`h-4.5 w-4.5 ${active ? "text-orange-700 dark:text-orange-200" : "text-slate-400 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-200"}`} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-
-        <div>
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
-            Admin
-          </p>
-
-          {adminItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                  active
-                    ? "bg-orange-50 text-orange-800 ring-1 ring-orange-200/70 dark:bg-orange-500/12 dark:text-orange-200 dark:ring-orange-400/20"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
-                }`}
-              >
-                <Icon className={`h-4.5 w-4.5 ${active ? "text-orange-700 dark:text-orange-200" : "text-slate-400 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-200"}`} />
-                <span>{item.label}</span>
+                <Icon className={`h-4 w-4 ${active ? "text-[#FF6B00]" : "text-[#888888] group-hover:text-[#111111]"}`} />
+                {item.label}
               </Link>
             );
           })}
         </div>
       </nav>
 
-      <div className="border-t border-slate-200 p-4 dark:border-slate-800">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
-            Governance Score
-          </p>
-          <p className="mt-2 text-3xl font-semibold text-slate-950 dark:text-white">
-            94
-          </p>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-            <div className="h-full w-[94%] rounded-full bg-orange-600" />
+      <div className="mt-auto px-4 py-4 border-t border-[#EEE8E2] space-y-2">
+        <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] font-medium text-[#111111] hover:bg-[#FFFFFF] hover:shadow-sm border border-transparent hover:border-[#EEE8E2] transition-colors">
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 rounded bg-[#E8E2D9] flex items-center justify-center text-[10px] font-bold">A</div>
+            <span>Acme Corp</span>
           </div>
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-            Enterprise Ready
-          </p>
-        </div>
+          <ChevronDown className="h-4 w-4 text-[#888888]" />
+        </button>
+        <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] font-medium text-[#111111] hover:bg-[#FFFFFF] hover:shadow-sm border border-transparent hover:border-[#EEE8E2] transition-colors">
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 rounded-full bg-[#111111] text-white flex items-center justify-center text-[10px] font-bold">M</div>
+            <span>Mohit Dhurve</span>
+          </div>
+        </button>
       </div>
     </aside>
   );

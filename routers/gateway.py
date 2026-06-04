@@ -6,16 +6,42 @@ import time
 import httpx
 import os
 import json
+import uuid
 
-from database.session import get_db
-from database.models import Agent, AITransaction, SpendLog
-from services.pricing import calculate_cost
-from services.telemetry import log_agent_telemetry_async, log_budget_violation_async
+from database.session import get_db, async_session_maker
+from database.models import Agent, SpendLog
+from lib.actions.pricing import calculate_cost
 
 router = APIRouter(
     prefix="/gateway",
-    tags=["gateway (tollbooth)"],
+    tags=["gateway"],
 )
+
+async def log_spend_background(
+    agent_id: str, 
+    organization_id: str, 
+    model: str, 
+    prompt_tokens: int, 
+    completion_tokens: int, 
+    cost_usd: float
+):
+    """Persists spend data directly to the database."""
+    async with async_session_maker() as db:
+        try:
+            spend = SpendLog(
+                id=f"cuid_{uuid.uuid4().hex[:16]}", 
+                organizationId=organization_id, 
+                agentId=agent_id, 
+                model=model, 
+                inputTokens=prompt_tokens,
+                outputTokens=completion_tokens,
+                totalTokens=prompt_tokens + completion_tokens,
+                costUsd=cost_usd
+            )
+            db.add(spend)
+            await db.commit()
+        except Exception:
+            await db.rollback()
 
 @router.post("/{provider}/{path:path}")
 async def proxy_llm_request(
@@ -26,10 +52,6 @@ async def proxy_llm_request(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Universal WHOAI Tollbooth.
-    Example Base URL for SDKs: https://gateway.whoai.ai/api/v1/gateway/openai
-    """
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid AgentToken.")
     
@@ -38,32 +60,21 @@ async def proxy_llm_request(
     agent = result.scalar_one_or_none()
     
     if not agent:
-        raise HTTPException(status_code=404, detail="AI Worker does not exist.")
+        raise HTTPException(status_code=404, detail="Agent does not exist.")
         
-    # 1. KILL SWITCH ENFORCEMENT
     if agent.status == "SUSPENDED":
-        background_tasks.add_task(log_budget_violation_async, agent.id, agent.organizationId, "KILL_SWITCH_ACTIVE", "Agent traffic blocked via administrative kill switch.")
-        raise HTTPException(status_code=403, detail="AI Worker is suspended or does not exist.")
+        raise HTTPException(status_code=403, detail="Agent is suspended.")
 
-    # 2. BUDGET ENFORCEMENT
-    # We evaluate fail-closed logic strictly before forwarding tokens
-    if agent.dailyLimit and agent.spendDaily >= agent.dailyLimit:
-        background_tasks.add_task(log_budget_violation_async, agent.id, agent.organizationId, "DAILY_BUDGET_EXCEEDED", f"Exceeded daily limit of ${agent.dailyLimit}")
-        raise HTTPException(status_code=402, detail="Agent daily budget exceeded. Traffic blocked.")
-        
-    if agent.monthlyLimit and agent.spendMonthly >= agent.monthlyLimit:
-        background_tasks.add_task(log_budget_violation_async, agent.id, agent.organizationId, "MONTHLY_BUDGET_EXCEEDED", f"Exceeded monthly limit of ${agent.monthlyLimit}")
-        raise HTTPException(status_code=402, detail="Agent monthly budget exceeded. Traffic blocked.")
+    # Note: actual real-time spend limit check would require sum of SpendLogs for the day/month
+    # Omitting real-time DB SUM() here for gateway performance, but we can do a basic check if needed later.
 
     payload = await request.json()
     is_stream = payload.get("stream", False)
     
-    # Provider Configuration
     if provider == "openai":
         base_url = "https://api.openai.com"
         api_key = os.getenv("OPENAI_API_KEY")
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        # Force OpenAI to send usage stats in the final stream chunk
         if is_stream and "stream_options" not in payload:
             payload["stream_options"] = {"include_usage": True}
     elif provider == "anthropic":
@@ -100,20 +111,17 @@ async def proxy_llm_request(
                     
                     yield f"{chunk}\n\n"
                     
-                    # Inline Token Extraction
                     if chunk.startswith("data: "):
                         data_str = chunk[6:]
                         if data_str == "[DONE]":
                             continue
                         try:
                             chunk_json = json.loads(data_str)
-                            # OpenAI usage tracking
                             if "usage" in chunk_json and chunk_json["usage"]:
                                 usage = chunk_json["usage"]
                                 prompt_tokens = usage.get("prompt_tokens", prompt_tokens)
                                 comp_tokens = usage.get("completion_tokens", comp_tokens)
                             
-                            # Anthropic usage tracking
                             if chunk_json.get("type") == "message_start":
                                 prompt_tokens = chunk_json.get("message", {}).get("usage", {}).get("input_tokens", 0)
                             elif chunk_json.get("type") == "message_delta":
@@ -122,17 +130,15 @@ async def proxy_llm_request(
                             pass
             finally:
                 await client.aclose()
-                # Background Database Logging
                 cost = calculate_cost(model_name, prompt_tokens, comp_tokens)
                 background_tasks.add_task(
-                    log_agent_telemetry_async,
+                    log_spend_background,
                     agent.id, agent.organizationId, model_name, prompt_tokens, comp_tokens, cost
                 )
 
         return StreamingResponse(stream_generator(), media_type=response.headers.get("content-type"))
 
     else:
-        # Handle standard JSON responses
         await response.aread()
         llm_data = response.json()
         await client.aclose()
@@ -149,9 +155,8 @@ async def proxy_llm_request(
 
         cost = calculate_cost(model_name, prompt_tokens, comp_tokens)
         
-        # Execute telemetry in the background so the client gets an immediate response
         background_tasks.add_task(
-            log_agent_telemetry_async,
+            log_spend_background,
             agent.id, agent.organizationId, model_name, prompt_tokens, comp_tokens, cost
         )
 

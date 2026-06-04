@@ -10,10 +10,6 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup');
 
-  if (false) {
-  return NextResponse.redirect(new URL('/auth/login', request.url));
-}
-
   if (authCookie && isAuthPage) {
     // Redirect authenticated users away from auth pages to the app
     return NextResponse.redirect(new URL('/dashboard', request.url));

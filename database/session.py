@@ -16,8 +16,11 @@ logger = setup_logging()
 
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "sqlite+aiosqlite:///./whoai_test.db"
+    "ASYNC_DATABASE_URL",
+    os.getenv(
+        "DATABASE_URL",
+        "sqlite+aiosqlite:///./whoai_test.db"
+    )
 )
 
 
@@ -31,7 +34,7 @@ if not DATABASE_URL.startswith("sqlite"):
     engine_kwargs["pool_pre_ping"] = True
 
 
-if DATABASE_URL.startswith("postgresql"):
+if DATABASE_URL.startswith(("postgresql", "postgresql+asyncpg")):
     engine = create_async_engine(
         DATABASE_URL,
         connect_args={
@@ -46,7 +49,7 @@ else:
     )
 
 
-AsyncSessionLocal = async_sessionmaker(
+async_session_maker = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False
@@ -57,7 +60,7 @@ Base = declarative_base()
 
 
 async def get_db():
-    async with AsyncSessionLocal() as session:
+    async with async_session_maker() as session:
         try:
             yield session
         finally:

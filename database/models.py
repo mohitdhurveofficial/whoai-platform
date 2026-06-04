@@ -1,207 +1,75 @@
 from datetime import datetime
-import enum
-
 from sqlalchemy import (
     Column,
-    Integer,
     String,
+    Float,
+    Integer,
     DateTime,
     Boolean,
     ForeignKey,
-    Enum,
 )
+from sqlalchemy.orm import declarative_base
 
-from database.session import Base
+Base = declarative_base()
 
+class Organization(Base):
+    __tablename__ = "Organization"
 
-class AgentStatus(str, enum.Enum):
-    ACTIVE = "active"
-    DISABLED = "disabled"
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
+    stripeCustomerId = Column(String, unique=True, nullable=True)
+    subscriptionTier = Column(String, default="FREE")
+    createdAt = Column(DateTime, default=datetime.utcnow)
+    updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class User(Base):
+    __tablename__ = "User"
 
-class ApprovalStatus(str, enum.Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    passwordHash = Column(String, nullable=True)
+    role = Column(String, default="VIEWER")
+    createdAt = Column(DateTime, default=datetime.utcnow)
 
 class Agent(Base):
-    __tablename__ = "agents"
+    __tablename__ = "Agent"
 
-    id = Column(Integer, primary_key=True, index=True)
-
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
-
-    owner_email = Column(String, nullable=False)
-
+    owner = Column(String, nullable=False)
+    model = Column(String, nullable=False)
     environment = Column(String, nullable=False)
+    agentToken = Column(String, unique=True, nullable=False)
+    dailyBudget = Column(Float, nullable=True)
+    monthlyBudget = Column(Float, nullable=True)
+    status = Column(String, default="ACTIVE")
+    createdAt = Column(DateTime, default=datetime.utcnow)
 
-    agent_token = Column(
-        String,
-        unique=True,
-        nullable=False,
-        index=True
-    )
+class SpendLog(Base):
+    __tablename__ = "SpendLog"
 
-    status = Column(
-        Enum(AgentStatus),
-        default=AgentStatus.ACTIVE,
-        nullable=False
-    )
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    model = Column(String, nullable=False)
+    costUsd = Column(Float, default=0.0)
+    createdAt = Column(DateTime, default=datetime.utcnow)
+    agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=False)
+    inputTokens = Column(Integer, default=0)
+    outputTokens = Column(Integer, default=0)
+    totalTokens = Column(Integer, default=0)
 
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
+class Alert(Base):
+    __tablename__ = "Alert"
 
-
-# Dynamic policy model used by the runtime policy engine.
-# Policies are matched using agent, action and resource,
-# then evaluated using condition/effect.
-class Policy(Base):
-    __tablename__ = "policies"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    agent = Column(String, nullable=True, index=True)
-
-    action = Column(String, nullable=True, index=True)
-
-    resource = Column(String, nullable=True, index=True)
-
-    condition = Column(String, nullable=True)
-
-    effect = Column(String, nullable=True)
-
-    risk_level = Column(
-        String,
-        default="medium",
-        nullable=False
-    )
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-
-class Decision(Base):
-    __tablename__ = "decisions"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    agent_id = Column(
-        Integer,
-        ForeignKey("agents.id")
-    )
-
-    action_type = Column(String, nullable=False)
-
-    resource_json = Column(String, nullable=False)
-
-    context_json = Column(String, nullable=False)
-
-    decision = Column(String, nullable=False)
-
-    reason = Column(String, nullable=False)
-
-    policy_id = Column(Integer, index=True, nullable=True)
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-
-class Approval(Base):
-    __tablename__ = "approvals"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    agent_id = Column(
-        Integer,
-        ForeignKey("agents.id"),
-        nullable=False
-    )
-
-    action_type = Column(String, nullable=False)
-
-    resource_json = Column(String, nullable=False)
-
-    context_json = Column(String, nullable=False)
-
-    policy_id = Column(Integer, index=True, nullable=True)
-
-    status = Column(
-        Enum(ApprovalStatus),
-        default=ApprovalStatus.PENDING,
-        nullable=False
-    )
-
-    approved_by = Column(String, nullable=True)
-
-    approved_at = Column(DateTime, nullable=True)
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-
-class AgentMetric(Base):
-    __tablename__ = "agent_metrics"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    agent_id = Column(
-        Integer,
-        ForeignKey("agents.id"),
-        nullable=False
-    )
-
-    authorize_count = Column(
-        Integer,
-        default=0,
-        nullable=False
-    )
-
-    updated_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
-
-
-# API Key model
-class APIKey(Base):
-    __tablename__ = "api_keys"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    name = Column(
-        String,
-        nullable=False
-    )
-
-    api_key = Column(
-        String,
-        unique=True,
-        nullable=False,
-        index=True
-    )
-
-    is_active = Column(
-        Boolean,
-        default=True,
-        nullable=False
-    )
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=True)
+    type = Column(String, nullable=False)
+    severity = Column(String, default="HIGH")
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    resolved = Column(Boolean, default=False)
+    createdAt = Column(DateTime, default=datetime.utcnow)

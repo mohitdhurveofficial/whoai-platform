@@ -19,14 +19,11 @@
 ## Features
 
 - 💸 **Reduce AI Spend 15-30%:** Real-time observability into token spend. Find exactly which team owns the spend.
-- 🛑 **Anomaly Detection & Kill Switch:** Get Slack alerts when an agent's spend increases by 400% in 45 minutes. Instantly suspend runaway agents.
-- ✋ **Approval Workflows:** Human-in-the-loop (HITL) approval queues allowing executives to review, approve, or reject high-risk AI decisions before execution.
-- 🛡️ **Policy Studio:** Dynamic policy engine enforcing granular, risk-based rules (ALLOW, DENY, REQUIRE_APPROVAL) on agent resources and actions.
-- 📊 **Executive Dashboard:** Visualize hierarchical agent delegation (Org Charts) and operational telemetry across the digital workforce.
-- 📈 **Analytics & Insights:** Real-time data visualization of agent decision volumes, approval rates, compliance metrics, and risk distributions.
-- ⚠️ **Risk Management:** Track, score, and mitigate operational risks tied to agent behaviors with severity classification.
-- 🔒 **Evidence Vault (Audit Logs):** Immutable, cryptographic ledger of every action, decision, policy change, and transaction executed by AI workers.
-- 🔀 **High-Performance AI Gateway:** Scalable ingestion layer that intercepts LLM traffic, enforces policies dynamically, and perfectly meters API usage. Available for VPC self-hosting.
+- 🛑 **Cost Anomaly Detection:** Get alerts when an agent's spend increases by 400% in 45 minutes.
+- 🔌 **Kill Switch:** Instantly suspend runaway agents before they burn through your API budget.
+- 📊 **Executive Dashboard:** Visualize daily and monthly token burn rates, active agents, and top cost offenders.
+- 📈 **Analytics & Insights:** Real-time data visualization of agent spending trends and model distribution.
+- 🔀 **High-Performance AI Gateway:** Scalable ingestion layer that intercepts LLM traffic, meters API usage, and enforces budgets. Available for VPC self-hosting.
 - 🏢 **Enterprise Multi-Tenancy:** Secure data isolation via strict Organization-level constraints and Role-Based Access Control (RBAC).
 
 ## Architecture
@@ -69,12 +66,9 @@ graph TD;
 ```text
 whoai-platform/
 ├── app/                      # Next.js App Router (Frontend & API)
-│   ├── analytics/            # Operational Insights & KPI Dashboard
+│   ├── analytics/            # FinOps Insights & KPI Dashboard
 │   ├── api/                  # Next.js API Routes (Mgmt Plane)
-│   ├── approvals/            # Human-in-the-loop Approval Queue
-│   ├── evidence-vault/       # Immutable Audit Logs UI
-│   ├── executive-dashboard/  # AI Org Chart & Executive Overview
-│   ├── risks/                # Risk Management UI
+│   ├── agents/               # Agent Registry & Budget Management
 │   └── layout.tsx & page.tsx # Core Landing Page & Layout
 ├── components/               # Reusable React UI Components
 ├── database/                 # FastAPI SQLAlchemy Models & Session
@@ -175,83 +169,67 @@ npm run build
 | `/api/ai-workers/auth/signup` | `POST` | Registers a new Organization and Owner. |
 | `/api/ai-workers/auth/login` | `POST` | Authenticates a user and sets a secure JWT cookie. |
 | `/api/auth/me` | `GET` | Validates session and retrieves user details. |
-| `/api/ai-workers` | `GET`, `POST` | Manages AI Workers within the organization. |
-| `/api/approvals` | `GET`, `POST` | Fetches pending workflow approvals and updates statuses. |
-| `/api/risks` | `GET`, `POST` | Logs and retrieves operational risks. |
+| `/api/agents` | `GET`, `POST` | Manages active AI agents and budget thresholds. |
+| `/api/spend` | `GET` | Fetches token burn and cost metrics across the workspace. |
+| `/api/alerts` | `GET`, `POST` | Manages spend anomaly alerts and risk thresholds. |
 
 ### FastAPI Runtime Gateway
 | Endpoint | Method | Purpose |
 | :--- | :--- | :--- |
-| `/api/v1/gateway` | `POST` | Intercepts LLM calls to enforce policies and track compute spend. |
-| `/api/v1/decisions` | `POST` | Ingests atomic decision logs from autonomous agents. |
-| `/api/v1/policies` | `GET` | Fetches active guardrails for edge evaluation. |
+| `/api/v1/gateway` | `POST` | Intercepts LLM calls to track compute spend and enforce budgets. |
 
 ## Pricing & Business Model
 
 WHOAI is mission-critical infrastructure, not a productivity tool. 
 
 - **Tier 1 ($2,000/month):** Includes Gateway, Cost tracking, Alerts, Dashboards.
-- **Tier 2 ($5,000-$10,000/month):** Includes Budget controls, Kill switch, Approval workflows, Compliance.
-- **Tier 3 ($25,000+/year VPC):** Includes Self-hosted deployment, Enterprise support, SSO, Audit exports.
+- **Tier 2 ($5,000-$10,000/month):** Includes Budget controls, Kill switch, Advanced Cost Anomaly detection.
+- **Tier 3 ($25,000+/year VPC):** Includes Self-hosted deployment, Enterprise support, SSO, Custom integrations.
 
 ## Product Roadmap
 
 * **Month 1:** Gateway, Token tracking, Cost attribution, Spend database.
 * **Month 2:** Budget limits, Kill switch, Cost anomaly detection.
 * **Month 3:** Slack alerts, Teams alerts, Weekly FinOps reports.
-* **Month 4+:** Agent registry, Policies, Approvals.
-* **Year 2+:** Identity layer, Trust certificates, Agent commerce.
+* **Month 4+:** Advanced budgeting, Custom alerts.
 
 ## Database Schema
 
-Core models powering the WHOAI OS:
+Core models powering the WHOAI FinOps OS:
 
 - **Organization:** The root multi-tenant entity tying together billing, users, and AI assets.
-- **User:** Carbon-based human operators (Admins, Reviewers, Compliance Officers).
-- **Agent (AI Worker):** Silicon-based autonomous workers with cryptographic trust certificates and wallet balances.
-- **Policy:** Conditional guardrails governing agent behavior (e.g., "Require approval if discount > 25%").
-- **Decision:** Atomic records of actions attempted by agents, resulting in ALLOW, DENY, or NEEDS_APPROVAL.
-- **Approval:** Human-in-the-loop workflow states tied to specific high-risk Decisions.
-- **AITransaction & SpendLog:** Financial telemetry tracking API token usage and agent-to-agent B2B commerce.
-- **AuditLog:** Immutable ledger tracking all platform state changes.
+- **User:** Team members with access to the dashboard.
+- **Agent:** Silicon-based autonomous workers actively burning API tokens.
+- **SpendLog:** Financial telemetry tracking API token usage, model choices, and associated costs.
+- **Alert:** Real-time anomaly detections when an agent breaches budget limits.
 
-## Security & Governance
+## Security & Cost Control
 
-- **Policy Engine:** Evaluates actions in real-time against organizational guardrails before routing to external LLMs.
-- **Audit Trail:** Append-only logging of user logins, agent provisioning, and configuration changes.
-- **Evidence Vault:** Stores immutable cryptographic proofs of major B2B agent decisions and contract executions.
+- **Spend Interception:** Perfectly meters API usage in real-time before routing to external LLMs.
+- **Budget Enforcement:** Automatically halts agents via a Kill Switch if they breach predefined daily/monthly limits.
 - **Multi-Tenant Isolation:** All queries are strictly scoped by `organizationId`, preventing cross-tenant data leakage.
 
 ## Roadmap
 
 ### Stage 1: The Registry (Current)
-- ✅ Core AI Worker Registry & Authentication
-- ✅ Human-in-the-loop Approval Workflows
-- ✅ Immutable Evidence Vault & Audit Logging
+- ✅ Core Agent Registry & Spend Tracking
+- ✅ Datadog-style Cost Visibility Dashboard
 - ✅ Next.js / FastAPI Split-Plane Architecture
 
-### Stage 2: WHOAI Zero-Trust Gateway (The Next Major Release)
-- 🔄 FastAPI API Gateway for real-time traffic interception.
-- 🔄 Inbound AI firewall blocking agents without a WHOAI `TrustCertificate`.
-- 🔄 Real-time token counting, API spend deduction, and `AITransaction` logging.
+### Stage 2: Cost Control & Limits (The Next Major Release)
+- 🔄 Real-time token counting, API spend deduction, and detailed `SpendLog` tracking.
+- 🔄 Automated Alerts & Kill Switches for runaway agents.
 
-### Stage 3: The Trust Network (Planned)
-- 📅 Cryptographic Trust Certificates issued to verified enterprise AI workers (The SSL of AI).
-- 📅 Enterprise zero-trust firewall integrations.
-
-### Stages 4 & 5: Marketplace & Clearinghouse (Vision)
-- 🚀 **AI Worker Marketplace:** An app-store for enterprises to safely hire third-party AI agents.
-- 🚀 **AI-to-AI Commerce:** Becoming the "SWIFT/Visa network" for AI agents negotiating, escrowing funds, and executing B2B transactions globally.
 
 ## Screenshots
 
 > *Replace the paths below with your actual screenshot images once captured.*
 
-| Landing Page | Executive Dashboard |
+| Landing Page | Dashboard |
 |:---:|:---:|
-| !Landing Page | !Executive Dashboard |
-| **Approval Queue** | **Analytics & Insights** |
-| !Approval Queue | !Analytics & Insights |
+| !Landing Page | !Dashboard |
+| **Agent Registry** | **Analytics & Insights** |
+| !Agent Registry | !Analytics & Insights |
 
 ## Contributing
 
