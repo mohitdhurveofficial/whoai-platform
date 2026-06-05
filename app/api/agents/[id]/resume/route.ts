@@ -32,10 +32,7 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
         where: { id: params.id },
         data: {
           status: "ACTIVE",
-          pauseReason: null,
-          pausedAt: null,
-          pausedBy: null,
-        },
+          },
       });
 
       await tx.alert.create({

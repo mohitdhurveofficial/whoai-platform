@@ -34,7 +34,6 @@ model User {
   email          String       @unique
   createdAt      DateTime     @default(now())
   role           String       @default("DEVELOPER")
-  fullName       String?
   organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
@@ -47,17 +46,10 @@ model Agent {
   apiKey            String         @unique
   clientId          String         @unique
   clientSecret      String
-
   currentDailySpend Decimal        @default(0) @db.Decimal(18, 4)
   dailyBudget       Decimal        @db.Decimal(18, 4)
   monthlyBudget     Decimal        @db.Decimal(18, 4)
-
-  pauseReason       String?
-  pausedAt          DateTime?
-  pausedBy          String?
-
   scopes            String[]       @default(["llm:read", "llm:write"])
-
   activityLogs      ActivityLog[]
   organization      Organization   @relation(fields: [organizationId], references: [id])
   alerts            Alert[]

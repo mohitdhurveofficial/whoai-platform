@@ -32,9 +32,6 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
         where: { id: params.id },
         data: {
           status: "PAUSED",
-          pauseReason: reason,
-          pausedAt: new Date(),
-          pausedBy: auth.userId || "USER",
         },
       });
 
