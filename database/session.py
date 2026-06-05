@@ -70,11 +70,11 @@ async def get_db():
 async def init_db():
     # Import models here so SQLAlchemy registers them
     # before create_all runs.
-    import database.models
+    from database.models import Base as ModelsBase
 
     logger.info("Initializing database tables")
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(ModelsBase.metadata.create_all)
 
     logger.info("Database initialization complete")

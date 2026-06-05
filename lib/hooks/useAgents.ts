@@ -4,9 +4,13 @@ export interface Agent {
   id: string;
   name: string;
   status: "ACTIVE" | "PAUSED" | "QUARANTINED" | "TERMINATED";
+  pauseReason?: string | null;
+  pausedAt?: string | null;
+  pausedBy?: string | null;
   dailyBudget: number;
   monthlyBudget: number;
   currentDailySpend: number;
+  currentMonthlySpend: number;
   organizationId: string;
   createdAt: string;
   clientId?: string;

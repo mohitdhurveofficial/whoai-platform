@@ -9,7 +9,6 @@ from sqlalchemy import (
     ForeignKey,
     JSON,
     Enum,
-    ARRAY,
     Text
 )
 from sqlalchemy.orm import declarative_base
@@ -26,6 +25,14 @@ class Organization(Base):
 
     kmsKeyArn = Column(String, nullable=True)
     enforceSso = Column(Boolean, default=False)
+    status = Column(String, default="ACTIVE")
+
+    dailyBudget = Column(Numeric(18, 4), default=0)
+    monthlyBudget = Column(Numeric(18, 4), default=0)
+    currentDailySpend = Column(Numeric(18, 4), default=0)
+    currentMonthlySpend = Column(Numeric(18, 4), default=0)
+    pauseReason = Column(String, nullable=True)
+    pausedAt = Column(DateTime, nullable=True)
 
     createdAt = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -40,12 +47,16 @@ class Agent(Base):
     clientId = Column(String, unique=True, nullable=False)
     clientSecret = Column(String, nullable=False)
     apiKey = Column(String, unique=True, nullable=False)
-    scopes = Column(ARRAY(String), default=["llm:read", "llm:write"])
+    scopes = Column(JSON, default=lambda: ["llm:read", "llm:write"])
 
     status = Column(String, default="ACTIVE")
     dailyBudget = Column(Numeric(18, 4), default=0)
     monthlyBudget = Column(Numeric(18, 4), default=0)
     currentDailySpend = Column(Numeric(18, 4), default=0)
+    currentMonthlySpend = Column(Numeric(18, 4), default=0)
+    pauseReason = Column(String, nullable=True)
+    pausedAt = Column(DateTime, nullable=True)
+    pausedBy = Column(String, nullable=True)
 
     createdAt = Column(DateTime, default=datetime.utcnow)
 
@@ -64,6 +75,19 @@ class SpendLog(Base):
 
     metadata_ = Column("metadata", JSON, nullable=True)
 
+    createdAt = Column(DateTime, default=datetime.utcnow)
+
+class ActivityLog(Base):
+    __tablename__ = "ActivityLog"
+
+    id = Column(String, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    agentId = Column(String, ForeignKey("Agent.id", ondelete="SET NULL"), nullable=True)
+    action = Column(String, nullable=False)
+    status = Column(String, nullable=True)
+    metadata_ = Column("metadata", JSON, nullable=True)
+    
     createdAt = Column(DateTime, default=datetime.utcnow)
 
 class RequestLog(Base):
@@ -94,3 +118,17 @@ class UsageMetrics(Base):
     totalRequests = Column(Integer, default=0)
     totalTokens = Column(Integer, default=0)
     totalCost = Column(Numeric(18, 4), default=0)
+
+class Alert(Base):
+    __tablename__ = "Alert"
+
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    agentId = Column(String, ForeignKey("Agent.id", ondelete="SET NULL"), nullable=True)
+    type = Column(String, nullable=False)
+    severity = Column(String, default="HIGH")
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    metadata_ = Column("metadata", JSON, nullable=True)
+    resolved = Column(Boolean, default=False)
+    createdAt = Column(DateTime, default=datetime.utcnow)

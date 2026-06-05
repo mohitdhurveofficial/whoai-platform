@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAgents } from "@/lib/hooks/useAgents";
 import {
   DollarSign,
@@ -61,13 +61,110 @@ const spendByModelData = [
   { name: "Gemini 1.5", spend: 4300 },
 ];
 
+type BudgetStatus = {
+  currentSpend: number;
+  budgetLimit: number;
+  remainingBudget: number;
+  utilizationPercent: number;
+  warningPercent: number;
+  criticalPercent: number;
+  status: "OK" | "WARNING" | "CRITICAL" | "BLOCKED" | "UNLIMITED";
+};
+
+type BudgetSummary = {
+  organization: {
+    status: "ACTIVE" | "PAUSED" | "TERMINATED";
+    pauseReason?: string | null;
+    pausedAt?: string | null;
+    daily: BudgetStatus;
+    monthly: BudgetStatus;
+  };
+  agents: Array<{
+    id: string;
+    name: string;
+    status: "ACTIVE" | "PAUSED" | "QUARANTINED" | "TERMINATED";
+    pauseReason?: string | null;
+    pausedAt?: string | null;
+    daily: BudgetStatus;
+    monthly: BudgetStatus;
+  }>;
+  activeAlertCount: number;
+  blockedRequestsCount: number;
+  recentAlerts: Array<{
+    id: string;
+    message: string;
+    severity: string;
+  }>;
+};
+
+const money = (value: number) =>
+  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export default function DashboardPage() {
   const { agents } = useAgents();
+  const [budgetSummary, setBudgetSummary] = useState<BudgetSummary | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    fetch("/api/budgets/summary")
+      .then((res) => res.json())
+      .then((data) => {
+        if (mounted && data.success) setBudgetSummary(data.budget);
+      })
+      .catch(() => {
+        if (mounted) setBudgetSummary(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const totalAgents = agents.length;
-  const activeAgents = agents.filter(a => a.status === 'ACTIVE').length;
-  const pausedAgents = agents.filter(a => a.status === 'PAUSED').length;
-  const totalMonthlyBudget = agents.reduce((sum, a) => sum + Number(a.monthlyBudget), 0);
+  const orgDailySpend = budgetSummary?.organization.daily.currentSpend ?? agents.reduce((sum, a) => sum + Number(a.currentDailySpend), 0);
+  const orgMonthlySpend = budgetSummary?.organization.monthly.currentSpend ?? agents.reduce((sum, a) => sum + Number(a.currentMonthlySpend || 0), 0);
+  const remainingDailyBudget = budgetSummary?.organization.daily.remainingBudget ?? 0;
+  const remainingMonthlyBudget = budgetSummary?.organization.monthly.remainingBudget ?? 0;
+  const activeAlertCount = budgetSummary?.activeAlertCount ?? recentAlerts.length;
+  const blockedRequestsCount = budgetSummary?.blockedRequestsCount ?? 0;
+  const organizationStatus = budgetSummary?.organization.status ?? "ACTIVE";
+  const organizationPauseReason = budgetSummary?.organization.pauseReason ?? "None";
+  const organizationPausedAt = budgetSummary?.organization.pausedAt
+    ? new Date(budgetSummary.organization.pausedAt).toLocaleString()
+    : "Not paused";
+  const mostUtilizedAgent = budgetSummary?.agents.reduce((top, agent) => {
+    return agent.monthly.utilizationPercent > top.monthly.utilizationPercent ? agent : top;
+  }, budgetSummary.agents[0]);
+  const agentUtilization = mostUtilizedAgent?.monthly.utilizationPercent ?? 0;
+  const dashboardAlerts = budgetSummary?.recentAlerts.length ? budgetSummary.recentAlerts : recentAlerts;
+  const operationalAgents = budgetSummary?.agents.length
+    ? budgetSummary.agents
+    : agents.map((agent) => ({
+        id: agent.id,
+        name: agent.name,
+        status: agent.status,
+        pauseReason: agent.pauseReason,
+        pausedAt: agent.pausedAt,
+        daily: {
+          currentSpend: Number(agent.currentDailySpend),
+          budgetLimit: Number(agent.dailyBudget),
+          remainingBudget: Math.max(Number(agent.dailyBudget) - Number(agent.currentDailySpend), 0),
+          utilizationPercent: Number(agent.dailyBudget) > 0 ? Number(agent.currentDailySpend) / Number(agent.dailyBudget) * 100 : 0,
+          warningPercent: 75,
+          criticalPercent: 90,
+          status: "OK" as const,
+        },
+        monthly: {
+          currentSpend: Number(agent.currentMonthlySpend || 0),
+          budgetLimit: Number(agent.monthlyBudget),
+          remainingBudget: Math.max(Number(agent.monthlyBudget) - Number(agent.currentMonthlySpend || 0), 0),
+          utilizationPercent: Number(agent.monthlyBudget) > 0 ? Number(agent.currentMonthlySpend || 0) / Number(agent.monthlyBudget) * 100 : 0,
+          warningPercent: 75,
+          criticalPercent: 90,
+          status: "OK" as const,
+        },
+      }));
 
   return (
     <div className="p-10 max-w-[1600px] mx-auto space-y-10">
@@ -96,7 +193,7 @@ export default function DashboardPage() {
       </header>
 
       {/* SECTION 1: KPI CARDS */}
-      <section className="grid grid-cols-5 gap-5">
+      <section className="grid grid-cols-6 gap-5">
         
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -113,39 +210,52 @@ export default function DashboardPage() {
 
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Active Agents</span>
-            <div className="p-1.5 bg-[#F0FDF4] rounded text-[#16A34A]"><Bot className="h-4 w-4" /></div>
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Org Daily Spend</span>
+            <div className="p-1.5 bg-[#F0FDF4] rounded text-[#16A34A]"><DollarSign className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">{activeAgents}</div>
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{money(orgDailySpend)}</div>
             <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#047857]">
-              Currently running
+              {budgetSummary?.organization.daily.status ?? "Tracked"} status
             </div>
           </div>
         </div>
 
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Paused Agents</span>
-            <div className="p-1.5 bg-[#FFFBEB] rounded text-[#D97706]"><Bot className="h-4 w-4" /></div>
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Org Monthly Spend</span>
+            <div className="p-1.5 bg-[#FFFBEB] rounded text-[#D97706]"><DollarSign className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">{pausedAgents}</div>
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{money(orgMonthlySpend)}</div>
             <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#D97706]">
-              Stopped manually
+              {budgetSummary?.organization.monthly.status ?? "Tracked"} status
             </div>
           </div>
         </div>
 
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Total Monthly Budget</span>
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Remaining Daily</span>
             <div className="p-1.5 bg-[#FFF5F0] rounded text-[#FF6B00]"><DollarSign className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#111111]">${totalMonthlyBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{money(remainingDailyBudget)}</div>
             <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#FF6B00]">
-              Combined limit
+              Until daily block
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Remaining Monthly</span>
+            <div className="p-1.5 bg-[#F5F5F5] rounded text-[#111111]"><TrendingUp className="h-4 w-4" /></div>
+          </div>
+          <div className="mt-4">
+            <div className="text-3xl font-bold tracking-tight text-[#111111]">{money(remainingMonthlyBudget)}</div>
+            <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#888888]">
+              Until monthly block
             </div>
           </div>
         </div>
@@ -156,13 +266,58 @@ export default function DashboardPage() {
             <div className="p-1.5 bg-[#FFF0F0] rounded text-[#DC2626]"><AlertTriangle className="h-4 w-4" /></div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-bold tracking-tight text-[#DC2626]">3</div>
+            <div className="text-3xl font-bold tracking-tight text-[#DC2626]">{activeAlertCount}</div>
             <div className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-[#DC2626]">
               Requires attention
             </div>
           </div>
         </div>
 
+      </section>
+
+      <section className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-6">
+          <div className="min-w-[220px]">
+            <h2 className="text-[16px] font-bold text-[#111111]">Agent Budget Utilization</h2>
+            <p className="text-[13px] text-[#888888] mt-1">{mostUtilizedAgent?.name ?? "No agent spend yet"}</p>
+          </div>
+          <div className="flex-1 h-3 bg-[#F5F5F5] rounded-full overflow-hidden">
+            <div
+              className={`h-full ${agentUtilization >= 100 ? "bg-[#DC2626]" : agentUtilization >= 90 ? "bg-[#FF6B00]" : agentUtilization >= 75 ? "bg-[#D97706]" : "bg-[#047857]"}`}
+              style={{ width: `${Math.min(agentUtilization, 100)}%` }}
+            />
+          </div>
+          <div className="text-right">
+            <div className="text-[24px] font-bold text-[#111111]">{agentUtilization.toFixed(1)}%</div>
+            <div className="text-[12px] font-semibold text-[#888888]">75% warning / 90% critical / 100% blocked</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-4 gap-5">
+        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Organization Status</span>
+            <Activity className={`h-4 w-4 ${organizationStatus === "ACTIVE" ? "text-[#047857]" : "text-[#DC2626]"}`} />
+          </div>
+          <div className="mt-4 text-2xl font-bold text-[#111111]">{organizationStatus}</div>
+          <div className="mt-2 text-[13px] font-medium text-[#888888]">{organizationPauseReason}</div>
+        </div>
+        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm">
+          <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Paused Timestamp</span>
+          <div className="mt-4 text-[18px] font-bold text-[#111111]">{organizationPausedAt}</div>
+          <div className="mt-2 text-[13px] font-medium text-[#888888]">Organization-level kill switch</div>
+        </div>
+        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm">
+          <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Blocked Requests</span>
+          <div className="mt-4 text-3xl font-bold text-[#DC2626]">{blockedRequestsCount}</div>
+          <div className="mt-2 text-[13px] font-medium text-[#888888]">Stopped before provider call</div>
+        </div>
+        <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-5 shadow-sm">
+          <span className="text-[13px] font-semibold text-[#888888] uppercase tracking-wider">Auto Pause Threshold</span>
+          <div className="mt-4 text-3xl font-bold text-[#111111]">100%</div>
+          <div className="mt-2 text-[13px] font-medium text-[#888888]">75% warning / 90% critical</div>
+        </div>
       </section>
 
       {/* SECTION 2: LARGE CHART & TABLE */}
@@ -208,22 +363,25 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EEE8E2]">
-                {topAgents.map((agent, i) => (
-                  <tr key={i} className="hover:bg-[#FAFAFA] transition-colors">
+                {operationalAgents.slice(0, 5).map((agent) => (
+                  <tr key={agent.id} className="hover:bg-[#FAFAFA] transition-colors">
                     <td className="px-5 py-4 font-semibold text-[#111111]">
                       {agent.name}
-                      <div className="text-[11px] font-normal text-[#888888] mt-0.5">{agent.tokens} tokens · {agent.requests} reqs</div>
+                      <div className="text-[11px] font-normal text-[#888888] mt-0.5">{agent.pauseReason || "No pause reason"} · {agent.pausedAt ? new Date(agent.pausedAt).toLocaleString() : "Not paused"}</div>
                     </td>
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center px-2 py-1 rounded bg-[#F5F5F5] text-[#111111] font-medium text-[11px]">
-                        {agent.model}
+                        {agent.monthly.utilizationPercent.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-bold text-[#111111] text-right">{agent.spend}</td>
+                    <td className="px-5 py-4 font-bold text-[#111111] text-right">
+                      {money(agent.monthly.currentSpend)}
+                      <div className="text-[11px] font-normal text-[#888888] mt-0.5">{money(agent.monthly.remainingBudget)} left</div>
+                    </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5">
-                        <div className={`w-2 h-2 rounded-full ${agent.status === "Active" ? "bg-[#047857]" : "bg-[#A3A3A3]"}`}></div>
-                        <span className={`text-[12px] font-medium ${agent.status === "Active" ? "text-[#047857]" : "text-[#888888]"}`}>{agent.status}</span>
+                        <div className={`w-2 h-2 rounded-full ${agent.status === "ACTIVE" ? "bg-[#047857]" : "bg-[#DC2626]"}`}></div>
+                        <span className={`text-[12px] font-medium ${agent.status === "ACTIVE" ? "text-[#047857]" : "text-[#DC2626]"}`}>{agent.status}</span>
                       </div>
                     </td>
                   </tr>
@@ -281,8 +439,8 @@ export default function DashboardPage() {
             <p className="text-[13px] text-[#888888] mt-1">Anomalies and budget warnings</p>
           </div>
           <div className="flex-1 divide-y divide-[#EEE8E2] overflow-auto">
-            {recentAlerts.map((alert, i) => (
-              <div key={i} className="p-5 flex items-start gap-4 hover:bg-[#FAFAFA] transition-colors">
+            {dashboardAlerts.map((alert, i) => (
+              <div key={`${alert.message}-${i}`} className="p-5 flex items-start gap-4 hover:bg-[#FAFAFA] transition-colors">
                 <div className={`mt-0.5 p-1.5 rounded-md ${alert.severity === "High" ? "bg-[#FFF0F0] text-[#DC2626]" : "bg-[#FFF5F0] text-[#FF6B00]"}`}>
                   <AlertTriangle className="h-4 w-4" />
                 </div>

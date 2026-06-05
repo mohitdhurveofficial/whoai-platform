@@ -5,29 +5,39 @@ import httpx
 import json
 import jwt
 from typing import Optional, Dict, AsyncGenerator, Any
-from decimal import Decimal
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, text
+from sqlalchemy import select
 from database.session import get_db
-from database.models import Agent, SpendLog, RequestLog, UsageMetrics
+from database.models import Agent, Organization, RequestLog
+
+# Telemetry Subsystem Imports
+from runtime.telemetry.cost_calculator import calculate_cost
+from runtime.telemetry.token_counter import extract_tokens, estimate_tokens
+from runtime.telemetry.spend_logger import log_spend
+from runtime.telemetry.activity_logger import log_activity, ActivityAction
+from runtime.telemetry.metrics_service import update_daily_metrics
+from runtime.budget.budget_service import check_agent_budget, check_org_budget
+from runtime.killswitch.kill_switch_service import (
+    DAILY_BUDGET_EXCEEDED,
+    MONTHLY_BUDGET_EXCEEDED,
+    check_agent_state,
+    check_org_state,
+    pause_agent,
+    pause_organization,
+)
 
 router = APIRouter(prefix="/gateway")
 GATEWAY_SECRET = os.getenv("GATEWAY_SECRET", "dev_secret")
 
-# Cost per 1k tokens
-MODEL_PRICING: Dict[str, Dict[str, float]] = {
-    "gpt-4o": {"input": 0.005, "output": 0.015},
-    "gpt-4.1": {"input": 0.005, "output": 0.015},
-    "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-    "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
-    "claude-3-5-sonnet-20240620": {"input": 0.003, "output": 0.015},
-    "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
-    "claude-3-haiku-20240307": {"input": 0.00025, "output": 0.00125},
-}
+
+def _pause_reason_from_budget(reason: Optional[str]) -> str:
+    if reason and "MONTHLY" in reason:
+        return MONTHLY_BUDGET_EXCEEDED
+    return DAILY_BUDGET_EXCEEDED
 
 async def verify_agent_identity(authorization: Optional[str] = Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
@@ -43,12 +53,6 @@ async def verify_agent_identity(authorization: Optional[str] = Header(None)) -> 
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
-
-def calculate_cost(model: str, tokens_in: int, tokens_out: int) -> Decimal:
-    pricing = MODEL_PRICING.get(model, MODEL_PRICING["gpt-4o"]) # fallback
-    cost_in = (tokens_in / 1000) * pricing["input"]
-    cost_out = (tokens_out / 1000) * pricing["output"]
-    return Decimal(str(cost_in + cost_out))
 
 async def log_request(
     db: AsyncSession, 
@@ -73,62 +77,6 @@ async def log_request(
         ipAddress=ip_address
     )
     db.add(req_log)
-    await db.commit()
-
-async def log_spend(
-    db: AsyncSession,
-    agent_id: str,
-    org_id: str,
-    provider: str,
-    model: str,
-    tokens_in: int,
-    tokens_out: int,
-    cost: Decimal
-):
-    spend_log = SpendLog(
-        id=str(uuid.uuid4()),
-        agentId=agent_id,
-        organizationId=org_id,
-        model=model,
-        provider=provider,
-        tokensIn=tokens_in,
-        tokensOut=tokens_out,
-        cost=cost
-    )
-    db.add(spend_log)
-    
-    # Update Daily Spend
-    await db.execute(
-        update(Agent).where(Agent.id == agent_id).values(
-            currentDailySpend=Agent.currentDailySpend + cost
-        )
-    )
-
-    # Usage Metrics tracking
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    result = await db.execute(
-        select(UsageMetrics).where(
-            UsageMetrics.agentId == agent_id,
-            UsageMetrics.date == today
-        )
-    )
-    metric = result.scalar_one_or_none()
-    if metric:
-        metric.totalRequests += 1
-        metric.totalTokens += (tokens_in + tokens_out)
-        metric.totalCost += cost
-    else:
-        metric = UsageMetrics(
-            id=str(uuid.uuid4()),
-            agentId=agent_id,
-            organizationId=org_id,
-            date=today,
-            totalRequests=1,
-            totalTokens=(tokens_in + tokens_out),
-            totalCost=cost
-        )
-        db.add(metric)
-
     await db.commit()
 
 async def stream_proxy(
@@ -169,84 +117,173 @@ async def stream_proxy(
     finally:
         latency_ms = int((time.time() - start_time) * 1000)
         
-        # Log request
+        # Log request in RequestLog
         await log_request(db, agent_id, org_id, provider, model, payload_size, status_code, latency_ms, request_ip)
 
         if status_code == 200:
-            tokens_in = payload_size // 4 # Basic estimation for input tokens in stream mode
-            tokens_out = len(full_content) // 4 # Basic estimation
+            # Telemetry Subsystem Integration
+            # Estimate tokens for stream
+            tokens_in = payload_size // 4
+            tokens_out = estimate_tokens(full_content)
+            total_tokens = tokens_in + tokens_out
+            
             cost = calculate_cost(model, tokens_in, tokens_out)
-            await log_spend(db, agent_id, org_id, provider, model, tokens_in, tokens_out, cost)
+            
+            # Log spend atomically
+            await log_spend(db, org_id, agent_id, provider, model, tokens_in, tokens_out, total_tokens, cost)
+            
+            # Update metrics safely
+            await update_daily_metrics(db, org_id, agent_id, total_tokens, cost)
+            
+            # Log successful completion
+            await log_activity(
+                db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, "SUCCESS",
+                {"model": model, "provider": provider, "latency_ms": latency_ms, "cost": str(cost)}
+            )
+        else:
+            await log_activity(
+                db, org_id, ActivityAction.PROVIDER_ERROR, agent_id, "FAILURE",
+                {"model": model, "provider": provider, "status_code": status_code}
+            )
 
 @router.post("/openai/chat/completions")
 @router.post("/anthropic/messages")
 @router.post("/completions")
 async def proxy_llm_request(
     request: Request,
-    identity: dict = Depends(verify_agent_identity),
     db: AsyncSession = Depends(get_db)
 ):
     start_time = time.time()
     ip_address = request.client.host if request.client else "unknown"
     
+    # Authenticate via Header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        # Fallback to verify via standard flow if missing
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    try:
+        identity = await verify_agent_identity(auth_header)
+    except HTTPException as e:
+        # Cannot log auth failure easily without org_id, unless we extract it first.
+        # Minimal activity logging if we fail auth.
+        raise e
+
+    agent_id = identity["sub"]
+    org_id = identity["org"]
+    
+    # 1. Telemetry: Request Received
+    await log_activity(db, org_id, ActivityAction.REQUEST_RECEIVED, agent_id, "PENDING", {"ip": ip_address})
+
     raw_body = await request.body()
     payload_size = len(raw_body)
     
     try:
         body = json.loads(raw_body)
     except Exception:
+        await log_activity(db, org_id, ActivityAction.REQUEST_FAILED, agent_id, "FAILURE", {"reason": "Invalid JSON body"})
         raise HTTPException(status_code=400, detail="Invalid JSON body")
 
     model = body.get("model", "gpt-4o")
     stream = body.get("stream", False)
-    
-    # Determine Provider
     provider = "anthropic" if "claude" in model.lower() else "openai"
-    
-    # Validate Agent & Budget
-    agent_id = identity["sub"]
-    org_id = identity["org"]
     
     result = await db.execute(select(Agent).where(Agent.id == agent_id))
     agent = result.scalar_one_or_none()
     
-    if not agent or agent.status != "ACTIVE":
-        raise HTTPException(status_code=403, detail="Agent Inactive or Quarantined")
+    if not agent or agent.organizationId != org_id:
+        await log_activity(db, org_id, ActivityAction.AUTH_FAILED, agent_id, "FAILURE", {"reason": "Agent not found"})
+        await db.commit()
+        raise HTTPException(status_code=403, detail="Agent not found")
 
-    if agent.dailyBudget > 0 and agent.currentDailySpend >= agent.dailyBudget:
-        raise HTTPException(status_code=402, detail="Daily Budget Exceeded")
+    org_result = await db.execute(select(Organization).where(Organization.id == org_id))
+    organization = org_result.scalar_one_or_none()
 
-    # Routing
+    if not organization:
+        await log_activity(db, org_id, ActivityAction.AUTH_FAILED, agent_id, "FAILURE", {"reason": "Organization not found"})
+        await db.commit()
+        raise HTTPException(status_code=403, detail="Organization not found")
+
+    agent_state_decision = await check_agent_state(db, agent)
+    if not agent_state_decision["allowed"]:
+        await db.commit()
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": agent_state_decision["error"],
+                "reason": agent_state_decision["reason"],
+            },
+        )
+
+    org_state_decision = await check_org_state(db, organization, agent_id=agent_id)
+    if not org_state_decision["allowed"]:
+        await db.commit()
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": org_state_decision["error"],
+                "reason": org_state_decision["reason"],
+            },
+        )
+
+    agent_budget_decision = await check_agent_budget(db, agent)
+    if not agent_budget_decision["allowed"]:
+        await pause_agent(
+            db,
+            agent,
+            reason=_pause_reason_from_budget(agent_budget_decision["reason"]),
+            paused_by="SYSTEM",
+            budget_limit=agent_budget_decision.get("budgetLimit"),
+            current_spend=agent_budget_decision.get("currentSpend"),
+        )
+        await db.commit()
+        return JSONResponse(
+            status_code=402,
+            content={
+                "error": "Budget exceeded",
+                "reason": agent_budget_decision["reason"],
+            },
+        )
+
+    org_budget_decision = await check_org_budget(db, organization, agent_id=agent_id)
+    if not org_budget_decision["allowed"]:
+        await pause_organization(
+            db,
+            organization,
+            reason=_pause_reason_from_budget(org_budget_decision["reason"]),
+            paused_by="SYSTEM",
+            budget_limit=org_budget_decision.get("budgetLimit"),
+            current_spend=org_budget_decision.get("currentSpend"),
+            agent_id=agent_id,
+        )
+        await db.commit()
+        return JSONResponse(
+            status_code=402,
+            content={
+                "error": "Budget exceeded",
+                "reason": org_budget_decision["reason"],
+            },
+        )
+
     if provider == "openai":
         url = "https://api.openai.com/v1/chat/completions"
         api_key = os.getenv("OPENAI_API_KEY")
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     else:
         url = "https://api.anthropic.com/v1/messages"
         api_key = os.getenv("ANTHROPIC_API_KEY")
-        headers = {
-            "x-api-key": api_key or "",
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json"
-        }
-        
+        headers = {"x-api-key": api_key or "", "anthropic-version": "2023-06-01", "content-type": "application/json"}
         if "max_tokens" not in body:
-            body["max_tokens"] = 1024 # Anthropic requires max_tokens
-        
-        # Anthropic messages format mapping if needed
-        # We assume standard Anthropic format passed by client or proxy if using unified wrapper
+            body["max_tokens"] = 1024
     
     if not api_key:
+        await log_activity(db, org_id, ActivityAction.PROVIDER_ERROR, agent_id, "FAILURE", {"reason": "Missing API key"})
         raise HTTPException(status_code=500, detail=f"Missing API key for provider {provider}")
 
     client = httpx.AsyncClient()
     
     try:
         if stream:
-            # Handle Streaming Request
             req = client.build_request("POST", url, json=body, headers=headers, timeout=60.0)
             response = await client.send(req, stream=True)
             return StreamingResponse(
@@ -254,40 +291,53 @@ async def proxy_llm_request(
                 media_type="text/event-stream"
             )
 
-        # Handle Standard Request
+        # Standard Request
         response = await client.post(url, json=body, headers=headers, timeout=60.0)
         status_code = response.status_code
         latency_ms = int((time.time() - start_time) * 1000)
         
-        # 1. Log the Request
         await log_request(db, agent_id, org_id, provider, model, payload_size, status_code, latency_ms, ip_address)
         
         if status_code != 200:
-            # Attempt to parse provider error
+            await log_activity(db, org_id, ActivityAction.PROVIDER_ERROR, agent_id, "FAILURE", {"status_code": status_code})
             return Response(content=response.text, status_code=status_code)
 
         res_json = response.json()
         
         # 2. Extract Token Usage
-        tokens_in = 0
-        tokens_out = 0
-        if provider == "openai":
-            usage = res_json.get("usage", {})
-            tokens_in = usage.get("prompt_tokens", 0)
-            tokens_out = usage.get("completion_tokens", 0)
-        elif provider == "anthropic":
-            usage = res_json.get("usage", {})
-            tokens_in = usage.get("input_tokens", 0)
-            tokens_out = usage.get("output_tokens", 0)
+        extracted = extract_tokens(provider, res_json)
+        tokens_in = extracted["tokens_in"]
+        tokens_out = extracted["tokens_out"]
+        
+        # Fallback extraction if missing
+        if tokens_out == 0 and provider == "openai":
+            extracted = extract_tokens(provider, res_json, res_json.get("choices", [{}])[0].get("message", {}).get("content", ""))
+            tokens_out = extracted["tokens_out"]
+        elif tokens_out == 0 and provider == "anthropic":
+            extracted = extract_tokens(provider, res_json, res_json.get("content", [{}])[0].get("text", ""))
+            tokens_out = extracted["tokens_out"]
             
+        total_tokens = extracted["total_tokens"]
+        
+        # 3. Calculate Cost
         cost = calculate_cost(model, tokens_in, tokens_out)
         
-        # 3. Log Spend and Metrics
-        await log_spend(db, agent_id, org_id, provider, model, tokens_in, tokens_out, cost)
+        # 4. Log Spend
+        await log_spend(db, org_id, agent_id, provider, model, tokens_in, tokens_out, total_tokens, cost)
+        
+        # 5. Usage Metrics Update
+        await update_daily_metrics(db, org_id, agent_id, total_tokens, cost)
+        
+        # 6. Request Completed Activity
+        await log_activity(
+            db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, "SUCCESS",
+            {"model": model, "provider": provider, "latency_ms": latency_ms, "cost": str(cost)}
+        )
 
         return res_json
 
     except httpx.RequestError as e:
         latency_ms = int((time.time() - start_time) * 1000)
         await log_request(db, agent_id, org_id, provider, model, payload_size, 502, latency_ms, ip_address)
+        await log_activity(db, org_id, ActivityAction.PROVIDER_ERROR, agent_id, "FAILURE", {"reason": str(e)})
         raise HTTPException(status_code=502, detail=f"Provider connection error: {str(e)}")

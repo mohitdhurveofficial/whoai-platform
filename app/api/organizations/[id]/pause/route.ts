@@ -1,0 +1,56 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@/utils/supabase/server";
+
+export async function POST(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const orgId = user?.user_metadata?.organizationId;
+  const params = await context.params;
+
+  if (!orgId || orgId !== params.id) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const reason = body.reason || "MANUAL_PAUSE";
+
+  try {
+    const metadata = { reason, actorId: user?.id };
+    const organization = await prisma.$transaction(async (tx) => {
+      const paused = await tx.organization.update({
+        where: { id: params.id },
+        data: {
+          status: "PAUSED",
+          pauseReason: reason,
+          pausedAt: new Date(),
+        },
+      });
+
+      await tx.alert.create({
+        data: {
+          organizationId: params.id,
+          type: "ORG_PAUSED",
+          severity: "HIGH",
+          title: "Organization paused",
+          message: `Organization paused: ${reason}`,
+          metadata,
+        },
+      });
+      await tx.activityLog.create({
+        data: {
+          organizationId: params.id,
+          action: "ORG_PAUSED",
+          status: "SUCCESS",
+          metadata,
+        },
+      });
+
+      return paused;
+    });
+
+    return NextResponse.json({ success: true, organization });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

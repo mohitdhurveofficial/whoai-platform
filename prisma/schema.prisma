@@ -22,6 +22,12 @@ enum AgentStatus {
   TERMINATED
 }
 
+enum OrganizationStatus {
+  ACTIVE
+  PAUSED
+  TERMINATED
+}
+
 enum PolicyAction {
   ALLOW
   DENY
@@ -37,6 +43,15 @@ model Organization {
 
   kmsKeyArn  String?
   enforceSso Boolean @default(false)
+  status     OrganizationStatus @default(ACTIVE)
+
+  // Budgets
+  dailyBudget         Decimal   @default(0) @db.Decimal(18, 4)
+  monthlyBudget       Decimal   @default(0) @db.Decimal(18, 4)
+  currentDailySpend   Decimal   @default(0) @db.Decimal(18, 4)
+  currentMonthlySpend Decimal   @default(0) @db.Decimal(18, 4)
+  pauseReason         String?
+  pausedAt            DateTime?
 
   users        User[]
   agents       Agent[]
@@ -45,6 +60,7 @@ model Organization {
   activityLogs ActivityLog[]
   requestLogs  RequestLog[]
   usageMetrics UsageMetrics[]
+  alerts       Alert[]
   subscription Subscription?
 
   createdAt DateTime @default(now())
@@ -74,17 +90,23 @@ model Agent {
   scopes       String[] @default(["llm:read", "llm:write"])
 
   // Financial Controls
-  status            AgentStatus @default(ACTIVE)
-  dailyBudget       Decimal     @db.Decimal(18, 4)
-  monthlyBudget     Decimal     @db.Decimal(18, 4)
-  currentDailySpend Decimal     @default(0) @db.Decimal(18, 4)
+  status              AgentStatus @default(ACTIVE)
+  dailyBudget         Decimal     @default(0) @db.Decimal(18, 4)
+  monthlyBudget       Decimal     @default(0) @db.Decimal(18, 4)
+  currentDailySpend   Decimal     @default(0) @db.Decimal(18, 4)
+  currentMonthlySpend Decimal     @default(0) @db.Decimal(18, 4)
+  pauseReason         String?
+  pausedAt            DateTime?
+  pausedBy            String?
 
   spendLogs    SpendLog[]
   policies     Policy[]
   requestLogs  RequestLog[]
   usageMetrics UsageMetrics[]
+  alerts       Alert[]
 
-  createdAt DateTime @default(now())
+  createdAt    DateTime      @default(now())
+  activityLogs ActivityLog[]
 
   @@index([organizationId, status])
 }
@@ -131,14 +153,18 @@ model SpendLog {
 
 model ActivityLog {
   id             String       @id @default(uuid())
+  timestamp      DateTime     @default(now())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
-  actorId        String
-  actorType      String // USER | AGENT
+  agentId        String?
+  agent          Agent?       @relation(fields: [agentId], references: [id])
   action         String
-  resource       String
-  payload        Json
-  createdAt      DateTime     @default(now())
+  status         String?
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, timestamp])
 }
 
 model Subscription {
@@ -187,4 +213,21 @@ model UsageMetrics {
 
   @@unique([agentId, date])
   @@index([organizationId, date])
+}
+
+model Alert {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  agentId        String?
+  agent          Agent?       @relation(fields: [agentId], references: [id])
+  type           String
+  severity       String       @default("HIGH")
+  title          String
+  message        String
+  metadata       Json?
+  resolved       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
 }

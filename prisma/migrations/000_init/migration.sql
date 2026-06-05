@@ -8,6 +8,9 @@ CREATE TYPE "OrgTier" AS ENUM ('STARTUP', 'GROWTH', 'ENTERPRISE', 'VPC');
 CREATE TYPE "AgentStatus" AS ENUM ('ACTIVE', 'PAUSED', 'QUARANTINED', 'TERMINATED');
 
 -- CreateEnum
+CREATE TYPE "OrganizationStatus" AS ENUM ('ACTIVE', 'PAUSED', 'TERMINATED');
+
+-- CreateEnum
 CREATE TYPE "PolicyAction" AS ENUM ('ALLOW', 'DENY', 'REQUIRE_APPROVAL', 'FLAG');
 
 -- CreateTable
@@ -18,6 +21,13 @@ CREATE TABLE "Organization" (
     "tier" "OrgTier" NOT NULL DEFAULT 'STARTUP',
     "kmsKeyArn" TEXT,
     "enforceSso" BOOLEAN NOT NULL DEFAULT false,
+    "status" "OrganizationStatus" NOT NULL DEFAULT 'ACTIVE',
+    "dailyBudget" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "monthlyBudget" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "currentDailySpend" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "currentMonthlySpend" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "pauseReason" TEXT,
+    "pausedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -45,9 +55,13 @@ CREATE TABLE "Agent" (
     "apiKey" TEXT NOT NULL,
     "scopes" TEXT[] DEFAULT ARRAY['llm:read', 'llm:write']::TEXT[],
     "status" "AgentStatus" NOT NULL DEFAULT 'ACTIVE',
-    "dailyBudget" DECIMAL(18,4) NOT NULL,
-    "monthlyBudget" DECIMAL(18,4) NOT NULL,
+    "dailyBudget" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "monthlyBudget" DECIMAL(18,4) NOT NULL DEFAULT 0,
     "currentDailySpend" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "currentMonthlySpend" DECIMAL(18,4) NOT NULL DEFAULT 0,
+    "pauseReason" TEXT,
+    "pausedAt" TIMESTAMP(3),
+    "pausedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Agent_pkey" PRIMARY KEY ("id")
@@ -87,15 +101,61 @@ CREATE TABLE "SpendLog" (
 -- CreateTable
 CREATE TABLE "ActivityLog" (
     "id" TEXT NOT NULL,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "organizationId" TEXT NOT NULL,
-    "actorId" TEXT NOT NULL,
-    "actorType" TEXT NOT NULL,
+    "agentId" TEXT,
     "action" TEXT NOT NULL,
-    "resource" TEXT NOT NULL,
-    "payload" JSONB NOT NULL,
+    "status" TEXT,
+    "metadata" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ActivityLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RequestLog" (
+    "id" TEXT NOT NULL,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "agentId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "model" TEXT NOT NULL,
+    "requestPayloadSize" INTEGER NOT NULL DEFAULT 0,
+    "statusCode" INTEGER NOT NULL DEFAULT 200,
+    "latencyMs" INTEGER NOT NULL DEFAULT 0,
+    "ipAddress" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RequestLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UsageMetrics" (
+    "id" TEXT NOT NULL,
+    "agentId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "date" DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "totalRequests" INTEGER NOT NULL DEFAULT 0,
+    "totalTokens" INTEGER NOT NULL DEFAULT 0,
+    "totalCost" DECIMAL(18,4) NOT NULL DEFAULT 0,
+
+    CONSTRAINT "UsageMetrics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Alert" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "agentId" TEXT,
+    "type" TEXT NOT NULL,
+    "severity" TEXT NOT NULL DEFAULT 'HIGH',
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "metadata" JSONB,
+    "resolved" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Alert_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -134,6 +194,21 @@ CREATE INDEX "Policy_organizationId_priority_idx" ON "Policy"("organizationId", 
 CREATE INDEX "SpendLog_organizationId_createdAt_idx" ON "SpendLog"("organizationId", "createdAt");
 
 -- CreateIndex
+CREATE INDEX "ActivityLog_organizationId_timestamp_idx" ON "ActivityLog"("organizationId", "timestamp");
+
+-- CreateIndex
+CREATE INDEX "RequestLog_organizationId_timestamp_idx" ON "RequestLog"("organizationId", "timestamp");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UsageMetrics_agentId_date_key" ON "UsageMetrics"("agentId", "date");
+
+-- CreateIndex
+CREATE INDEX "UsageMetrics_organizationId_date_idx" ON "UsageMetrics"("organizationId", "date");
+
+-- CreateIndex
+CREATE INDEX "Alert_organizationId_createdAt_idx" ON "Alert"("organizationId", "createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Subscription_organizationId_key" ON "Subscription"("organizationId");
 
 -- CreateIndex
@@ -161,5 +236,25 @@ ALTER TABLE "SpendLog" ADD CONSTRAINT "SpendLog_organizationId_fkey" FOREIGN KEY
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "Agent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "RequestLog" ADD CONSTRAINT "RequestLog_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "Agent"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RequestLog" ADD CONSTRAINT "RequestLog_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UsageMetrics" ADD CONSTRAINT "UsageMetrics_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "Agent"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UsageMetrics" ADD CONSTRAINT "UsageMetrics_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Alert" ADD CONSTRAINT "Alert_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "Agent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Alert" ADD CONSTRAINT "Alert_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

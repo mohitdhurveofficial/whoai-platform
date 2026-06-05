@@ -5,11 +5,12 @@ from unittest.mock import AsyncMock
 
 from fastapi.testclient import TestClient
 from runtime.main import app
+from runtime.routers.gateway import GATEWAY_SECRET
 
 client = TestClient(app)
 
 # Generate a mock token for testing
-def generate_mock_token(agent_id, org_id, secret="dev_secret"):
+def generate_mock_token(agent_id, org_id, secret=GATEWAY_SECRET):
     payload = {"sub": agent_id, "org": org_id}
     return jwt.encode(payload, secret, algorithm="HS256")
 
