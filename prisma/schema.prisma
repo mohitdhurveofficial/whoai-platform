@@ -43,6 +43,8 @@ model Organization {
   policies     Policy[]
   spendLogs    SpendLog[]
   activityLogs ActivityLog[]
+  requestLogs  RequestLog[]
+  usageMetrics UsageMetrics[]
   subscription Subscription?
 
   createdAt DateTime @default(now())
@@ -77,8 +79,10 @@ model Agent {
   monthlyBudget     Decimal     @db.Decimal(18, 4)
   currentDailySpend Decimal     @default(0) @db.Decimal(18, 4)
 
-  spendLogs SpendLog[]
-  policies  Policy[]
+  spendLogs    SpendLog[]
+  policies     Policy[]
+  requestLogs  RequestLog[]
+  usageMetrics UsageMetrics[]
 
   createdAt DateTime @default(now())
 
@@ -147,4 +151,40 @@ model Subscription {
   currentPeriodEnd DateTime?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+}
+
+model RequestLog {
+  id             String       @id @default(uuid())
+  timestamp      DateTime     @default(now())
+  agentId        String
+  agent          Agent        @relation(fields: [agentId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  provider           String
+  model              String
+  requestPayloadSize Int     @default(0)
+  statusCode         Int     @default(200)
+  latencyMs          Int     @default(0)
+  ipAddress          String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, timestamp])
+}
+
+model UsageMetrics {
+  id             String       @id @default(uuid())
+  agentId        String
+  agent          Agent        @relation(fields: [agentId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  date          DateTime @default(now()) @db.Date
+  totalRequests Int      @default(0)
+  totalTokens   Int      @default(0)
+  totalCost     Decimal  @default(0) @db.Decimal(18, 4)
+
+  @@unique([agentId, date])
+  @@index([organizationId, date])
 }

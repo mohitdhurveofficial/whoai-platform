@@ -2,11 +2,15 @@ from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
-    Float,
     Integer,
+    Numeric,
     DateTime,
     Boolean,
     ForeignKey,
+    JSON,
+    Enum,
+    ARRAY,
+    Text
 )
 from sqlalchemy.orm import declarative_base
 
@@ -18,58 +22,75 @@ class Organization(Base):
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     slug = Column(String, unique=True, nullable=False)
-    stripeCustomerId = Column(String, unique=True, nullable=True)
-    subscriptionTier = Column(String, default="FREE")
+    tier = Column(String, default="STARTUP")
+
+    kmsKeyArn = Column(String, nullable=True)
+    enforceSso = Column(Boolean, default=False)
+
     createdAt = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-class User(Base):
-    __tablename__ = "User"
-
-    id = Column(String, primary_key=True)
-    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    passwordHash = Column(String, nullable=True)
-    role = Column(String, default="VIEWER")
-    createdAt = Column(DateTime, default=datetime.utcnow)
 
 class Agent(Base):
     __tablename__ = "Agent"
 
     id = Column(String, primary_key=True)
-    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
-    owner = Column(String, nullable=False)
-    model = Column(String, nullable=False)
-    environment = Column(String, nullable=False)
-    agentToken = Column(String, unique=True, nullable=False)
-    dailyBudget = Column(Float, nullable=True)
-    monthlyBudget = Column(Float, nullable=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+
+    clientId = Column(String, unique=True, nullable=False)
+    clientSecret = Column(String, nullable=False)
+    apiKey = Column(String, unique=True, nullable=False)
+    scopes = Column(ARRAY(String), default=["llm:read", "llm:write"])
+
     status = Column(String, default="ACTIVE")
+    dailyBudget = Column(Numeric(18, 4), default=0)
+    monthlyBudget = Column(Numeric(18, 4), default=0)
+    currentDailySpend = Column(Numeric(18, 4), default=0)
+
     createdAt = Column(DateTime, default=datetime.utcnow)
 
 class SpendLog(Base):
     __tablename__ = "SpendLog"
 
     id = Column(String, primary_key=True)
-    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
-    model = Column(String, nullable=False)
-    costUsd = Column(Float, default=0.0)
-    createdAt = Column(DateTime, default=datetime.utcnow)
     agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=False)
-    inputTokens = Column(Integer, default=0)
-    outputTokens = Column(Integer, default=0)
-    totalTokens = Column(Integer, default=0)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
 
-class Alert(Base):
-    __tablename__ = "Alert"
+    model = Column(String, nullable=False)
+    provider = Column(String, nullable=False)
+    tokensIn = Column(Integer, default=0)
+    tokensOut = Column(Integer, default=0)
+    cost = Column(Numeric(18, 8), default=0)
+
+    metadata_ = Column("metadata", JSON, nullable=True)
+
+    createdAt = Column(DateTime, default=datetime.utcnow)
+
+class RequestLog(Base):
+    __tablename__ = "RequestLog"
 
     id = Column(String, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=False)
     organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
-    agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=True)
-    type = Column(String, nullable=False)
-    severity = Column(String, default="HIGH")
-    title = Column(String, nullable=False)
-    message = Column(String, nullable=False)
-    resolved = Column(Boolean, default=False)
+    
+    provider = Column(String, nullable=False)
+    model = Column(String, nullable=False)
+    requestPayloadSize = Column(Integer, default=0)
+    statusCode = Column(Integer, default=200)
+    latencyMs = Column(Integer, default=0)
+    ipAddress = Column(String, nullable=True)
+
     createdAt = Column(DateTime, default=datetime.utcnow)
+
+class UsageMetrics(Base):
+    __tablename__ = "UsageMetrics"
+    
+    id = Column(String, primary_key=True)
+    agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=False)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    
+    date = Column(DateTime, default=datetime.utcnow)
+    totalRequests = Column(Integer, default=0)
+    totalTokens = Column(Integer, default=0)
+    totalCost = Column(Numeric(18, 4), default=0)
