@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
+import { getServerAuthContext } from "@/lib/server/auth";
 
-export async function GET(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user?.user_metadata?.organizationId) {
-  return NextResponse.json(
-    { success: false, error: "Unauthorized" },
-    { status: 401 }
-  );
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected error";
 }
 
-const orgId = user.user_metadata.organizationId;
+export async function GET(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
+  const auth = await getServerAuthContext();
+  if (!auth) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const orgId = auth.organizationId;
 
   try {
     const params = await context.params;
@@ -41,15 +40,17 @@ const orgId = user.user_metadata.organizationId;
     }
 
     return NextResponse.json({ success: true, agent });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }
 
 export async function PUT(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId || "cmpzfygjy0001jm04e3d1k8n1";
+  const auth = await getServerAuthContext();
+  if (!auth) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const orgId = auth.organizationId;
 
   try {
     const params = await context.params;
@@ -95,15 +96,17 @@ export async function PUT(req: Request, context: { params: { id: string } | Prom
     });
 
     return NextResponse.json({ success: true, agent });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId || "cmpzfygjy0001jm04e3d1k8n1";
+  const auth = await getServerAuthContext();
+  if (!auth) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const orgId = auth.organizationId;
 
   try {
     const params = await context.params;
@@ -116,13 +119,17 @@ export async function DELETE(req: Request, context: { params: { id: string } | P
     }
 
     await prisma.$transaction([
-      prisma.policy.deleteMany({ where: { agentId: params.id } }),
-      prisma.spendLog.deleteMany({ where: { agentId: params.id } }),
+      prisma.policy.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
+      prisma.alert.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
+      prisma.activityLog.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
+      prisma.requestLog.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
+      prisma.usageMetrics.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
+      prisma.spendLog.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
       prisma.agent.delete({ where: { id: params.id } }),
     ]);
 
     return NextResponse.json({ success: true, message: "Agent deleted" });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -10,7 +10,6 @@ import {
   Bot,
   Box,
   ChevronRight,
-  DollarSign,
   Fingerprint,
   LineChart as LineChartIcon,
   ShieldAlert,
@@ -45,13 +44,17 @@ const mockSpendData = [
   { name: "14", spend: 1400 },
 ];
 
-const mockModelData = [
-  { name: "GPT-4o", spend: 1420 },
-  { name: "Claude 3.5", spend: 850 },
-  { name: "Gemini 1.5", spend: 430 },
-];
+function useMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
 export default function LandingPage() {
+  const mounted = useMounted();
+
   return (
     <div className="min-h-screen bg-[#FAF7F3] text-[#111111] font-sans selection:bg-[#FF6B00] selection:text-white relative overflow-hidden">
       {/* Background Texture Overlay */}
@@ -171,14 +174,16 @@ export default function LandingPage() {
               <div className="col-span-2 bg-[#FFFFFF] border border-[#EEE8E2] p-5 rounded-lg shadow-sm">
                 <h4 className="text-[14px] font-bold mb-4">Spend Velocity (Last 14 Days)</h4>
                 <div className="h-[200px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={mockSpendData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EBE6" />
-                      <XAxis dataKey="name" hide />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#A3A3A3" }} tickFormatter={(val) => `$${val}`} />
-                      <Line type="monotone" dataKey="spend" stroke="#FF6B00" strokeWidth={3} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {mounted && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={mockSpendData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EBE6" />
+                        <XAxis dataKey="name" hide />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#A3A3A3" }} tickFormatter={(val) => `$${val}`} />
+                        <Line type="monotone" dataKey="spend" stroke="#FF6B00" strokeWidth={3} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </div>
               <div className="col-span-1 bg-[#FFFFFF] border border-[#EEE8E2] p-5 rounded-lg shadow-sm">

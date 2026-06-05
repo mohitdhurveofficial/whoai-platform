@@ -14,7 +14,7 @@ import {
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Agents", href: "/agents", icon: Cpu },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Usage", href: "/usage", icon: BarChart3 },
   { label: "Alerts", href: "/alerts", icon: AlertTriangle },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
@@ -37,8 +37,7 @@ export default function Sidebar() {
         <div className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            // Force active for /dashboard to show the screenshot
-            const active = item.href === "/dashboard" || pathname === item.href;
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link

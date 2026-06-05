@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
+import { getServerAuthContext } from "@/lib/server/auth";
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected error";
+}
 
 export async function POST(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId;
-
-  if (!orgId) {
+  const auth = await getServerAuthContext();
+  if (!auth) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
+  const orgId = auth.organizationId;
 
   const params = await context.params;
   const body = await req.json().catch(() => ({}));
@@ -24,7 +26,7 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
       return NextResponse.json({ success: false, error: "Terminated agents cannot be paused" }, { status: 409 });
     }
 
-    const metadata = { reason, actorId: user?.id };
+    const metadata = { reason, actorId: auth.userId };
     const updatedAgent = await prisma.$transaction(async (tx) => {
       const paused = await tx.agent.update({
         where: { id: params.id },
@@ -32,7 +34,7 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
           status: "PAUSED",
           pauseReason: reason,
           pausedAt: new Date(),
-          pausedBy: user?.id || "USER",
+          pausedBy: auth.userId || "USER",
         },
       });
 
@@ -61,7 +63,7 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
     });
 
     return NextResponse.json({ success: true, agent: updatedAgent });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }

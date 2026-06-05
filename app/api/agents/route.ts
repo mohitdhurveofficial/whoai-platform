@@ -2,28 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { createClient } from "@/utils/supabase/server";
+import { getServerAuthContext } from "@/lib/server/auth";
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unexpected error";
+}
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const organization = await prisma.organization.findFirst();
-
-if (!organization) {
-  return NextResponse.json(
-    { success: false, error: "No organization found" },
-    { status: 400 }
-  );
-}
-
-if (!user?.user_metadata?.organizationId) {
-  return NextResponse.json(
-    { success: false, error: "Unauthorized" },
-    { status: 401 }
-  );
-}
-
-const orgId = user.user_metadata.organizationId;
+  const auth = await getServerAuthContext();
+  if (!auth) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const orgId = auth.organizationId;
 
   try {
     const agents = await prisma.agent.findMany({
@@ -48,15 +38,17 @@ const orgId = user.user_metadata.organizationId;
       }
     });
     return NextResponse.json({ success: true, agents });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId || "cmpzfygjy0001jm04e3d1k8n1";
+  const auth = await getServerAuthContext();
+  if (!auth) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const orgId = auth.organizationId;
 
   try {
     const body = await req.json();
@@ -102,7 +94,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, agent, generatedApiKey: rawKey });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
   }
 }
