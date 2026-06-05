@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { OrgTier } from "@prisma/client";
 import { createClient } from "@/utils/supabase/server";
 import { createSessionToken, sessionCookieOptions } from "@/lib/auth/session";
 
@@ -65,41 +66,28 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const supabaseUser = signup.data.user;
+    const organization = await prisma.organization.create({
+      data: {
+        name: organizationName,
+        slug: slugify(organizationName),
+        tier: OrgTier.STARTUP,
+      },
+    });
 
-    const user = await prisma.$transaction(async (tx) => {
-      const organization = await tx.organization.create({
-        data: {
-          name: organizationName,
-          slug: slugify(organizationName),
-          tier: "FREE",
-          subscriptionTier: "FREE",
-          subscriptionStatus: "FREE",
-          subscription: {
-            create: {
-              plan: "FREE",
-              status: "FREE",
-            },
-          },
-        },
-      });
-
-      return tx.user.create({
-        data: {
-          id: supabaseUser.id,
-          email,
-          fullName,
-          role: "OWNER",
-          organizationId: organization.id,
-        },
-      });
+    const user = await prisma.user.create({
+      data: {
+        id: signup.data.user.id,
+        fullName,
+        email,
+        role: "OWNER",
+        organizationId: organization.id,
+      },
     });
 
     await supabase.auth.updateUser({
       data: {
         organizationId: user.organizationId,
         role: user.role,
-        fullName,
       },
     });
 
@@ -110,7 +98,6 @@ export async function POST(request: Request) {
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName,
         role: user.role,
         organizationId: user.organizationId,
       },

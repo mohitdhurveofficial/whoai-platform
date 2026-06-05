@@ -38,25 +38,12 @@ export async function GET() {
       select: {
         id: true,
         name: true,
-        status: true,
-        pauseReason: true,
-        pausedAt: true,
-        dailyBudget: true,
-        monthlyBudget: true,
-        currentDailySpend: true,
-        currentMonthlySpend: true,
         agents: {
           orderBy: { createdAt: "desc" },
           select: {
             id: true,
             name: true,
-            status: true,
-            pauseReason: true,
-            pausedAt: true,
-            dailyBudget: true,
-            monthlyBudget: true,
-            currentDailySpend: true,
-            currentMonthlySpend: true,
+            
           },
         },
         alerts: {
@@ -89,14 +76,9 @@ export async function GET() {
     });
 
     const agents = organization.agents.map((agent) => ({
-      id: agent.id,
-      name: agent.name,
-      status: agent.status,
-      pauseReason: agent.pauseReason,
-      pausedAt: agent.pausedAt?.toISOString() || null,
-      daily: budgetStatus(Number(agent.currentDailySpend), Number(agent.dailyBudget)),
-      monthly: budgetStatus(Number(agent.currentMonthlySpend), Number(agent.monthlyBudget)),
-    }));
+  id: agent.id,
+  name: agent.name,
+}));
 
     return NextResponse.json({
       success: true,
@@ -104,12 +86,7 @@ export async function GET() {
         organization: {
           id: organization.id,
           name: organization.name,
-          status: organization.status,
-          pauseReason: organization.pauseReason,
-          pausedAt: organization.pausedAt?.toISOString() || null,
-          daily: budgetStatus(Number(organization.currentDailySpend), Number(organization.dailyBudget)),
-          monthly: budgetStatus(Number(organization.currentMonthlySpend), Number(organization.monthlyBudget)),
-        },
+   },
         agents,
         activeAlertCount: organization.alerts.length,
         blockedRequestsCount,
@@ -121,7 +98,7 @@ export async function GET() {
           message: alert.message,
           metadata: alert.metadata,
           agentName: alert.agent?.name || "Organization",
-          createdAt: alert.createdAt.toISOString(),
+          createdAt: alert.createdAt?.toISOString() ?? null,
         })),
       },
     });

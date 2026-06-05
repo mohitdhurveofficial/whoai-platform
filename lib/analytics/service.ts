@@ -195,6 +195,7 @@ export async function getAgentsAnalytics(organizationId: string): Promise<AgentA
           name: true,
           status: true,
           dailyBudget: true,
+          currentDailySpend: true,
           monthlyBudget: true,
           createdAt: true,
         },
@@ -352,7 +353,6 @@ export async function getAgentAnalytics(
       dailyBudget: true,
       monthlyBudget: true,
       currentDailySpend: true,
-      currentMonthlySpend: true,
       createdAt: true,
     },
   });
@@ -405,8 +405,7 @@ export async function getAgentAnalytics(
     date: point.date,
     requests: requestsByDate.get(point.date) ?? 0,
   }));
-  const currentSpend = toNumber(agent.currentMonthlySpend);
-  const monthlyBudget = toNumber(agent.monthlyBudget);
+  const currentSpend = toNumber(agent.currentDailySpend);const monthlyBudget = toNumber(agent.monthlyBudget);
 
   return {
     agent: {

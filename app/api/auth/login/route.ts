@@ -22,9 +22,13 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
     const authResult = await supabase.auth.signInWithPassword({ email, password });
+
     if (authResult.error || !authResult.data.user) {
       return NextResponse.json(
-        { success: false, error: authResult.error?.message ?? "Invalid credentials" },
+        {
+          success: false,
+          error: authResult.error?.message ?? "Invalid credentials",
+        },
         { status: 401 },
       );
     }
@@ -34,15 +38,7 @@ export async function POST(request: Request) {
         OR: [{ id: authResult.data.user.id }, { email }],
       },
       include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            status: true,
-            subscriptionTier: true,
-            subscriptionStatus: true,
-          },
-        },
+        organization: true,
       },
     });
 
@@ -54,13 +50,13 @@ export async function POST(request: Request) {
     }
 
     const token = createSessionToken(user);
+
     const response = NextResponse.json({
       success: true,
       token,
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName,
         role: user.role,
         organizationId: user.organizationId,
         organization: user.organization,
@@ -71,6 +67,9 @@ export async function POST(request: Request) {
     response.cookies.set("whoai_auth", token, sessionCookieOptions);
     return response;
   } catch (error: unknown) {
-    return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: errorMessage(error) },
+      { status: 500 },
+    );
   }
 }

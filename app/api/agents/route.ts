@@ -29,13 +29,11 @@ export async function GET() {
         dailyBudget: true,
         monthlyBudget: true,
         currentDailySpend: true,
-        currentMonthlySpend: true,
         organizationId: true,
         createdAt: true,
         scopes: true,
         clientId: true,
-        // specifically omit apiKey and clientSecret
-      }
+    }
     });
     return NextResponse.json({ success: true, agents });
   } catch (error: unknown) {
@@ -85,7 +83,6 @@ export async function POST(req: Request) {
         dailyBudget: true,
         monthlyBudget: true,
         currentDailySpend: true,
-        currentMonthlySpend: true,
         organizationId: true,
         createdAt: true,
         scopes: true,
