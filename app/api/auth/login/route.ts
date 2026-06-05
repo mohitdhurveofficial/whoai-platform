@@ -34,13 +34,18 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findFirst({
-      where: {
-        OR: [{ id: authResult.data.user.id }, { email }],
-      },
-      include: {
-        organization: true,
-      },
-    });
+  where: {
+    OR: [{ id: authResult.data.user.id }, { email }],
+  },
+  select: {
+    id: true,
+    email: true,
+    role: true,
+    organizationId: true,
+    fullName: true,
+    organization: true,
+  },
+});
 
     if (!user) {
       return NextResponse.json(

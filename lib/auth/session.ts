@@ -1,8 +1,10 @@
 import jwt from "jsonwebtoken";
 import type { User } from "@prisma/client";
 
-export type AppSessionUser = Pick<User, "id" | "email" | "role" | "organizationId" | "fullName">;
-
+export type AppSessionUser = Pick<
+  User,
+  "id" | "email" | "role" | "organizationId"
+>;
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 
 export function createSessionToken(user: AppSessionUser) {

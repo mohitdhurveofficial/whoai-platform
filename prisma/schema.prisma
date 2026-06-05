@@ -9,23 +9,28 @@ datasource db {
 }
 
 model Organization {
-  id           String         @id @default(uuid())
-  name         String
-  slug         String         @unique
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  enforceSso   Boolean        @default(false)
-  kmsKeyArn    String?
-  tier         OrgTier        @default(STARTUP)
-  activityLogs ActivityLog[]
-  agents       Agent[]
-  alerts       Alert[]
-  policies     Policy[]
-  requestLogs  RequestLog[]
-  spendLogs    SpendLog[]
-  subscription Subscription?
-  usageMetrics UsageMetrics[]
-  users        User[]
+  id                   String         @id @default(uuid())
+  name                 String
+  slug                 String         @unique
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  enforceSso           Boolean        @default(false)
+  kmsKeyArn            String?
+  tier                 OrgTier        @default(STARTUP)
+  stripeCustomerId     String?        @unique
+  stripeSubscriptionId String?        @unique
+  subscriptionStatus   String         @default("FREE")
+  subscriptionTier     String         @default("FREE")
+  currentPeriodEnd     DateTime?
+  activityLogs         ActivityLog[]
+  agents               Agent[]
+  alerts               Alert[]
+  policies             Policy[]
+  requestLogs          RequestLog[]
+  spendLogs            SpendLog[]
+  subscription         Subscription?
+  usageMetrics         UsageMetrics[]
+  users                User[]
 }
 
 model User {
@@ -34,6 +39,7 @@ model User {
   email          String       @unique
   createdAt      DateTime     @default(now())
   role           String       @default("DEVELOPER")
+  fullName       String?
   organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
@@ -174,6 +180,7 @@ enum OrgTier {
   GROWTH
   ENTERPRISE
   VPC
+  FREE
 }
 
 enum AgentStatus {
