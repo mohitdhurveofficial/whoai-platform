@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base
 
-from logger_config import setup_logging
+from runtime.logger_config import setup_logging
 
 
 load_dotenv()

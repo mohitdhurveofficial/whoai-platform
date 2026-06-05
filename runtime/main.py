@@ -3,12 +3,12 @@ import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from logger_config import setup_logging
+
+from runtime.logger_config import setup_logging
 from database.session import init_db
-from routers.gateway import router as gateway_router
-from routers.auth import router as auth_router
-from routers.gateway import router as gateway_router
-from routers.analytics import router as analytics_router
+from runtime.routers.gateway import router as gateway_router
+from runtime.routers.auth import router as auth_router
+from runtime.routers.analytics import router as analytics_router
 
 logger = setup_logging()
 
@@ -112,8 +112,3 @@ async def health():
     return {
         "status": "ok",
     }
-
-app.include_router(
-    gateway_router,
-    prefix="/api/v1"
-)

@@ -98,7 +98,7 @@ async def proxy_llm_request(
     identity: dict = Depends(verify_agent_identity),
     db: Prisma = Depends(get_db)
 ):
-    """
+    
     body = await request.json()
     model = body.get("model", "gpt-4o")
     stream = body.get("stream", False)
