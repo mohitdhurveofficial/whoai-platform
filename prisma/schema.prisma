@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum OrgTier {
+  FREE
   STARTUP
   GROWTH
   ENTERPRISE
@@ -39,11 +40,17 @@ model Organization {
   id   String  @id @default(uuid())
   name String
   slug String  @unique
-  tier OrgTier @default(STARTUP)
+  tier OrgTier @default(FREE)
 
   kmsKeyArn  String?
   enforceSso Boolean @default(false)
   status     OrganizationStatus @default(ACTIVE)
+
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  subscriptionStatus   String   @default("FREE")
+  subscriptionTier     String   @default("FREE")
+  currentPeriodEnd     DateTime?
 
   // Budgets
   dailyBudget         Decimal   @default(0) @db.Decimal(18, 4)
@@ -71,6 +78,7 @@ model User {
   id             String       @id @default(uuid())
   email          String       @unique
   role           String       @default("DEVELOPER") // OWNER, ADMIN, SECURITY_OPERATOR, FINOPS, DEVELOPER
+  fullName       String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 

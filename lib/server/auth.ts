@@ -1,4 +1,5 @@
 import { getAuthSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
 export type ServerAuthContext = {
@@ -9,7 +10,15 @@ export type ServerAuthContext = {
 export async function getServerAuthContext(): Promise<ServerAuthContext | null> {
   const jwtSession = await getAuthSession().catch(() => null);
   if (jwtSession?.organizationId) {
-    return jwtSession;
+    const user = await prisma.user.findFirst({
+      where: {
+        id: jwtSession.userId,
+        organizationId: jwtSession.organizationId,
+      },
+      select: { id: true, organizationId: true },
+    });
+
+    if (user) return { userId: user.id, organizationId: user.organizationId };
   }
 
   const supabase = await createClient().catch(() => null);
@@ -19,11 +28,16 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
     data: { user },
   } = await supabase.auth.getUser();
 
-  const organizationId = user?.user_metadata?.organizationId;
-  if (!organizationId || typeof organizationId !== "string") return null;
+  if (!user?.id) return null;
 
-  return {
-    userId: user.id,
-    organizationId,
-  };
+  const appUser = await prisma.user.findFirst({
+    where: {
+      OR: [{ id: user.id }, ...(user.email ? [{ email: user.email }] : [])],
+    },
+    select: { id: true, organizationId: true },
+  });
+
+  if (!appUser) return null;
+
+  return { userId: appUser.id, organizationId: appUser.organizationId };
 }
