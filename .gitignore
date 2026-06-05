@@ -39,3 +39,6 @@ venv
 tsconfig.tsbuildinfo.env
 .vercel
 .env*
+app/auth/jwt_handler.py
+app/auth/api_key_handler.py
+app/auth/dependencies.py
