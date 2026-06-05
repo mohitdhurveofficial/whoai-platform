@@ -8,8 +8,168 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Organization {
+  id           String         @id @default(uuid())
+  name         String
+  slug         String         @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  enforceSso   Boolean        @default(false)
+  kmsKeyArn    String?
+  tier         OrgTier        @default(STARTUP)
+  activityLogs ActivityLog[]
+  agents       Agent[]
+  alerts       Alert[]
+  policies     Policy[]
+  requestLogs  RequestLog[]
+  spendLogs    SpendLog[]
+  subscription Subscription?
+  usageMetrics UsageMetrics[]
+  users        User[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  organizationId String
+  email          String       @unique
+  createdAt      DateTime     @default(now())
+  role           String       @default("DEVELOPER")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Agent {
+  id                String         @id @default(uuid())
+  organizationId    String
+  name              String
+  createdAt         DateTime       @default(now())
+  status            AgentStatus    @default(ACTIVE)
+  apiKey            String         @unique
+  clientId          String         @unique
+  clientSecret      String
+  currentDailySpend Decimal        @default(0) @db.Decimal(18, 4)
+  dailyBudget       Decimal        @db.Decimal(18, 4)
+  monthlyBudget     Decimal        @db.Decimal(18, 4)
+  scopes            String[]       @default(["llm:read", "llm:write"])
+  activityLogs      ActivityLog[]
+  organization      Organization   @relation(fields: [organizationId], references: [id])
+  alerts            Alert[]
+  policies          Policy[]
+  requestLogs       RequestLog[]
+  spendLogs         SpendLog[]
+  usageMetrics      UsageMetrics[]
+
+  @@index([organizationId, status])
+}
+
+model Policy {
+  id             String       @id @default(uuid())
+  name           String
+  organizationId String
+  agentId        String?
+  ruleDsl        String
+  action         PolicyAction @default(ALLOW)
+  priority       Int          @default(100)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  agent          Agent?       @relation(fields: [agentId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, priority])
+}
+
+model SpendLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  model          String
+  createdAt      DateTime     @default(now())
+  agentId        String
+  cost           Decimal      @db.Decimal(18, 8)
+  metadata       Json?
+  provider       String
+  tokensIn       Int
+  tokensOut      Int
+  agent          Agent        @relation(fields: [agentId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, createdAt])
+}
+
+model ActivityLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  action         String
+  createdAt      DateTime     @default(now())
+  agentId        String?
+  metadata       Json?
+  status         String?
+  timestamp      DateTime     @default(now())
+  agent          Agent?       @relation(fields: [agentId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, timestamp])
+}
+
+model Subscription {
+  id               String       @id @default(uuid())
+  organizationId   String       @unique
+  stripeId         String?      @unique
+  plan             String       @default("FREE")
+  status           String       @default("ACTIVE")
+  currentPeriodEnd DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  organization     Organization @relation(fields: [organizationId], references: [id])
+}
+
+model RequestLog {
+  id                 String       @id @default(uuid())
+  timestamp          DateTime     @default(now())
+  agentId            String
+  organizationId     String
+  provider           String
+  model              String
+  requestPayloadSize Int          @default(0)
+  statusCode         Int          @default(200)
+  latencyMs          Int          @default(0)
+  ipAddress          String?
+  createdAt          DateTime     @default(now())
+  agent              Agent        @relation(fields: [agentId], references: [id])
+  organization       Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, timestamp])
+}
+
+model UsageMetrics {
+  id             String       @id @default(uuid())
+  agentId        String
+  organizationId String
+  date           DateTime     @default(now()) @db.Date
+  totalRequests  Int          @default(0)
+  totalTokens    Int          @default(0)
+  totalCost      Decimal      @default(0) @db.Decimal(18, 4)
+  agent          Agent        @relation(fields: [agentId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([agentId, date])
+  @@index([organizationId, date])
+}
+
+model Alert {
+  id             String       @id @default(uuid()) @db.VarChar
+  organizationId String       @db.VarChar
+  agentId        String?      @db.VarChar
+  type           String       @db.VarChar
+  severity       String?      @db.VarChar
+  title          String       @db.VarChar
+  message        String       @db.VarChar
+  metadata       Json?        @db.Json
+  resolved       Boolean?
+  createdAt      DateTime?    @db.Timestamp(6)
+  agent          Agent?       @relation(fields: [agentId], references: [id], onUpdate: NoAction)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
 enum OrgTier {
-  FREE
   STARTUP
   GROWTH
   ENTERPRISE
@@ -23,219 +183,9 @@ enum AgentStatus {
   TERMINATED
 }
 
-enum OrganizationStatus {
-  ACTIVE
-  PAUSED
-  TERMINATED
-}
-
 enum PolicyAction {
   ALLOW
   DENY
   REQUIRE_APPROVAL
   FLAG
-}
-
-model Organization {
-  id   String  @id @default(uuid())
-  name String
-  slug String  @unique
-  tier OrgTier @default(FREE)
-
-  kmsKeyArn  String?
-  enforceSso Boolean @default(false)
-  status     OrganizationStatus @default(ACTIVE)
-
-  stripeCustomerId     String?  @unique
-  stripeSubscriptionId String?  @unique
-  subscriptionStatus   String   @default("FREE")
-  subscriptionTier     String   @default("FREE")
-  currentPeriodEnd     DateTime?
-
-  // Budgets
-  dailyBudget         Decimal   @default(0) @db.Decimal(18, 4)
-  monthlyBudget       Decimal   @default(0) @db.Decimal(18, 4)
-  currentDailySpend   Decimal   @default(0) @db.Decimal(18, 4)
-  currentMonthlySpend Decimal   @default(0) @db.Decimal(18, 4)
-  pauseReason         String?
-  pausedAt            DateTime?
-
-  users        User[]
-  agents       Agent[]
-  policies     Policy[]
-  spendLogs    SpendLog[]
-  activityLogs ActivityLog[]
-  requestLogs  RequestLog[]
-  usageMetrics UsageMetrics[]
-  alerts       Alert[]
-  subscription Subscription?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model User {
-  id             String       @id @default(uuid())
-  email          String       @unique
-  role           String       @default("DEVELOPER") // OWNER, ADMIN, SECURITY_OPERATOR, FINOPS, DEVELOPER
-  fullName       String?
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  createdAt DateTime @default(now())
-}
-
-model Agent {
-  id             String       @id @default(uuid())
-  name           String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  // Identity (Workload Identity / OIDC)
-  clientId     String   @unique
-  clientSecret String // Hashed Service Account Secret
-  apiKey       String   @unique
-  scopes       String[] @default(["llm:read", "llm:write"])
-
-  // Financial Controls
-  status              AgentStatus @default(ACTIVE)
-  dailyBudget         Decimal     @default(0) @db.Decimal(18, 4)
-  monthlyBudget       Decimal     @default(0) @db.Decimal(18, 4)
-  currentDailySpend   Decimal     @default(0) @db.Decimal(18, 4)
-  currentMonthlySpend Decimal     @default(0) @db.Decimal(18, 4)
-  pauseReason         String?
-  pausedAt            DateTime?
-  pausedBy            String?
-
-  spendLogs    SpendLog[]
-  policies     Policy[]
-  requestLogs  RequestLog[]
-  usageMetrics UsageMetrics[]
-  alerts       Alert[]
-
-  createdAt    DateTime      @default(now())
-  activityLogs ActivityLog[]
-
-  @@index([organizationId, status])
-}
-
-model Policy {
-  id             String       @id @default(uuid())
-  name           String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  agentId String?
-  agent   Agent?  @relation(fields: [agentId], references: [id])
-
-  ruleDsl  String // CEL (Common Expression Language) expression
-  action   PolicyAction @default(ALLOW)
-  priority Int          @default(100)
-  isActive Boolean      @default(true)
-
-  createdAt DateTime @default(now())
-
-  @@index([organizationId, priority])
-}
-
-model SpendLog {
-  id             String       @id @default(uuid())
-  agentId        String
-  agent          Agent        @relation(fields: [agentId], references: [id])
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  model     String // e.g. gpt-4o, claude-3.5-sonnet
-  provider  String // e.g. openai, anthropic
-  tokensIn  Int
-  tokensOut Int
-  cost      Decimal @db.Decimal(18, 8)
-
-  metadata Json? // Session ID, request hashes, traces
-
-  createdAt DateTime @default(now())
-
-  // Note: Partitioned by createdAt at the DB level via TimescaleDB
-  @@index([organizationId, createdAt])
-}
-
-model ActivityLog {
-  id             String       @id @default(uuid())
-  timestamp      DateTime     @default(now())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  agentId        String?
-  agent          Agent?       @relation(fields: [agentId], references: [id])
-  action         String
-  status         String?
-  metadata       Json?
-
-  createdAt DateTime @default(now())
-
-  @@index([organizationId, timestamp])
-}
-
-model Subscription {
-  id               String       @id @default(uuid())
-  organizationId   String       @unique
-  organization     Organization @relation(fields: [organizationId], references: [id])
-  stripeId         String?      @unique
-  plan             String       @default("FREE")
-  status           String       @default("ACTIVE")
-  currentPeriodEnd DateTime?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-}
-
-model RequestLog {
-  id             String       @id @default(uuid())
-  timestamp      DateTime     @default(now())
-  agentId        String
-  agent          Agent        @relation(fields: [agentId], references: [id])
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  provider           String
-  model              String
-  requestPayloadSize Int     @default(0)
-  statusCode         Int     @default(200)
-  latencyMs          Int     @default(0)
-  ipAddress          String?
-
-  createdAt DateTime @default(now())
-
-  @@index([organizationId, timestamp])
-}
-
-model UsageMetrics {
-  id             String       @id @default(uuid())
-  agentId        String
-  agent          Agent        @relation(fields: [agentId], references: [id])
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  date          DateTime @default(now()) @db.Date
-  totalRequests Int      @default(0)
-  totalTokens   Int      @default(0)
-  totalCost     Decimal  @default(0) @db.Decimal(18, 4)
-
-  @@unique([agentId, date])
-  @@index([organizationId, date])
-}
-
-model Alert {
-  id             String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  agentId        String?
-  agent          Agent?       @relation(fields: [agentId], references: [id])
-  type           String
-  severity       String       @default("HIGH")
-  title          String
-  message        String
-  metadata       Json?
-  resolved       Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId, createdAt])
 }

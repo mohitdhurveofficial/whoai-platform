@@ -45,12 +45,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return NextResponse.json({ success: false, error: "User already exists" }, { status: 409 });
-    }
-
     const supabase = await createClient();
+
     const signup = await supabase.auth.signUp({
       email,
       password,
@@ -69,6 +65,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    const supabaseUser = signup.data.user;
 
     const user = await prisma.$transaction(async (tx) => {
       const organization = await tx.organization.create({
@@ -89,7 +86,7 @@ export async function POST(request: Request) {
 
       return tx.user.create({
         data: {
-          id: signup.data.user.id,
+          id: supabaseUser.id,
           email,
           fullName,
           role: "OWNER",
