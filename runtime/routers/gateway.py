@@ -3,10 +3,9 @@ import httpx
 import json
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
-from typing import Optional, Dict, AsyncGenerator
+from typing import Optional, Dict, AsyncGenerator, Any
 import jwt
 from decimal import Decimal
-from prisma import Prisma
 
 router = APIRouter(prefix="/v1/gateway")
 GATEWAY_SECRET = os.getenv("GATEWAY_SECRET", "dev_secret")
@@ -19,14 +18,9 @@ MODEL_PRICING: Dict[str, Dict[str, float]] = {
 }
 
 async def get_db():
-    db = Prisma()
-    await db.connect()
-    try:
-        yield db
-    finally:
-        await db.disconnect()
+    raise RuntimeError("Database dependency not configured for gateway")
 
-async def verify_agent_identity(authorization: Optional[str] = Header(None), db: Prisma = Depends(get_db)):
+async def verify_agent_identity(authorization: Optional[str] = Header(None), db: Any = Depends(get_db)):
     if not authorization or not authorization.startswith("Bearer "):
         # Fallback for simple API Key integration in v1
         if authorization:
@@ -49,7 +43,7 @@ async def stream_proxy(
     org_id: str, 
     model: str, 
     provider: str,
-    db: Prisma
+    db: Any
 ) -> AsyncGenerator[str, None]:
     """
     10/10 Streaming: Captures chunks, estimates tokens, and updates spend atomically.
@@ -96,7 +90,7 @@ async def stream_proxy(
 async def proxy_llm_request(
     request: Request,
     identity: dict = Depends(verify_agent_identity),
-    db: Prisma = Depends(get_db)
+    db: Any = Depends(get_db)
 ):
     
     body = await request.json()
