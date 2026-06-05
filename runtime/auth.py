@@ -25,7 +25,7 @@ async def verify_api_key(
 
     result = await db.execute(
         select(Agent).where(
-            Agent.agent_token == api_key
+            Agent.apiKey == api_key
         )
     )
 
