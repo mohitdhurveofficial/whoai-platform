@@ -205,14 +205,15 @@ async def proxy_llm_request(
         raise HTTPException(status_code=403, detail="Organization not found")
 
     agent_state_decision = await check_agent_state(db, agent)
+
     if not agent_state_decision["allowed"]:
         await db.commit()
         return JSONResponse(
             status_code=403,
             content={
-    "error": agent_state_decision["error"],
-"reason": agent_state_decision["reason"],
-},
+                "error": agent_state_decision["error"],
+                "reason": agent_state_decision["reason"],
+            },
         )
 
     org_state_decision = await check_org_state(db, organization, agent_id=agent_id)
