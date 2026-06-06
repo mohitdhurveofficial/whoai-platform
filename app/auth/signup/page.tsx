@@ -42,7 +42,7 @@ export default function SignupPage() {
   setIsLoading(true);
 
   try {
-    const res = await fetch("/api/ai-workers/auth/signup", {
+    const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

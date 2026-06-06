@@ -84,6 +84,16 @@ export async function POST(req: Request) {
       }
     });
 
+    // Audit Log for Agent Creation
+    await prisma.activityLog.create({
+      data: {
+        organizationId: orgId,
+        agentId: agent.id,
+        action: "AGENT_CREATED",
+        metadata: { name: agent.name, dailyBudget, monthlyBudget },
+      }
+    });
+
     return NextResponse.json({ success: true, agent, generatedApiKey: rawKey });
   } catch (error: unknown) {
     return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });

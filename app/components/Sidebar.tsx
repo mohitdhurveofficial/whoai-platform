@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Cpu,
@@ -21,6 +21,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <aside className="flex h-screen w-[260px] min-w-[260px] flex-col border-r border-[#EEE8E2] bg-[#FAF7F3] text-[#111111]">
@@ -70,6 +71,19 @@ export default function Sidebar() {
             <div className="h-5 w-5 rounded-full bg-[#111111] text-white flex items-center justify-center text-[10px] font-bold">M</div>
             <span>Mohit Dhurve</span>
           </div>
+        </button>
+        <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", {
+              method: "POST",
+            });
+
+            router.push("/");
+            router.refresh();
+          }}
+          className="flex w-full items-center justify-center rounded-md px-3 py-2 text-[13px] font-medium text-white bg-[#FF6B00] hover:bg-[#E65A00] transition-colors"
+        >
+          Logout
         </button>
       </div>
     </aside>

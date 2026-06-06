@@ -87,6 +87,16 @@ export async function PUT(req: Request, context: { params: { id: string } | Prom
       }
     });
 
+    // Audit Log for Agent Update
+    await prisma.activityLog.create({
+      data: {
+        organizationId: orgId,
+        agentId: agent.id,
+        action: "AGENT_UPDATED",
+        metadata: { name: agent.name, status: agent.status, dailyBudget, monthlyBudget },
+      }
+    });
+
     return NextResponse.json({ success: true, agent });
   } catch (error: unknown) {
     return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
@@ -110,10 +120,18 @@ export async function DELETE(req: Request, context: { params: { id: string } | P
       return NextResponse.json({ success: false, error: "Agent not found" }, { status: 404 });
     }
 
+    // Audit Log for Agent Deletion (done before deleting relations to keep organization context)
+    await prisma.activityLog.create({
+      data: {
+        organizationId: orgId,
+        action: "AGENT_DELETED",
+        metadata: { agentId: existingAgent.id, name: existingAgent.name },
+      }
+    });
+
     await prisma.$transaction([
       prisma.policy.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
       prisma.alert.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
-      prisma.activityLog.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
       prisma.requestLog.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
       prisma.usageMetrics.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),
       prisma.spendLog.deleteMany({ where: { agentId: params.id, organizationId: orgId } }),

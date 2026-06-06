@@ -19,17 +19,17 @@ import {
 } from "lucide-react";
 
 const workflowSteps = [
-  { icon: Bot, label: "AI worker", tone: "bg-white text-[#071126]" },
-  { icon: ShieldCheck, label: "Policy check", tone: "bg-white text-[#071126]" },
-  { icon: TriangleAlert, label: "Risk review", tone: "bg-orange-100 text-orange-600" },
-  { icon: UserRound, label: "Human approval", tone: "bg-white text-[#071126]" },
-  { icon: CheckCircle2, label: "Execute", tone: "bg-emerald-100 text-emerald-600" },
+  { icon: Bot, label: "AI Employee", tone: "bg-white text-[#071126]" },
+  { icon: ShieldCheck, label: "Task Analysis", tone: "bg-white text-[#071126]" },
+  { icon: TriangleAlert, label: "Execution Review", tone: "bg-orange-100 text-orange-600" },
+  { icon: UserRound, label: "Human Oversight", tone: "bg-white text-[#071126]" },
+  { icon: CheckCircle2, label: "Task Completed", tone: "bg-emerald-100 text-emerald-600" },
 ];
 
 const trustItems = [
-  { icon: BadgeCheck, label: "SOC 2 ready" },
-  { icon: Lock, label: "Enterprise security" },
-  { icon: Fingerprint, label: "Identity first" },
+  { icon: BadgeCheck, label: "Enterprise Ready" },
+  { icon: Lock, label: "Secure by Design" },
+  { icon: Fingerprint, label: "Multi-Agent Control" },
 ];
 
 export default function LoginPage() {
@@ -120,16 +120,16 @@ export default function LoginPage() {
             <div className="mb-7">
               <div className="inline-flex h-8 items-center gap-2 rounded-full border border-black/5 bg-white px-3 text-[13px] font-semibold text-[#071126] shadow-sm">
                 <span className="h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_0_4px_rgba(14,165,233,0.12)]" />
-                Secure workspace access
+                AI Workforce Command Center
               </div>
 
               <h1 className="mt-6 text-[38px] font-black leading-[1.06] text-[#071126] sm:text-[46px]">
                 Sign in to the
                 <br />
-                <span className="orange-gradient">Control Center</span>
+                <span className="orange-gradient">WHOAI Platform</span>
               </h1>
               <p className="mt-5 max-w-[390px] text-[15px] font-medium leading-7 text-[#071126]/78">
-                Access governance telemetry, policies, approvals, and worker identity controls from one operating surface.
+                Manage AI employees, monitor performance, control costs, and scale your digital workforce from one platform.
               </p>
             </div>
 
@@ -244,10 +244,10 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="!text-white/60 text-[12px] font-bold uppercase tracking-[0.16em]">
-                      Runtime access
+                      AI Operations
                     </p>
                     <h2 className="mt-2 !text-white text-[24px] font-black tracking-[-0.03em]">
-                      Governance console
+                      WHOAI Command Center
                     </h2>
                   </div>
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-orange-300">
@@ -276,10 +276,10 @@ export default function LoginPage() {
                   <div className="mb-4 flex items-center justify-between">
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#071126]/42">
-                        Live approval flow
+                        AI Workflow
                       </p>
                       <p className="mt-1 text-[16px] font-black text-[#071126]">
-                        Vendor payout decision
+                        Customer support automation
                       </p>
                     </div>
                     <span className="rounded-full bg-orange-100 px-3 py-1 text-[11px] font-black text-orange-700">
@@ -315,12 +315,12 @@ export default function LoginPage() {
 
             <div className="premium-panel absolute bottom-5 left-0 w-[260px] rounded-[16px] bg-white/90 p-5 shadow-[0_20px_56px_rgba(7,17,38,0.12)]">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#071126]/42">
-                Approval rate
+                AI Success Rate
               </p>
               <div className="mt-4 flex items-end gap-3">
-                <span className="text-[42px] font-black leading-none text-[#071126]">74%</span>
+                <span className="text-[42px] font-black leading-none text-[#071126]">98%</span>
                 <span className="mb-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-700">
-                  +9.7%
+                  +24%
                 </span>
               </div>
               <div className="mt-5 h-2 overflow-hidden rounded-full bg-black/6">

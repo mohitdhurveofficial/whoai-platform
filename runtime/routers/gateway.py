@@ -210,7 +210,7 @@ async def proxy_llm_request(
         return JSONResponse(
             status_code=403,
             content={
-                "error": agent_state_decision["error"],
+                "error": "Agent disabled by WHOAI Kill Switch",
                 "reason": agent_state_decision["reason"],
             },
         )

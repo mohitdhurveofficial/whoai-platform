@@ -1,55 +1,31 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const isActive = (path: string) => pathname === path ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-100";
-
-  const handleLogout = () => {
-    document.cookie = "whoai_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    localStorage.clear();
-    router.push("/auth/login");
-  };
-
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r flex flex-col">
-        <div className="p-6 font-bold text-xl tracking-tight text-blue-600">WHOAI</div>
-        <nav className="flex-1 px-4 space-y-2">
-          <Link href="/dashboard" className={`block px-4 py-2 rounded-lg transition-colors ${isActive('/dashboard')}`}>
-            📊 Dashboard
-          </Link>
-          <Link href="/agents" className={`block px-4 py-2 rounded-lg transition-colors ${isActive('/agents')}`}>
-            🤖 My Agents
-          </Link>
-        </nav>
-        <div className="p-4 border-t">
-          <button 
-            onClick={handleLogout}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </aside>
+    <div className="texture flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md rounded-[18px] border border-black/5 bg-white/88 p-6 shadow-[0_22px_60px_rgba(7,17,38,0.11)]">
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <span className="shield-logo h-12 w-10 bg-[#071126]" />
+          </div>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <header className="h-16 bg-white border-b flex items-center justify-between px-8">
-          <h1 className="text-sm font-medium text-gray-500 uppercase tracking-widest">
-            Operational Control Plane
+          <h1 className="text-3xl font-black text-[#071126]">
+            WHOAI
           </h1>
-        </header>
-        <div className="p-8">
-          {children}
+
+          <p className="mt-2 font-medium text-[#071126]/60">
+            Workforce Operating System
+          </p>
         </div>
-      </main>
+
+        {children}
+      </div>
     </div>
   );
 }

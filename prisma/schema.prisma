@@ -9,22 +9,30 @@ datasource db {
 }
 
 model Organization {
-  id                   String         @id @default(uuid())
+  id                   String            @id @default(uuid())
   name                 String
-  slug                 String         @unique
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  enforceSso           Boolean        @default(false)
+  slug                 String            @unique
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  enforceSso           Boolean           @default(false)
   kmsKeyArn            String?
-  tier                 OrgTier        @default(STARTUP)
-  stripeCustomerId     String?        @unique
-  stripeSubscriptionId String?        @unique
-  subscriptionStatus   String         @default("FREE")
-  subscriptionTier     String         @default("FREE")
+  tier                 OrgTier           @default(STARTUP)
+  stripeCustomerId     String?           @unique
+  stripeSubscriptionId String?           @unique
+  subscriptionStatus   String            @default("FREE")
+  subscriptionTier     String            @default("FREE")
   currentPeriodEnd     DateTime?
+  currentDailySpend    Decimal           @default(0) @db.Decimal(18, 4)
+  currentMonthlySpend  Decimal           @default(0) @db.Decimal(18, 4)
+  dailyBudget          Decimal           @default(0) @db.Decimal(18, 4)
+  monthlyBudget        Decimal           @default(0) @db.Decimal(18, 4)
+  pauseReason          String?
+  pausedAt             DateTime?
+  status               String            @default("ACTIVE")
   activityLogs         ActivityLog[]
   agents               Agent[]
   alerts               Alert[]
+  budgetViolations     BudgetViolation[]
   policies             Policy[]
   requestLogs          RequestLog[]
   spendLogs            SpendLog[]
@@ -44,25 +52,30 @@ model User {
 }
 
 model Agent {
-  id                String         @id @default(uuid())
-  organizationId    String
-  name              String
-  createdAt         DateTime       @default(now())
-  status            AgentStatus    @default(ACTIVE)
-  apiKey            String         @unique
-  clientId          String         @unique
-  clientSecret      String
-  currentDailySpend Decimal        @default(0) @db.Decimal(18, 4)
-  dailyBudget       Decimal        @db.Decimal(18, 4)
-  monthlyBudget     Decimal        @db.Decimal(18, 4)
-  scopes            String[]       @default(["llm:read", "llm:write"])
-  activityLogs      ActivityLog[]
-  organization      Organization   @relation(fields: [organizationId], references: [id])
-  alerts            Alert[]
-  policies          Policy[]
-  requestLogs       RequestLog[]
-  spendLogs         SpendLog[]
-  usageMetrics      UsageMetrics[]
+  id                  String            @id @default(uuid())
+  organizationId      String
+  name                String
+  createdAt           DateTime          @default(now())
+  status              AgentStatus       @default(ACTIVE)
+  apiKey              String            @unique
+  clientId            String            @unique
+  clientSecret        String
+  currentDailySpend   Decimal           @default(0) @db.Decimal(18, 4)
+  dailyBudget         Decimal           @db.Decimal(18, 4)
+  monthlyBudget       Decimal           @db.Decimal(18, 4)
+  scopes              String[]          @default(["llm:read", "llm:write"])
+  currentMonthlySpend Decimal           @default(0) @db.Decimal(18, 4)
+  pauseReason         String?
+  pausedAt            DateTime?
+  pausedBy            String?
+  activityLogs        ActivityLog[]
+  organization        Organization      @relation(fields: [organizationId], references: [id])
+  alerts              Alert[]
+  budgetViolations    BudgetViolation[]
+  policies            Policy[]
+  requestLogs         RequestLog[]
+  spendLogs           SpendLog[]
+  usageMetrics        UsageMetrics[]
 
   @@index([organizationId, status])
 }
@@ -173,6 +186,20 @@ model Alert {
   createdAt      DateTime?    @db.Timestamp(6)
   agent          Agent?       @relation(fields: [agentId], references: [id], onUpdate: NoAction)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model BudgetViolation {
+  id             String       @id @default(uuid())
+  organizationId String
+  agentId        String?
+  violationType  String
+  currentSpend   Decimal      @db.Decimal(18, 4)
+  budgetLimit    Decimal      @db.Decimal(18, 4)
+  timestamp      DateTime     @default(now())
+  agent          Agent?       @relation(fields: [agentId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, timestamp])
 }
 
 enum OrgTier {

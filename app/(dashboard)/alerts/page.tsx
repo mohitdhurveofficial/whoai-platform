@@ -1,12 +1,22 @@
 import React from "react";
 import { createClient } from "@/utils/supabase/server";
 import { AlertTriangle, CheckCircle2, Eye, Filter, BellOff } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { getServerAuthContext } from "@/lib/server/auth";
 
 export default async function AlertsPage() {
   const supabase = await createClient();
   await supabase.auth.getUser();
 
-  const alerts: any[] = [];
+  const auth = await getServerAuthContext();
+  const organizationId = auth?.organizationId;
+
+  const alerts = organizationId ? await prisma.alert.findMany({
+    where: { organizationId },
+    orderBy: { createdAt: 'desc' },
+    include: { agent: true }
+  }) : [];
+
 
   return (
     <div className="p-10 max-w-[1600px] mx-auto space-y-8 bg-[#FAF7F3] min-h-screen text-[#111111] font-sans">
@@ -60,19 +70,21 @@ export default async function AlertsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-[#888888] font-medium">
-                    {alert.createdAt.toLocaleDateString()}
+                    {alert.createdAt
+  ? alert.createdAt.toLocaleDateString()
+  : "N/A"}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${alert.status === "RESOLVED" ? 'bg-[#047857]' : 'bg-[#FF6B00]'}`}></div>
-                      <span className={`text-[12px] font-semibold ${alert.status === "RESOLVED" ? 'text-[#047857]' : 'text-[#FF6B00]'}`}>
-                        {alert.status === "RESOLVED" ? 'Resolved' : 'Active'}
+                      <div className={`w-2 h-2 rounded-full ${alert.resolved ? 'bg-[#047857]' : 'bg-[#FF6B00]'}`}></div>
+                      <span className={`text-[12px] font-semibold ${alert.resolved ? 'text-[#047857]' : 'text-[#FF6B00]'}`}>
+                        {alert.resolved ? 'Resolved' : 'Active'}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {!(alert.status === "RESOLVED") && (
+                      {!(alert.resolved) && (
                         <button title="Resolve" className="p-1.5 text-[#888888] hover:bg-[#F0FDF4] hover:text-[#047857] rounded transition-colors"><CheckCircle2 className="h-4 w-4" /></button>
                       )}
                       <button title="Ignore" className="p-1.5 text-[#888888] hover:bg-[#F5F5F5] hover:text-[#111111] rounded transition-colors"><BellOff className="h-4 w-4" /></button>

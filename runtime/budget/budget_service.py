@@ -80,8 +80,7 @@ def _decision(
         "allowed": reason is None,
         "reason": reason,
         "budgetType": budget_type,
-        "currentSpend": float(current_spend) if current_spend is not None else None,
-        "budgetLimit": float(budget_limit) if budget_limit is not None else None,
+        "currentSpend": float(current_spend) if current_spend is not None else None,        "budgetLimit": float(budget_limit) if budget_limit is not None else None,
     }
 
 
