@@ -36,7 +36,7 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
     await fetch(url, { method });
     setBusy(null);
     setOpen(null);
-    router.refresh();
+    window.location.reload();
   }
 
   return (

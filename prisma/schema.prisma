@@ -12,26 +12,27 @@ model Organization {
   id                   String            @id @default(uuid())
   name                 String
   slug                 String            @unique
+  tier                 OrgTier           @default(STARTUP)
+  kmsKeyArn            String?
+  enforceSso           Boolean           @default(false)
+  dailyBudget          Decimal           @default(0) @db.Decimal(18, 4)
+  monthlyBudget        Decimal           @default(0) @db.Decimal(18, 4)
+  currentDailySpend    Decimal           @default(0) @db.Decimal(18, 4)
+  currentMonthlySpend  Decimal           @default(0) @db.Decimal(18, 4)
+  pauseReason          String?
+  pausedAt             DateTime?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
-  enforceSso           Boolean           @default(false)
-  kmsKeyArn            String?
-  tier                 OrgTier           @default(STARTUP)
   stripeCustomerId     String?           @unique
   stripeSubscriptionId String?           @unique
   subscriptionStatus   String            @default("FREE")
   subscriptionTier     String            @default("FREE")
   currentPeriodEnd     DateTime?
-  currentDailySpend    Decimal           @default(0) @db.Decimal(18, 4)
-  currentMonthlySpend  Decimal           @default(0) @db.Decimal(18, 4)
-  dailyBudget          Decimal           @default(0) @db.Decimal(18, 4)
-  monthlyBudget        Decimal           @default(0) @db.Decimal(18, 4)
-  pauseReason          String?
-  pausedAt             DateTime?
   status               String            @default("ACTIVE")
   activityLogs         ActivityLog[]
   agents               Agent[]
   alerts               Alert[]
+  ApiKey               ApiKey[]
   budgetViolations     BudgetViolation[]
   policies             Policy[]
   requestLogs          RequestLog[]
@@ -43,31 +44,31 @@ model Organization {
 
 model User {
   id             String       @id @default(uuid())
-  organizationId String
   email          String       @unique
-  createdAt      DateTime     @default(now())
   role           String       @default("DEVELOPER")
+  organizationId String
+  createdAt      DateTime     @default(now())
   fullName       String?
   organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model Agent {
   id                  String            @id @default(uuid())
-  organizationId      String
   name                String
-  createdAt           DateTime          @default(now())
-  status              AgentStatus       @default(ACTIVE)
-  apiKey              String            @unique
+  organizationId      String
   clientId            String            @unique
   clientSecret        String
-  currentDailySpend   Decimal           @default(0) @db.Decimal(18, 4)
+  apiKey              String            @unique
+  scopes              String[]          @default(["llm:read", "llm:write"])
+  status              AgentStatus       @default(ACTIVE)
   dailyBudget         Decimal           @db.Decimal(18, 4)
   monthlyBudget       Decimal           @db.Decimal(18, 4)
-  scopes              String[]          @default(["llm:read", "llm:write"])
+  currentDailySpend   Decimal           @default(0) @db.Decimal(18, 4)
   currentMonthlySpend Decimal           @default(0) @db.Decimal(18, 4)
   pauseReason         String?
   pausedAt            DateTime?
   pausedBy            String?
+  createdAt           DateTime          @default(now())
   activityLogs        ActivityLog[]
   organization        Organization      @relation(fields: [organizationId], references: [id])
   alerts              Alert[]
@@ -98,15 +99,15 @@ model Policy {
 
 model SpendLog {
   id             String       @id @default(uuid())
+  agentId        String
   organizationId String
   model          String
-  createdAt      DateTime     @default(now())
-  agentId        String
-  cost           Decimal      @db.Decimal(18, 8)
-  metadata       Json?
   provider       String
   tokensIn       Int
   tokensOut      Int
+  cost           Decimal      @db.Decimal(18, 8)
+  metadata       Json?
+  createdAt      DateTime     @default(now())
   agent          Agent        @relation(fields: [agentId], references: [id])
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -115,13 +116,13 @@ model SpendLog {
 
 model ActivityLog {
   id             String       @id @default(uuid())
-  organizationId String
-  action         String
-  createdAt      DateTime     @default(now())
-  agentId        String?
-  metadata       Json?
-  status         String?
   timestamp      DateTime     @default(now())
+  organizationId String
+  agentId        String?
+  action         String
+  status         String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
   agent          Agent?       @relation(fields: [agentId], references: [id])
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -202,6 +203,19 @@ model BudgetViolation {
   @@index([organizationId, timestamp])
 }
 
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  keyHash        String
+  lastUsedAt     DateTime?
+  revoked        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  Organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
 enum OrgTier {
   STARTUP
   GROWTH
@@ -222,4 +236,10 @@ enum PolicyAction {
   DENY
   REQUIRE_APPROVAL
   FLAG
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
 }

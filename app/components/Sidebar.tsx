@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Home,
   Cpu,
   BarChart3,
   AlertTriangle,
   Settings,
+  KeyRound,
   ChevronDown,
+  Menu,
+  X,
 } from "lucide-react";
 
 const navItems = [
@@ -16,76 +20,87 @@ const navItems = [
   { label: "Agents", href: "/agents", icon: Cpu },
   { label: "Usage", href: "/usage", icon: BarChart3 },
   { label: "Alerts", href: "/alerts", icon: AlertTriangle },
+  { label: "API Keys", href: "/settings/api-keys", icon: KeyRound },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <aside className="flex h-screen w-[260px] min-w-[260px] flex-col border-r border-[#EEE8E2] bg-[#FAF7F3] text-[#111111]">
-      <div className="flex h-16 items-center px-6 border-b border-[#EEE8E2]">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FF6B00] text-sm font-bold text-white shadow-sm">
-            W
-          </div>
-          <span className="text-[15px] font-semibold tracking-tight">WHOAI</span>
-        </div>
-      </div>
+    <>
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="fixed left-4 top-4 z-50 rounded-md bg-white p-2 shadow md:hidden"
+      >
+        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
 
-      <nav className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center gap-3 rounded-md px-3 py-2 text-[14px] font-medium transition-colors ${
-                  active
-                    ? "bg-[#FFFFFF] text-[#FF6B00] shadow-sm border border-[#EEE8E2]"
-                    : "text-[#111111] hover:bg-[#FFFFFF] hover:shadow-sm hover:border-[#EEE8E2] border border-transparent"
-                }`}
-              >
-                <Icon className={`h-4 w-4 ${active ? "text-[#FF6B00]" : "text-[#888888] group-hover:text-[#111111]"}`} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      <div className="mt-auto px-4 py-4 border-t border-[#EEE8E2] space-y-2">
-        <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] font-medium text-[#111111] hover:bg-[#FFFFFF] hover:shadow-sm border border-transparent hover:border-[#EEE8E2] transition-colors">
+      <aside
+        className={`fixed left-0 top-0 z-40 flex h-screen w-[260px] flex-col border-r border-[#EEE8E2] bg-[#FAF7F3] transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
+        <div className="flex h-16 items-center px-6 border-b border-[#EEE8E2]">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-[#E8E2D9] flex items-center justify-center text-[10px] font-bold">A</div>
-            <span>Acme Corp</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FF6B00] text-sm font-bold text-white">
+              W
+            </div>
+            <span className="text-[15px] font-semibold">WHOAI</span>
           </div>
-          <ChevronDown className="h-4 w-4 text-[#888888]" />
-        </button>
-        <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] font-medium text-[#111111] hover:bg-[#FFFFFF] hover:shadow-sm border border-transparent hover:border-[#EEE8E2] transition-colors">
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded-full bg-[#111111] text-white flex items-center justify-center text-[10px] font-bold">M</div>
-            <span>Mohit Dhurve</span>
-          </div>
-        </button>
-        <button
-          onClick={async () => {
-            await fetch("/api/auth/logout", {
-              method: "POST",
-            });
+        </div>
 
-            router.push("/");
-            router.refresh();
-          }}
-          className="flex w-full items-center justify-center rounded-md px-3 py-2 text-[13px] font-medium text-white bg-[#FF6B00] hover:bg-[#E65A00] transition-colors"
-        >
-          Logout
-        </button>
-      </div>
-    </aside>
+        <nav className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active =
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
+                    active
+                      ? "border border-[#EEE8E2] bg-white text-[#FF6B00]"
+                      : "text-[#111111] hover:bg-white"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        <div className="border-t border-[#EEE8E2] p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] text-white">
+              M
+            </div>
+            <span className="text-sm">Mohit Dhurve</span>
+          </div>
+
+          <button
+            onClick={async () => {
+  await fetch("/api/auth/logout", {
+    method: "POST",
+  });
+
+  window.location.replace("/");
+}}
+            className="w-full rounded-md bg-[#FF6B00] px-3 py-2 text-sm font-semibold text-white hover:bg-[#E65A00]"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

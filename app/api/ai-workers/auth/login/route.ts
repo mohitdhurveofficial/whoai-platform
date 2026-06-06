@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       },
     });
 
-    response.cookies.set("whoai_auth", token, {
+        response.cookies.set("whoai_auth", token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
@@ -83,10 +83,13 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.error("AI worker login error:", error);
+    console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
