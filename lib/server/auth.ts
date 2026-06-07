@@ -8,11 +8,7 @@ export type ServerAuthContext = {
 };
 
 export async function getServerAuthContext(): Promise<ServerAuthContext | null> {
-  console.log("AUTH CHECK START");
-
   const jwtSession = await getAuthSession().catch(() => null);
-
-  console.log("JWT SESSION:", jwtSession);
 
   if (jwtSession?.organizationId) {
     const user = await prisma.user.findFirst({
@@ -26,8 +22,6 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
       },
     });
 
-    console.log("JWT USER:", user);
-
     if (user) {
       return {
         userId: user.id,
@@ -39,15 +33,12 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
   const supabase = await createClient().catch(() => null);
 
   if (!supabase) {
-    console.log("SUPABASE CLIENT NULL");
     return null;
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  console.log("SUPABASE USER:", user?.email);
 
   if (!user?.id) return null;
 
@@ -63,8 +54,6 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
       organizationId: true,
     },
   });
-
-  console.log("APP USER:", appUser);
 
   if (!appUser) return null;
 

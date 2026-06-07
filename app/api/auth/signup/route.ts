@@ -60,16 +60,12 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log("SUPABASE SIGNUP:", signup);
-
     if (signup.error || !signup.data.user) {
       return NextResponse.json(
         { success: false, error: signup.error?.message ?? "Could not create Supabase user" },
         { status: 400 },
       );
     }
-
-    console.log("CREATING ORGANIZATION");
 
     const organization = await prisma.organization.create({
       data: {
@@ -78,9 +74,6 @@ export async function POST(request: Request) {
         tier: OrgTier.STARTUP,
       },
     });
-
-    console.log("ORG CREATED:", organization.id);
-    console.log("CREATING USER");
 
     const user = await prisma.user.create({
       data: {
@@ -91,8 +84,6 @@ export async function POST(request: Request) {
         organizationId: organization.id,
       },
     });
-
-    console.log("USER CREATED:", user.id);
 
     await supabase.auth.updateUser({
       data: {
@@ -117,16 +108,12 @@ export async function POST(request: Request) {
     response.cookies.set("whoai_auth", token, sessionCookieOptions);
     return response;
   } catch (error: unknown) {
-    console.error("SIGNUP ERROR:", error);
+    console.error("SIGNUP ERROR:", errorMessage(error));
 
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
-        stack:
-          process.env.NODE_ENV !== "production"
-            ? (error as Error)?.stack
-            : undefined,
+        error: "Signup failed. Please try again.",
       },
       { status: 500 },
     );
