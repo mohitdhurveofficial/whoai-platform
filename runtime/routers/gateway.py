@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.session import get_db
-from database.models import Agent, Organization, RequestLog
+from database.models import Agent, Organization, RequestLog, ProviderCredential
 
 # Telemetry Subsystem Imports
 from runtime.telemetry.pricing import calculate_cost
@@ -29,9 +29,31 @@ from runtime.killswitch.kill_switch_service import (
 )
 
 from runtime.providers.provider_factory import ProviderFactory
+from runtime.encryption import decrypt
 
 router = APIRouter()
 GATEWAY_SECRET = os.getenv("GATEWAY_SECRET", "dev_secret")
+
+
+async def get_org_provider_key(db: AsyncSession, org_id: str, provider: str) -> Optional[str]:
+    """Return the org's decrypted BYOK key for a provider, or None to fall back
+    to the platform key. Scoped by organizationId so one org can never use
+    another org's credential."""
+    result = await db.execute(
+        select(ProviderCredential).where(
+            ProviderCredential.organizationId == org_id,
+            ProviderCredential.provider == provider.lower(),
+        )
+    )
+    credential = result.scalar_one_or_none()
+    if not credential or not credential.encryptedApiKey:
+        return None
+    try:
+        return decrypt(credential.encryptedApiKey)
+    except Exception:
+        # A corrupt/undecryptable credential must not take the gateway down;
+        # fall back to the platform key.
+        return None
 
 def _pause_reason_from_budget(reason: Optional[str]) -> str:
     if reason and "MONTHLY" in reason:
@@ -234,7 +256,13 @@ async def unified_chat_completions(
     last_error = None
     for current_provider in providers_to_try:
         try:
-            provider_instance = ProviderFactory.get_provider(current_provider)
+            # Use the org's own (BYOK) provider key when configured, otherwise
+            # fall back to the platform key.
+            byok_key = await get_org_provider_key(db, org_id, current_provider)
+            if byok_key:
+                provider_instance = ProviderFactory.get_provider(current_provider, api_key=byok_key)
+            else:
+                provider_instance = ProviderFactory.get_provider(current_provider)
             if stream:
                 stream_gen = await provider_instance.stream_completion(model, messages, **body)
                 return StreamingResponse(

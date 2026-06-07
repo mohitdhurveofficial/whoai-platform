@@ -9,7 +9,8 @@ from sqlalchemy import (
     ForeignKey,
     JSON,
     Enum,
-    Text
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base
 
@@ -132,3 +133,21 @@ class Alert(Base):
     metadata_ = Column("metadata", JSON, nullable=True)
     resolved = Column(Boolean, default=False)
     createdAt = Column(DateTime, default=datetime.utcnow)
+
+
+class ProviderCredential(Base):
+    __tablename__ = "ProviderCredential"
+
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
+    provider = Column(String, nullable=False)
+    # AES-256-GCM ciphertext, format "iv:authTag:ciphertext" (see lib/encryption.ts).
+    encryptedApiKey = Column(Text, nullable=False)
+    status = Column(String, default="CONNECTED")
+
+    createdAt = Column(DateTime, default=datetime.utcnow)
+    updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("organizationId", "provider", name="ProviderCredential_organizationId_provider_key"),
+    )
