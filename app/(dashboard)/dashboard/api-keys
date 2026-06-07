@@ -1,5 +1,7 @@
-{
-  label: "API Keys",
-  href: "/api-keys",
-  icon: Key
-}
+const navigation = [
+  {
+    label: "API Keys",
+    href: "/settings/api-keys",
+    icon: Key,
+  },
+];

@@ -9,26 +9,26 @@ datasource db {
 }
 
 model Organization {
-  id                   String            @id @default(uuid())
+  id                   String               @id @default(uuid())
   name                 String
-  slug                 String            @unique
-  tier                 OrgTier           @default(STARTUP)
+  slug                 String               @unique
+  tier                 OrgTier              @default(STARTUP)
   kmsKeyArn            String?
-  enforceSso           Boolean           @default(false)
-  dailyBudget          Decimal           @default(0) @db.Decimal(18, 4)
-  monthlyBudget        Decimal           @default(0) @db.Decimal(18, 4)
-  currentDailySpend    Decimal           @default(0) @db.Decimal(18, 4)
-  currentMonthlySpend  Decimal           @default(0) @db.Decimal(18, 4)
+  enforceSso           Boolean              @default(false)
+  dailyBudget          Decimal              @default(0) @db.Decimal(18, 4)
+  monthlyBudget        Decimal              @default(0) @db.Decimal(18, 4)
+  currentDailySpend    Decimal              @default(0) @db.Decimal(18, 4)
+  currentMonthlySpend  Decimal              @default(0) @db.Decimal(18, 4)
   pauseReason          String?
   pausedAt             DateTime?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  stripeCustomerId     String?           @unique
-  stripeSubscriptionId String?           @unique
-  subscriptionStatus   String            @default("FREE")
-  subscriptionTier     String            @default("FREE")
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  stripeCustomerId     String?              @unique
+  stripeSubscriptionId String?              @unique
+  subscriptionStatus   String               @default("FREE")
+  subscriptionTier     String               @default("FREE")
   currentPeriodEnd     DateTime?
-  status               String            @default("ACTIVE")
+  status               String               @default("ACTIVE")
   activityLogs         ActivityLog[]
   agents               Agent[]
   alerts               Alert[]
@@ -40,6 +40,7 @@ model Organization {
   subscription         Subscription?
   usageMetrics         UsageMetrics[]
   users                User[]
+  providerCredentials  ProviderCredential[]
 }
 
 model User {
@@ -242,4 +243,17 @@ enum AlertStatus {
   OPEN
   ACKNOWLEDGED
   RESOLVED
+}
+
+model ProviderCredential {
+  id              String       @id @default(uuid())
+  organizationId  String
+  provider        String
+  encryptedApiKey String       @db.Text
+  status          String       @default("CONNECTED")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
 }

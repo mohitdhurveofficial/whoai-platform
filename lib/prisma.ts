@@ -1,7 +1,10 @@
+console.log("PRISMA DATABASE_URL =", process.env.DATABASE_URL);
 import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+console.log("PRISMA DATABASE URL:", process.env.DATABASE_URL);
+
+const globalForPrisma = globalThis as {
+  prisma?: PrismaClient;
 };
 
 export const prisma =

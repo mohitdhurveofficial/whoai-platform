@@ -14,32 +14,7 @@ import {
   SpendLineChart,
   SpendModelPieChart,
 } from "@/app/components/analytics/DashboardCharts";
-
-const money = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-function KpiCard({
-  label,
-  value,
-  detail,
-  icon,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-[#EEE8E2] bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-[12px] font-semibold uppercase tracking-wide text-[#666666]">{label}</span>
-        <div className="rounded-md bg-[#F5F5F5] p-2 text-[#111111]">{icon}</div>
-      </div>
-      <div className="mt-5 text-3xl font-bold tracking-tight text-[#111111]">{value}</div>
-      <div className="mt-2 text-[13px] text-[#666666]">{detail}</div>
-    </div>
-  );
-}
+import { SummaryCards } from "./SummaryCards";
 
 function EmptyChart({ label }: { label: string }) {
   return (
@@ -61,30 +36,6 @@ export default async function DashboardPage() {
   ]);
 
   const hasSpend = summary.totalSpend > 0;
-  // WHOAI Forecast Engine
-const monthlyBudget = 1000;
-
-const projectedSpend =
-  summary.totalSpend > 0
-    ? Math.round(summary.totalSpend * 4.4)
-    : 0;
-
-const budgetUsed =
-  monthlyBudget > 0
-    ? (summary.totalSpend / monthlyBudget) * 100
-    : 0;
-
-const overBudget = projectedSpend >= monthlyBudget;
-
-// Killer Demo
-const runawayDemo = {
-  budget: 20,
-  spend: 26,
-  anomaly: true,
-  paused: true,
-  alertGenerated: true,
-};
-  
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-8 p-6 text-[#111111] md:p-10">
@@ -103,105 +54,8 @@ const runawayDemo = {
         </Link>
       </header>
 
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          label="Total Spend"
-          value={money(summary.totalSpend)}
-          detail="Lifetime organization spend"
-          icon={<DollarSign className="h-4 w-4" />}
-        />
-        <KpiCard
-          label="Today's Spend"
-          value={money(summary.todaySpend)}
-          detail="Current UTC day"
-          icon={<DollarSign className="h-4 w-4" />}
-        />
-        <KpiCard
-          label="Active Agents"
-          value={summary.activeAgents.toLocaleString()}
-          detail="Agents with ACTIVE status"
-          icon={<Bot className="h-4 w-4" />}
-        />
-        <KpiCard
-          label="Blocked Requests"
-          value={summary.blockedRequests.toLocaleString()}
-          detail="Budget, kill switch, and rate limiter blocks"
-          icon={<ShieldX className="h-4 w-4" />}
-        />
-      </section>
-      <section className="grid gap-6 xl:grid-cols-3">
-  <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 shadow-sm">
-    <h2 className="text-[16px] font-bold">AI Forecasting</h2>
+      <SummaryCards />
 
-    <div className="mt-4 space-y-3">
-      <div className="flex justify-between">
-        <span className="text-sm text-[#666666]">
-          Current Spend
-        </span>
-        <span className="font-semibold">
-          {money(summary.totalSpend)}
-        </span>
-      </div>
-
-      <div className="flex justify-between">
-        <span className="text-sm text-[#666666]">
-          Projected Monthly
-        </span>
-        <span className="font-semibold">
-          {money(projectedSpend)}
-        </span>
-      </div>
-
-      <div className="rounded-md bg-[#FFF7ED] p-3 text-[13px] text-[#C2410C]">
-        WHOAI predicts future AI spending before budgets are exceeded.
-      </div>
-    </div>
-  </div>
-
-  <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 shadow-sm">
-    <h2 className="text-[16px] font-bold">
-      Budget Status
-    </h2>
-
-    <div className="mt-4 space-y-3">
-      <div className="flex justify-between">
-        <span>Budget</span>
-        <span>{money(monthlyBudget)}</span>
-      </div>
-
-      <div className="flex justify-between">
-        <span>Used</span>
-        <span>{budgetUsed.toFixed(1)}%</span>
-      </div>
-
-      <div
-        className={`font-bold ${
-          overBudget
-            ? "text-red-600"
-            : "text-green-600"
-        }`}
-      >
-        {overBudget
-          ? "OVER BUDGET"
-          : "HEALTHY"}
-      </div>
-    </div>
-  </div>
-
-  <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 shadow-sm">
-    <h2 className="text-[16px] font-bold">
-      Runaway Agent Simulator
-    </h2>
-
-    <div className="mt-4 space-y-2 text-sm">
-      <p>Budget = ${runawayDemo.budget}</p>
-      <p>Spend = ${runawayDemo.spend}</p>
-      <p>⚠️ Anomaly Detected</p>
-      <p>🚨 Alert Generated</p>
-      <p>⛔ Agent Paused</p>
-    </div>
-  </div>
-</section>
       {!hasSpend && (
         <div className="flex items-center gap-3 rounded-lg border border-[#EEE8E2] bg-white p-4 text-[13px] text-[#666666] shadow-sm">
           <AlertTriangle className="h-4 w-4 text-[#D97706]" />
@@ -243,4 +97,3 @@ const runawayDemo = {
     </div>
   );
 }
-  

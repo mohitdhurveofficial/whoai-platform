@@ -21,7 +21,7 @@ async def test_gateway():
     print("--- Testing Standard Completion ---")
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "What is the capital of France?"}
@@ -35,7 +35,7 @@ async def test_gateway():
     print("\n--- Testing Streaming Completion ---")
     try:
         stream = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "user", "content": "Count from 1 to 5, writing out the words."}
             ],
