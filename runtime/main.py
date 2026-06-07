@@ -1,3 +1,4 @@
+import os
 import time
 
 from contextlib import asynccontextmanager
@@ -34,9 +35,19 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+# Restrict CORS to known app origins. `*` together with allow_credentials is
+# both invalid per the CORS spec and unsafe; configure CORS_ALLOW_ORIGINS as a
+# comma-separated list (defaults to local dev origins).
+_default_origins = "http://localhost:3000,http://127.0.0.1:3000"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOW_ORIGINS", _default_origins).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
