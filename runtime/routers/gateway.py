@@ -135,6 +135,7 @@ async def execute_with_retry(provider_instance, method_name: str, *args, **kwarg
             await asyncio.sleep(base_delay * (2 ** attempt))
 
 @router.post("/chat/completions")
+@router.post("/gateway/completions")
 async def unified_chat_completions(
     request: Request,
     db: AsyncSession = Depends(get_db)
@@ -184,11 +185,19 @@ async def unified_chat_completions(
     # Check Kill Switches
     agent_state_decision = await check_agent_state(db, agent)
     if not agent_state_decision["allowed"]:
-        return JSONResponse(status_code=403, content={"error": agent_state_decision["error"]})
+        await db.commit()  # persist the REQUEST_BLOCKED audit log
+        return JSONResponse(
+            status_code=403,
+            content={"error": agent_state_decision["error"], "reason": agent_state_decision["reason"]},
+        )
 
     org_state_decision = await check_org_state(db, organization, agent_id=agent_id)
     if not org_state_decision["allowed"]:
-        return JSONResponse(status_code=403, content={"error": org_state_decision["error"]})
+        await db.commit()  # persist the REQUEST_BLOCKED audit log
+        return JSONResponse(
+            status_code=403,
+            content={"error": org_state_decision["error"], "reason": org_state_decision["reason"]},
+        )
 
     # Check Budgets
     agent_budget_decision = await check_agent_budget(db, agent)
@@ -198,7 +207,11 @@ async def unified_chat_completions(
             paused_by="SYSTEM", budget_limit=agent_budget_decision.get("budgetLimit"),
             current_spend=agent_budget_decision.get("currentSpend")
         )
-        return JSONResponse(status_code=402, content={"error": "Budget exceeded"})
+        await db.commit()  # persist the auto-pause, alert, and audit log
+        return JSONResponse(
+            status_code=402,
+            content={"error": "Budget exceeded", "reason": agent_budget_decision["reason"]},
+        )
 
     org_budget_decision = await check_org_budget(db, organization, agent_id=agent_id)
     if not org_budget_decision["allowed"]:
@@ -207,7 +220,11 @@ async def unified_chat_completions(
             paused_by="SYSTEM", budget_limit=org_budget_decision.get("budgetLimit"),
             current_spend=org_budget_decision.get("currentSpend"), agent_id=agent_id
         )
-        return JSONResponse(status_code=402, content={"error": "Budget exceeded"})
+        await db.commit()  # persist the auto-pause, alert, and audit log
+        return JSONResponse(
+            status_code=402,
+            content={"error": "Budget exceeded", "reason": org_budget_decision["reason"]},
+        )
 
     # Routing
     providers_to_try = [provider_name]

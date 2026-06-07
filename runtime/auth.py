@@ -2,6 +2,7 @@ from fastapi import Security, HTTPException, status, Depends
 from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import hashlib
 
 from database.session import get_db
 from database.models import Agent
@@ -23,9 +24,13 @@ async def verify_api_key(
             detail="Missing API key"
         )
 
+    # Agent keys are stored as SHA-256 hashes (see app/api/agents/route.ts),
+    # so hash the presented key before looking it up.
+    key_hash = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+
     result = await db.execute(
         select(Agent).where(
-            Agent.apiKey == api_key
+            Agent.apiKey == key_hash
         )
     )
 

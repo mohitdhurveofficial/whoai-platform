@@ -53,8 +53,11 @@ export async function POST(req: Request) {
     if (!dailyBudget || dailyBudget <= 0) return NextResponse.json({ success: false, error: "Daily Budget must be > 0" }, { status: 400 });
     if (!monthlyBudget || monthlyBudget <= 0) return NextResponse.json({ success: false, error: "Monthly Budget must be > 0" }, { status: 400 });
 
+    // Agent API keys are high-entropy secrets, so we store a deterministic
+    // SHA-256 hash (lookup-able by the gateway token endpoint), mirroring
+    // lib/security/api-keys.ts. The raw key is returned to the caller once.
     const rawKey = `whoai_sk_${crypto.randomBytes(32).toString("hex")}`;
-    const hashedKey = await bcrypt.hash(rawKey, 12);
+    const hashedKey = crypto.createHash("sha256").update(rawKey).digest("hex");
 
     const clientId = crypto.randomUUID();
     const clientSecret = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
