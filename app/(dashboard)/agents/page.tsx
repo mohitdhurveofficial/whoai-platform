@@ -15,8 +15,8 @@ export default async function AgentsPage() {
     <div className="space-y-8 pb-10">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-white">Agents</h1>
-          <p className="mt-1.5 text-[15px] text-[#A3A3A3]">
+          <h1 className="text-[28px] font-bold tracking-tight text-[#111111]">Agents</h1>
+          <p className="mt-1.5 text-[15px] text-[#666666]">
             Manage agents and inspect spend, request volume, blocked activity, and budget health.
           </p>
         </div>

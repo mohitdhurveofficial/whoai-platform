@@ -74,16 +74,13 @@ export async function POST(req: Request) {
 
     const response = await adapter.chat(chatRequest, providerApiKey);
 
-    // Phase 3 Integration (Placeholder for now, we will add UsageRecord soon)
-    const cost = 0; // Replace with proper cost calculation later
-
-    // TODO: Write UsageRecord
+    // TODO: Write UsageRecord (cost calculation + persistence)
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Gateway Error:", error);
     return NextResponse.json(
-      { error: error.message || "Internal Gateway Error" },
+      { error: error instanceof Error ? error.message : "Internal Gateway Error" },
       { status: 500 }
     );
   }

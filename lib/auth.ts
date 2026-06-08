@@ -19,7 +19,7 @@ export async function getAuthSession() {
       userId: decoded.userId,
       organizationId: decoded.organizationId,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }

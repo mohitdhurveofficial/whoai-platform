@@ -29,16 +29,35 @@ export function useAgents() {
       } else {
         setError(data.error);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load agents");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchAgents();
-  }, [fetchAgents]);
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/agents");
+        const data = await res.json();
+        if (!active) return;
+        if (data.success) {
+          setAgents(data.agents);
+        } else {
+          setError(data.error);
+        }
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : "Failed to load agents");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const deleteAgent = async (id: string) => {
     try {
@@ -49,8 +68,8 @@ export function useAgents() {
         return { success: true };
       }
       return { success: false, error: data.error };
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : "Failed to delete agent" };
     }
   };
 
@@ -72,16 +91,36 @@ export function useAgent(id: string) {
       } else {
         setError(data.error);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load agent");
     } finally {
       setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
-    if (id) fetchAgent();
-  }, [id, fetchAgent]);
+    if (!id) return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/agents/${id}`);
+        const data = await res.json();
+        if (!active) return;
+        if (data.success) {
+          setAgent(data.agent);
+        } else {
+          setError(data.error);
+        }
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : "Failed to load agent");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   return { agent, loading, error, fetchAgent };
 }

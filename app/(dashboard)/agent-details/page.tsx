@@ -2,13 +2,28 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { Bot, Clock, Activity, Settings, Shield, DollarSign } from "lucide-react";
+import { Bot, Activity, Shield } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+
+interface AgentDetail {
+  id: string;
+  name: string;
+  status: string;
+  instructions?: string;
+  currentMonthlySpend?: number | string;
+}
+
+interface ActivityEntry {
+  id: string;
+  action?: string;
+  event?: string;
+  createdAt?: string;
+}
 
 export default function AgentDetailsPage() {
   const { id } = useParams();
-  const [agent, setAgent] = useState<any>(null);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [agent, setAgent] = useState<AgentDetail | null>(null);
+  const [activities, setActivities] = useState<ActivityEntry[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "logs" | "settings">("overview");
   const [loading, setLoading] = useState(false);
 
@@ -17,7 +32,7 @@ export default function AgentDetailsPage() {
       fetch(`/api/agents/${id}`),
       fetch(`/api/agents/${id}/activity`),
     ]);
-    
+
     if (agentRes.ok) {
       const data = await agentRes.json();
       setAgent(data.agent || data);
@@ -29,8 +44,25 @@ export default function AgentDetailsPage() {
   }, [id]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    let active = true;
+    (async () => {
+      const [agentRes, activityRes] = await Promise.all([
+        fetch(`/api/agents/${id}`),
+        fetch(`/api/agents/${id}/activity`),
+      ]);
+      if (agentRes.ok) {
+        const data = await agentRes.json();
+        if (active) setAgent(data.agent || data);
+      }
+      if (activityRes.ok) {
+        const data = await activityRes.json();
+        if (active) setActivities(data.activities || data || []);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   const updateStatus = async (status: string, reason: string) => {
     setLoading(true);
@@ -59,7 +91,7 @@ export default function AgentDetailsPage() {
           </div>
           <div>
             <h1 className="text-2xl font-black text-[#071126] tracking-tight lowercase">agent::{agent.name}</h1>
-            <p className="text-gray-400 font-mono text-[11px] uppercase tracking-widest">{agent.status} // {agent.id}</p>
+            <p className="text-gray-400 font-mono text-[11px] uppercase tracking-widest">{agent.status} {"//"} {agent.id}</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -127,7 +159,7 @@ export default function AgentDetailsPage() {
             <div className="bg-[#071126] p-6 rounded-2xl text-white shadow-xl shadow-blue-900/10">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40 mb-4">Real-time Burn</p>
               <div className="flex items-end gap-2">
-                 <h4 className="text-4xl font-black text-orange-500">${parseFloat(agent.currentMonthlySpend || 0).toFixed(2)}</h4>
+                 <h4 className="text-4xl font-black text-orange-500">${Number(agent.currentMonthlySpend || 0).toFixed(2)}</h4>
                  <span className="text-[10px] mb-2 font-mono opacity-50">USD/MO</span>
               </div>
             </div>

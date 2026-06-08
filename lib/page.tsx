@@ -2,9 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
 export default function ChatInterface() {
   const { id } = useParams();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -35,7 +40,7 @@ export default function ChatInterface() {
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.content }]);
-    } catch (e) {
+    } catch {
       console.error("Chat failed");
     } finally {
       setLoading(false);
@@ -52,7 +57,7 @@ export default function ChatInterface() {
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${m.role === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none border'}`}>
+            <div className={`max-w-[80%] p-4 rounded-2xl shadow-sm ${m.role === 'user' ? 'bg-[#FF6B00] text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none border'}`}>
                <div className="text-[10px] uppercase font-bold opacity-50 mb-1">{m.role}</div>
                <p className="whitespace-pre-wrap">{m.content}</p>
             </div>
@@ -64,13 +69,13 @@ export default function ChatInterface() {
       <div className="p-4 border-t bg-white">
         <div className="flex gap-2">
           <input
-            className="flex-1 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
             placeholder="Type your prompt..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           />
-          <button onClick={handleSend} disabled={loading} className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={handleSend} disabled={loading} className="bg-[#FF6B00] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#E65A00] disabled:opacity-50">
             Send
           </button>
         </div>

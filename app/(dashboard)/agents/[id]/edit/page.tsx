@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft } from "lucide-react";
@@ -20,17 +20,17 @@ export default function EditAgentPage() {
     dailyBudget: "",
     monthlyBudget: "",
   });
+  const [hydratedId, setHydratedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (agent) {
-      setFormData({
-        name: agent.name,
-        status: agent.status,
-        dailyBudget: agent.dailyBudget.toString(),
-        monthlyBudget: agent.monthlyBudget.toString(),
-      });
-    }
-  }, [agent]);
+  if (agent && hydratedId !== agent.id) {
+    setHydratedId(agent.id);
+    setFormData({
+      name: agent.name,
+      status: agent.status,
+      dailyBudget: agent.dailyBudget.toString(),
+      monthlyBudget: agent.monthlyBudget.toString(),
+    });
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,8 +55,8 @@ export default function EditAgentPage() {
       } else {
         setError(data.error);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update agent");
     } finally {
       setLoading(false);
     }

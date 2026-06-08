@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { KeyRound, Shield, CheckCircle, XCircle, Trash2, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, Loader2 } from "lucide-react";
 
 type Provider = {
   id: string;
@@ -39,7 +39,23 @@ export default function ProvidersPage() {
   };
 
   useEffect(() => {
-    fetchProviders();
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/settings/providers");
+        if (res.ok) {
+          const data = await res.json();
+          if (active) setProviders(data.providers || []);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSave = async (providerId: string) => {
@@ -64,8 +80,8 @@ export default function ProvidersPage() {
         const data = await res.json();
         setMessage({ type: "error", text: data.error || "Failed to save key." });
       }
-    } catch (e: any) {
-      setMessage({ type: "error", text: e.message });
+    } catch (e) {
+      setMessage({ type: "error", text: e instanceof Error ? e.message : "Failed to save key." });
     } finally {
       setSaving(null);
     }
@@ -86,8 +102,8 @@ export default function ProvidersPage() {
         const data = await res.json();
         setMessage({ type: "error", text: data.error || "Failed to delete key." });
       }
-    } catch (e: any) {
-      setMessage({ type: "error", text: e.message });
+    } catch (e) {
+      setMessage({ type: "error", text: e instanceof Error ? e.message : "Failed to delete key." });
     } finally {
       setSaving(null);
     }
@@ -104,8 +120,8 @@ export default function ProvidersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-white mb-2">AI Providers</h3>
-        <p className="text-[#A3A3A3] text-[14px]">
+        <h3 className="text-xl font-bold text-[#111111] mb-2">AI Providers</h3>
+        <p className="text-[#666666] text-[14px]">
           Connect your organization to supported AI providers. Your keys are securely encrypted at rest.
         </p>
       </div>
@@ -123,20 +139,20 @@ export default function ProvidersPage() {
           const isConnected = !!config;
 
           return (
-            <div key={provider.id} className="p-5 border border-[#333] rounded-lg bg-[#151515] flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={provider.id} className="p-5 border border-[#EEE8E2] rounded-lg bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#222] flex items-center justify-center text-xl">
+                <div className="w-10 h-10 rounded-full bg-[#FAF7F3] flex items-center justify-center text-xl">
                   {provider.logo}
                 </div>
                 <div>
-                  <h4 className="text-white font-medium text-[15px]">{provider.name}</h4>
+                  <h4 className="text-[#111111] font-medium text-[15px]">{provider.name}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     {isConnected ? (
                       <span className="inline-flex items-center gap-1 text-[12px] font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span> Connected
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#888] bg-[#222] px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#888888] bg-[#FAF7F3] px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#666]"></span> Not Configured
                       </span>
                     )}
@@ -150,13 +166,13 @@ export default function ProvidersPage() {
                   placeholder={isConnected ? "••••••••••••••••" : "Enter API Key"}
                   value={keys[provider.id] || ""}
                   onChange={(e) => setKeys({ ...keys, [provider.id]: e.target.value })}
-                  className="bg-[#0A0A0A] border border-[#333] text-white text-[14px] rounded-md px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#FF6B00] placeholder-[#555]"
+                  className="bg-[#FAF7F3] border border-[#EEE8E2] text-[#111111] text-[14px] rounded-md px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#FF6B00] placeholder-[#999]"
                 />
                 
                 <button
                   onClick={() => handleSave(provider.id)}
                   disabled={!keys[provider.id] || saving === provider.id}
-                  className="bg-[#fff] hover:bg-[#eee] text-black disabled:bg-[#333] disabled:text-[#888] px-4 py-2 rounded-md text-[14px] font-medium transition-colors min-w-[80px] flex justify-center"
+                  className="bg-[#FF6B00] hover:bg-[#E65A00] text-white disabled:opacity-50 px-4 py-2 rounded-md text-[14px] font-medium transition-colors min-w-[80px] flex justify-center"
                 >
                   {saving === provider.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (isConnected ? "Update" : "Save")}
                 </button>

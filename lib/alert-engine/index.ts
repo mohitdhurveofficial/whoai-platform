@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 
 export enum AlertType {
@@ -24,7 +25,7 @@ export interface CreateAlertParams {
   severity: AlertSeverity;
   title: string;
   message: string;
-  metadata?: any;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export class AlertEngine {

@@ -25,10 +25,14 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    if (error.code === 'P2025') { // Record to delete does not exist
-       return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+      // Record to delete does not exist
+      return NextResponse.json({ success: true });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal error" },
+      { status: 500 },
+    );
   }
 }

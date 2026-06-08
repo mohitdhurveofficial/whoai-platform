@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 
 export interface RecordSpendParams {
@@ -8,7 +9,7 @@ export interface RecordSpendParams {
   tokensIn: number;
   tokensOut: number;
   cost: number;
-  metadata?: any;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export class SpendEngine {

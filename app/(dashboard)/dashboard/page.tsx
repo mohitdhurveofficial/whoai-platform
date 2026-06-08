@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type React from "react";
-import { AlertTriangle, Bot, DollarSign, ShieldX } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import {
   getDashboardSummary,
   getSpendByAgent,

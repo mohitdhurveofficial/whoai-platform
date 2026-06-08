@@ -2,27 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 
-function budgetStatus(currentSpend: number, budgetLimit: number) {
-  const utilizationPercent = budgetLimit > 0 ? (currentSpend / budgetLimit) * 100 : 0;
-  const remainingBudget = budgetLimit > 0 ? Math.max(budgetLimit - currentSpend, 0) : 0;
-
-  let status: "OK" | "WARNING" | "CRITICAL" | "BLOCKED" | "UNLIMITED" = "OK";
-  if (budgetLimit <= 0) status = "UNLIMITED";
-  else if (utilizationPercent >= 100) status = "BLOCKED";
-  else if (utilizationPercent >= 90) status = "CRITICAL";
-  else if (utilizationPercent >= 75) status = "WARNING";
-
-  return {
-    currentSpend,
-    budgetLimit,
-    remainingBudget,
-    utilizationPercent,
-    warningPercent: 75,
-    criticalPercent: 90,
-    status,
-  };
-}
-
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -102,7 +81,10 @@ export async function GET() {
         })),
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Internal error" },
+      { status: 500 },
+    );
   }
 }

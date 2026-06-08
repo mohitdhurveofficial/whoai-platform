@@ -47,7 +47,10 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
     });
 
     return NextResponse.json({ success: true, organization });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Internal error" },
+      { status: 500 },
+    );
   }
 }

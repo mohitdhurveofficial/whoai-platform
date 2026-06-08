@@ -25,16 +25,17 @@ export default function BillingPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("success")) {
-      setMessage({ type: "success", text: "Subscription updated. Thank you!" });
-    } else if (params.get("canceled")) {
-      setMessage({ type: "error", text: "Checkout canceled." });
-    }
-
     fetch("/api/billing/subscription")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setSub(data))
+      .then((data) => {
+        setSub(data);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("success")) {
+          setMessage({ type: "success", text: "Subscription updated. Thank you!" });
+        } else if (params.get("canceled")) {
+          setMessage({ type: "error", text: "Checkout canceled." });
+        }
+      })
       .catch(() => setMessage({ type: "error", text: "Could not load subscription." }))
       .finally(() => setLoading(false));
   }, []);
@@ -50,7 +51,7 @@ export default function BillingPage() {
       });
       const data = await res.json();
       if (res.ok && data.url) {
-        window.location.href = data.url;
+        window.location.assign(data.url);
       } else {
         setMessage({ type: "error", text: data.error || "Could not start checkout." });
       }
@@ -68,7 +69,7 @@ export default function BillingPage() {
       const res = await fetch("/api/billing/create-portal", { method: "POST" });
       const data = await res.json();
       if (res.ok && data.url) {
-        window.location.href = data.url;
+        window.location.assign(data.url);
       } else {
         setMessage({ type: "error", text: data.error || "Could not open billing portal." });
       }

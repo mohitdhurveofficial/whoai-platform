@@ -4,12 +4,27 @@ export interface TokenUsage {
   totalTokens: number;
 }
 
+export interface ProviderUsageResponse {
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    input_tokens?: number;
+    output_tokens?: number;
+  };
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    totalTokenCount?: number;
+  };
+}
+
 export interface TokenAdapter {
-  extractUsage(response: any): TokenUsage;
+  extractUsage(response: ProviderUsageResponse): TokenUsage;
 }
 
 export class OpenAIAdapter implements TokenAdapter {
-  extractUsage(response: any): TokenUsage {
+  extractUsage(response: ProviderUsageResponse): TokenUsage {
     return {
       promptTokens: response?.usage?.prompt_tokens || 0,
       completionTokens: response?.usage?.completion_tokens || 0,
@@ -19,7 +34,7 @@ export class OpenAIAdapter implements TokenAdapter {
 }
 
 export class AnthropicAdapter implements TokenAdapter {
-  extractUsage(response: any): TokenUsage {
+  extractUsage(response: ProviderUsageResponse): TokenUsage {
     return {
       promptTokens: response?.usage?.input_tokens || 0,
       completionTokens: response?.usage?.output_tokens || 0,
@@ -29,7 +44,7 @@ export class AnthropicAdapter implements TokenAdapter {
 }
 
 export class GeminiAdapter implements TokenAdapter {
-  extractUsage(response: any): TokenUsage {
+  extractUsage(response: ProviderUsageResponse): TokenUsage {
     return {
       promptTokens: response?.usageMetadata?.promptTokenCount || 0,
       completionTokens: response?.usageMetadata?.candidatesTokenCount || 0,
@@ -39,7 +54,7 @@ export class GeminiAdapter implements TokenAdapter {
 }
 
 export class GrokAdapter implements TokenAdapter {
-  extractUsage(response: any): TokenUsage {
+  extractUsage(response: ProviderUsageResponse): TokenUsage {
     // Grok uses OpenAI-compatible API
     return {
       promptTokens: response?.usage?.prompt_tokens || 0,
@@ -50,7 +65,7 @@ export class GrokAdapter implements TokenAdapter {
 }
 
 export class OpenRouterAdapter implements TokenAdapter {
-  extractUsage(response: any): TokenUsage {
+  extractUsage(response: ProviderUsageResponse): TokenUsage {
     // OpenRouter uses OpenAI-compatible API usage format mostly
     return {
       promptTokens: response?.usage?.prompt_tokens || 0,
@@ -72,7 +87,7 @@ export class TokenEngine {
     }
   }
 
-  static extractUsage(provider: string, response: any): TokenUsage {
+  static extractUsage(provider: string, response: ProviderUsageResponse): TokenUsage {
     const adapter = this.getAdapter(provider);
     return adapter.extractUsage(response);
   }

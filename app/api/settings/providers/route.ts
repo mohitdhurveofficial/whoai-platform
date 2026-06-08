@@ -22,8 +22,11 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, providers });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -78,7 +81,10 @@ export async function POST(req: Request) {
         status: credential.status,
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal error" },
+      { status: 500 },
+    );
   }
 }

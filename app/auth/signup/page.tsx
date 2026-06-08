@@ -57,7 +57,7 @@ export default function SignupPage() {
 
     const text = await res.text();
 
-    let data: any = {};
+    let data: { error?: string } = {};
 
     try {
       data = text ? JSON.parse(text) : {};
@@ -84,7 +84,7 @@ export default function SignupPage() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-slate-950 mb-2">
+        <label htmlFor="fullName" className="mb-2 block text-[13px] font-bold text-[#071126]">
           Full name
         </label>
         <input
@@ -94,13 +94,13 @@ export default function SignupPage() {
           value={formData.fullName}
           onChange={handleChange}
           placeholder="Jane Smith"
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+          className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-slate-950 mb-2">
+        <label htmlFor="email" className="mb-2 block text-[13px] font-bold text-[#071126]">
           Email address
         </label>
         <input
@@ -110,13 +110,13 @@ export default function SignupPage() {
           value={formData.email}
           onChange={handleChange}
           placeholder="jane@company.com"
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+          className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label htmlFor="company" className="block text-sm font-medium text-slate-950 mb-2">
+        <label htmlFor="company" className="mb-2 block text-[13px] font-bold text-[#071126]">
           Organization name
         </label>
         <input
@@ -126,13 +126,13 @@ export default function SignupPage() {
           value={formData.company}
           onChange={handleChange}
           placeholder="Your Company Inc."
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+          className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-slate-950 mb-2">
+        <label htmlFor="password" className="mb-2 block text-[13px] font-bold text-[#071126]">
           Password
         </label>
         <input
@@ -142,13 +142,13 @@ export default function SignupPage() {
           value={formData.password}
           onChange={handleChange}
           placeholder="••••••••"
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+          className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-950 mb-2">
+        <label htmlFor="confirmPassword" className="mb-2 block text-[13px] font-bold text-[#071126]">
           Confirm password
         </label>
         <input
@@ -158,7 +158,7 @@ export default function SignupPage() {
           value={formData.confirmPassword}
           onChange={handleChange}
           placeholder="••••••••"
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder-slate-400 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+          className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
       </div>
@@ -168,15 +168,15 @@ export default function SignupPage() {
           type="checkbox"
           checked={agreeToTerms}
           onChange={(e) => setAgreeToTerms(e.target.checked)}
-          className="mt-1 rounded border-slate-300"
+          className="mt-1 h-4 w-4 rounded border-black/15 text-orange-600 focus:ring-orange-500"
         />
-        <span className="text-sm text-slate-600">
+        <span className="text-sm text-[#071126]/74">
           I agree to the{" "}
-          <Link href="/terms" className="text-sky-600 hover:text-sky-700 font-medium">
+          <Link href="/terms" className="font-bold text-orange-600 hover:text-orange-700">
             Terms of Service
           </Link>
           {" "}and{" "}
-          <Link href="/privacy" className="text-sky-600 hover:text-sky-700 font-medium">
+          <Link href="/privacy" className="font-bold text-orange-600 hover:text-orange-700">
             Privacy Policy
           </Link>
         </span>
@@ -191,14 +191,14 @@ export default function SignupPage() {
       <button
         type="submit"
         disabled={isLoading || !agreeToTerms}
-        className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="shadow-button-dark flex h-[52px] w-full items-center justify-center rounded-full bg-[#071126] px-6 text-[14px] font-bold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
       >
         {isLoading ? "Creating account..." : "Create account"}
       </button>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-[14px] font-medium text-[#071126]/72">
         Already have an account?{" "}
-        <Link href="/auth/login" className="text-sky-600 hover:text-sky-700 font-semibold">
+        <Link href="/auth/login" className="font-black text-orange-600 hover:text-orange-700">
           Sign in
         </Link>
       </p>

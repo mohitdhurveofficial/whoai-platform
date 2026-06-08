@@ -64,7 +64,7 @@ export default function LoginPage() {
 
       const text = await res.text();
 
-      let data: any = {};
+      let data: { token?: string; user?: unknown; error?: string } = {};
 
       try {
         data = text ? JSON.parse(text) : {};
