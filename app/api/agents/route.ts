@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { canCreateAgent, planConfig } from "@/lib/subscription";
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unexpected error";
@@ -52,6 +53,24 @@ export async function POST(req: Request) {
     if (!name) return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 });
     if (!dailyBudget || dailyBudget <= 0) return NextResponse.json({ success: false, error: "Daily Budget must be > 0" }, { status: 400 });
     if (!monthlyBudget || monthlyBudget <= 0) return NextResponse.json({ success: false, error: "Monthly Budget must be > 0" }, { status: 400 });
+
+    // Enforce the org's plan limit before creating another agent.
+    const organization = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { subscriptionTier: true },
+    });
+    const agentCount = await prisma.agent.count({ where: { organizationId: orgId } });
+    if (!canCreateAgent(agentCount, organization?.subscriptionTier)) {
+      const plan = planConfig(organization?.subscriptionTier);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Your ${plan.label} plan allows up to ${plan.maxAgents} agent(s). Upgrade to add more.`,
+          code: "PLAN_LIMIT_REACHED",
+        },
+        { status: 402 },
+      );
+    }
 
     // Agent API keys are high-entropy secrets, so we store a deterministic
     // SHA-256 hash (lookup-able by the gateway token endpoint), mirroring
