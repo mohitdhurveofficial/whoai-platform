@@ -167,8 +167,8 @@ JWT's `org` claim (data plane). The Prisma schema is consistently org-scoped wit
 
 **Week 2 — Make it truthful & monetizable**
 - [x] **Wire BYOK**: gateway loads & decrypts the org's `ProviderCredential` and passes it to the provider; platform key only as fallback. Cross-language decrypt verified.
-- [ ] **Re-enable Stripe** (checkout, portal, webhook) behind `Subscription`/`Organization` fields already in the schema.
-- [ ] Delete mock `/api/analytics/*`; ensure every dashboard widget reads org-scoped real data.
+- [x] **Re-enable Stripe** (checkout, portal, subscription, webhook) on existing `Organization` fields; plan-limit enforcement on agent creation; billing UI; vitest tests; see `docs/BILLING.md`.
+- [x] Delete mock `/api/analytics/*`; dashboard reads org-scoped real data.
 
 **Week 3 — Make it complete**
 - [ ] Agent key list + rotate/revoke.
@@ -215,9 +215,18 @@ Completed in logical, test-green commits on `backup-current`:
    per-org keys used by the gateway with platform fallback; factory hardened against
    cross-tenant key reuse. **44 tests passing.**
 
-**Revised completion estimate: ~70%** (core product now reachable end-to-end and
-multi-tenant-safe; remaining gaps are billing, alerts UX, mock-route cleanup, GTM).
+5. `cleanup: remove mock /api/analytics/* routes` — deleted hardcoded fake-data endpoints.
+6. `chore: untrack test DB and remove committed junk files`.
+7. **Stripe billing (full)** — `feat(billing)` commits: Stripe client + plan config;
+   checkout/portal/subscription routes; webhook + Organization sync; plan-limit
+   enforcement on agent creation; billing dashboard page; vitest suite (14 tests).
+   Full flow: sign up → subscribe → manage billing → paying customer. See `docs/BILLING.md`.
 
-**Still open before launch:** Stripe re-enable (revenue), delete mock `/api/analytics/*`,
-agent key rotate/revoke, alert delivery + screen, email verification/reset, landing-page
-GTM, rate limiting, remove tracked junk (`whoai_test.db`, `project-structure.txt`).
+**Revised completion estimate: ~82%** (core product reachable end-to-end,
+multi-tenant-safe, and monetizable).
+
+**Test status:** 44 Python tests + 14 vitest (billing) — all passing.
+
+**Still open before launch:** agent key rotate/revoke, alert delivery + screen,
+email verification/reset, landing-page GTM, rate limiting. Stripe needs live keys +
+one Price per tier configured (env vars in `docs/BILLING.md`).
