@@ -134,3 +134,4 @@ watchfiles==1.2.0
 websockets==16.0
 x-wr-timezone==2.0.1
 youtube-transcript-api==1.2.4
+google-generativeai
