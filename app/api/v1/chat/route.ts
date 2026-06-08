@@ -1,5 +1,4 @@
-console.log("ROUTE DATABASE_URL =", process.env.DATABASE_URL);
-console.log("DATABASE_URL =", process.env.DATABASE_URL);
+console.log("Database configured:", !!process.env.DATABASE_URL);
 import OpenAI from "openai";
 import { validateApiKey } from "@/lib/security/validate-api-key";
 import { prisma } from "@/lib/prisma";
@@ -7,29 +6,24 @@ import { checkBudget } from "@/lib/budget/check-budget"; // add this
 import { SpendEngine } from "@/lib/spend-engine";
 import { UsageEngine } from "@/lib/usage-engine";
 
-const groqApiKey = process.env.GROQ_API_KEY;
+function getGroqClient() {
+  const groqApiKey = process.env.GROQ_API_KEY;
 
-if (!groqApiKey) {
-  console.error("GROQ_API_KEY is not configured");
+  if (!groqApiKey) {
+    throw new Error("GROQ_API_KEY missing");
+  }
+
+  return new OpenAI({
+    apiKey: groqApiKey,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
 }
-
-const openai = new OpenAI({
-  apiKey: groqApiKey,
-  baseURL: "https://api.groq.com/openai/v1",
-});
 
 export async function POST(req: Request) {
   try {
     console.log("STEP 0: REQUEST RECEIVED");
 
-    if (!groqApiKey) {
-      return Response.json(
-        {
-          error: "GROQ_API_KEY is missing. Configure it in your environment variables.",
-        },
-        { status: 500 }
-      );
-    }
+    const openai = getGroqClient();
 
     const auth = req.headers.get("authorization");
 
