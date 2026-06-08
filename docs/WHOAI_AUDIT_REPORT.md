@@ -160,13 +160,13 @@ JWT's `org` claim (data plane). The Prisma schema is consistently org-scoped wit
 
 **Week 1 — Make it safe & make the core reachable**
 - [x] Audit (this document).
-- [ ] **Strip secret/PII logging** (prisma, signup, login, auth-context).
-- [ ] **Implement agent-token endpoint** (`POST /api/v1/auth/token`, client_credentials → `GATEWAY_SECRET` JWT). Resolve the bcrypt-hash mismatch (B2/B5) with a verifiable credential.
-- [ ] **Guard dashboard routes** in `proxy.ts`; **lock CORS** to app origin.
-- [ ] **Fix failing gateway tests**; add a token-issuance + end-to-end gateway test.
+- [x] **Strip secret/PII logging** (prisma, signup, login, auth-context).
+- [x] **Implement agent-token endpoint** (`POST /api/v1/auth/token`, raw key → `GATEWAY_SECRET` JWT). Resolved the bcrypt-hash mismatch by switching agent keys to lookup-able SHA-256.
+- [x] **Guard dashboard routes** in `proxy.ts`; **lock CORS** to env-configured origins.
+- [x] **Fix failing gateway tests** (8 → 0); added token-issuance tests; fixed a real bug where budget auto-pause was never committed.
 
 **Week 2 — Make it truthful & monetizable**
-- [ ] **Wire BYOK**: gateway loads & decrypts the org's `ProviderCredential` and passes it to the provider; fall back to platform key only where intended.
+- [x] **Wire BYOK**: gateway loads & decrypts the org's `ProviderCredential` and passes it to the provider; platform key only as fallback. Cross-language decrypt verified.
 - [ ] **Re-enable Stripe** (checkout, portal, webhook) behind `Subscription`/`Organization` fields already in the schema.
 - [ ] Delete mock `/api/analytics/*`; ensure every dashboard widget reads org-scoped real data.
 
@@ -194,3 +194,30 @@ claim to the authenticated agent's organization.
 ---
 
 *Fixes begin immediately after this report, in the P0 order above, committed in logical batches.*
+
+---
+
+## 10. Remediation Log (this engagement)
+
+Completed in logical, test-green commits on `backup-current`:
+
+1. `security: full audit report + strip secret/PII logging` — removed `DATABASE_URL`,
+   Supabase-session, and PII logging; stopped leaking error stacks to clients.
+2. `feat(gateway): agent token issuance + fix kill-switch persistence` — new
+   `POST /api/v1/auth/token`; agent keys switched to lookup-able SHA-256; fixed the
+   `runtime/auth.py` plaintext-compare bug; gateway block responses now carry `reason`;
+   added `/gateway/completions` alias; **persist auto-pause/alert/audit on budget breach**.
+   Tests 26→34 passing, +4 token tests.
+3. `security: guard dashboard routes + restrict gateway CORS` — `proxy.ts` blocks
+   unauthenticated dashboard access; CORS moved to an env allow-list.
+4. `feat(gateway): wire BYOK provider keys into the proxy` — Python AES-256-GCM decrypt
+   (cross-language verified vs a Node vector); `ProviderCredential` SQLAlchemy model;
+   per-org keys used by the gateway with platform fallback; factory hardened against
+   cross-tenant key reuse. **44 tests passing.**
+
+**Revised completion estimate: ~70%** (core product now reachable end-to-end and
+multi-tenant-safe; remaining gaps are billing, alerts UX, mock-route cleanup, GTM).
+
+**Still open before launch:** Stripe re-enable (revenue), delete mock `/api/analytics/*`,
+agent key rotate/revoke, alert delivery + screen, email verification/reset, landing-page
+GTM, rate limiting, remove tracked junk (`whoai_test.db`, `project-structure.txt`).
