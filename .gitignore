@@ -32,6 +32,14 @@ __pycache__/
 
 # Logs
 *.log
+
+# Local test database
+*.db
+
+# Generated structure dumps / stray AI artifacts
+project-structure.txt
+structure.txt
+project_info__*.md
 .next
 node_modules
 venv
