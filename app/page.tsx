@@ -24,6 +24,8 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import SiteNav from "@/app/components/marketing/SiteNav";
+import SiteFooter from "@/app/components/marketing/SiteFooter";
 
 // --- MOCK DATA FOR CHARTS ---
 
@@ -61,37 +63,9 @@ export default function LandingPage() {
       <div className="absolute inset-0 pointer-events-none dot-field opacity-60 z-0"></div>
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/60 via-[#FAF7F3]/40 to-[#FAF7F3] z-0"></div>
 
-      
+
       {/* NAVIGATION */}
-      <nav className="sticky top-0 z-50 bg-[#FAF7F3]/90 backdrop-blur-md border-b border-[#EEE8E2]">
-        <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-10">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FF6B00] text-sm font-bold text-white shadow-sm">
-                W
-              </div>
-              <span className="text-[17px] font-bold tracking-tight">WHOAI</span>
-            </Link>
-            <div className="hidden md:flex items-center gap-8 text-[14px] font-medium text-[#666666]">
-              <Link href="#" className="hover:text-[#111111] transition-colors">Product</Link>
-              <Link href="#" className="hover:text-[#111111] transition-colors">Solutions</Link>
-              <Link href="#" className="hover:text-[#111111] transition-colors">Pricing</Link>
-              <Link href="#" className="hover:text-[#111111] transition-colors">Docs</Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-[14px] font-medium text-[#111111] hover:text-[#FF6B00] transition-colors hidden md:block">
-              Sign In
-            </Link>
-            <Link href="/dashboard" className="bg-[#FFFFFF] border border-[#EEE8E2] text-[#111111] px-4 py-2.5 rounded-md font-medium text-[14px] shadow-sm hover:border-[#DCD5CD] transition-colors">
-              Book Demo
-            </Link>
-            <Link href="/signup" className="bg-[#FF6B00] text-white px-4 py-2.5 rounded-md font-medium text-[14px] hover:bg-[#E65A00] transition-colors shadow-sm">
-              Start Free Trial
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* HERO SECTION */}
       <section className="relative z-10 pt-32 pb-24 px-6 text-center max-w-[900px] mx-auto">
@@ -258,7 +232,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES SECTION */}
-      <section className="relative z-10 py-32 bg-[#FAF7F3]">
+      <section id="features" className="relative z-10 py-32 bg-[#FAF7F3] scroll-mt-24">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="mb-20">
             <h2 className="text-[40px] font-bold tracking-tight text-[#111111] mb-4">Everything You Need To Control AI Spend</h2>
@@ -420,56 +394,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="relative z-10 bg-[#FAF7F3] border-t border-[#EEE8E2] py-16">
-        <div className="max-w-[1200px] mx-auto px-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12">
-          <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-[#FF6B00] text-[10px] font-bold text-white shadow-sm">
-                W
-              </div>
-              <span className="text-[15px] font-bold tracking-tight">WHOAI</span>
-            </Link>
-            <p className="text-[14px] text-[#888888] max-w-[250px]">
-              The FinOps control plane for the autonomous AI era. Track tokens, enforce budgets, and stop runaway spend.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-[13px] font-bold text-[#111111] mb-4 uppercase tracking-wider">Product</h4>
-            <ul className="space-y-3">
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">AI Gateway</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Cost Analytics</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Budget Controls</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Alerting</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-[13px] font-bold text-[#111111] mb-4 uppercase tracking-wider">Resources</h4>
-            <ul className="space-y-3">
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Documentation</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">API Reference</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Blog</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Security</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-[13px] font-bold text-[#111111] mb-4 uppercase tracking-wider">Company</h4>
-            <ul className="space-y-3">
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">About</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Customers</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Contact</Link></li>
-              <li><Link href="#" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Terms of Service</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-[1200px] mx-auto px-6 mt-16 pt-8 border-t border-[#EEE8E2] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[13px] text-[#888888]">© 2026 WHOAI Inc. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link href="#" className="text-[13px] text-[#888888] hover:text-[#111111]">Privacy</Link>
-            <Link href="#" className="text-[13px] text-[#888888] hover:text-[#111111]">Terms</Link>
-            <Link href="#" className="text-[13px] text-[#888888] hover:text-[#111111]">Status</Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

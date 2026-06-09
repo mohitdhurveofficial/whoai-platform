@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CheckCircle, Loader2, CreditCard } from "lucide-react";
+
+// Plan ordering used to label a plan switch as an upgrade vs a downgrade.
+const TIER_RANK: Record<string, number> = {
+  FREE: 0,
+  STARTUP: 1,
+  GROWTH: 2,
+  ENTERPRISE: 3,
+};
 
 type Subscription = {
   tier: string;
@@ -150,6 +159,14 @@ export default function BillingPage() {
       <div className="grid gap-4 md:grid-cols-3">
         {PLANS.map((plan) => {
           const isCurrent = currentTier === plan.tier;
+          const isDowngrade = TIER_RANK[plan.tier] < (TIER_RANK[currentTier] ?? 0);
+          // Enterprise is custom-priced — route to sales rather than self-serve checkout.
+          const isContactSales = plan.tier === "ENTERPRISE";
+          const actionLabel = isContactSales
+            ? "Contact sales"
+            : isDowngrade
+              ? "Downgrade"
+              : "Upgrade";
           return (
             <div
               key={plan.tier}
@@ -167,19 +184,28 @@ export default function BillingPage() {
               </div>
               <div className="mt-3 text-2xl font-bold text-[#111111]">{plan.price}</div>
               <div className="mt-1 text-[13px] text-[#666666]">{plan.blurb}</div>
-              <button
-                onClick={() => startCheckout(plan.tier)}
-                disabled={isCurrent || working === plan.tier}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {working === plan.tier ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isCurrent ? (
-                  "Active"
-                ) : (
-                  "Upgrade"
-                )}
-              </button>
+              {isContactSales ? (
+                <Link
+                  href="/contact"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#111111] bg-[#111111] px-4 py-2 text-[14px] font-semibold text-white"
+                >
+                  Contact sales
+                </Link>
+              ) : (
+                <button
+                  onClick={() => startCheckout(plan.tier)}
+                  disabled={isCurrent || working === plan.tier}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {working === plan.tier ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isCurrent ? (
+                    "Active"
+                  ) : (
+                    actionLabel
+                  )}
+                </button>
+              )}
             </div>
           );
         })}

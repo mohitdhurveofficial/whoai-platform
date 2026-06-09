@@ -57,7 +57,7 @@ export default function SignupPage() {
 
     const text = await res.text();
 
-    let data: { error?: string } = {};
+    let data: { error?: string; redirectTo?: string } = {};
 
     try {
       data = text ? JSON.parse(text) : {};
@@ -69,7 +69,10 @@ export default function SignupPage() {
       throw new Error(data?.error || "Signup failed");
     }
 
-    router.push("/auth/login");
+    // Signup already established a session cookie — go straight into the app
+    // instead of bouncing the new user back to the login screen.
+    router.refresh();
+    router.push(data?.redirectTo || "/dashboard");
   } catch (err: unknown) {
     setError(
       err instanceof Error

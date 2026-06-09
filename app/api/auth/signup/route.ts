@@ -61,36 +61,69 @@ export async function POST(request: Request) {
     });
 
     if (signup.error || !signup.data.user) {
+      const raw = signup.error?.message ?? "";
+      const alreadyExists = /already registered|already exists/i.test(raw);
       return NextResponse.json(
-        { success: false, error: signup.error?.message ?? "Could not create Supabase user" },
-        { status: 400 },
+        {
+          success: false,
+          error: alreadyExists
+            ? "An account with this email already exists. Please sign in instead."
+            : raw || "Could not create account",
+        },
+        { status: alreadyExists ? 409 : 400 },
       );
     }
 
-    const organization = await prisma.organization.create({
-      data: {
-        name: organizationName,
-        slug: slugify(organizationName),
-        tier: OrgTier.STARTUP,
-      },
+    // When Supabase email-enumeration protection is enabled, signing up with an
+    // already-registered email returns a user with an empty `identities` array
+    // instead of an error. Treat that as a duplicate so we never create a second
+    // organization for the same person.
+    const supabaseUserId = signup.data.user.id;
+    if (
+      Array.isArray(signup.data.user.identities) &&
+      signup.data.user.identities.length === 0
+    ) {
+      return NextResponse.json(
+        { success: false, error: "An account with this email already exists. Please sign in instead." },
+        { status: 409 },
+      );
+    }
+
+    // Defensive: an app user may already exist even if Supabase accepted the call.
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, error: "An account with this email already exists. Please sign in instead." },
+        { status: 409 },
+      );
+    }
+
+    // Create the organization and user atomically so a failure midway cannot
+    // leave an orphaned organization behind.
+    const user = await prisma.$transaction(async (tx) => {
+      const organization = await tx.organization.create({
+        data: {
+          name: organizationName,
+          slug: slugify(organizationName),
+          tier: OrgTier.STARTUP,
+        },
+      });
+
+      return tx.user.create({
+        data: {
+          id: supabaseUserId,
+          fullName,
+          email,
+          role: "OWNER",
+          organizationId: organization.id,
+        },
+      });
     });
 
-    const user = await prisma.user.create({
-      data: {
-        id: signup.data.user.id,
-        fullName,
-        email,
-        role: "OWNER",
-        organizationId: organization.id,
-      },
-    });
-
-    await supabase.auth.updateUser({
-      data: {
-        organizationId: user.organizationId,
-        role: user.role,
-      },
-    });
+    // Mirror org/role onto the Supabase user metadata. Non-fatal if it fails.
+    await supabase.auth
+      .updateUser({ data: { organizationId: user.organizationId, role: user.role } })
+      .catch(() => {});
 
     const token = createSessionToken(user);
     const response = NextResponse.json({
@@ -109,6 +142,19 @@ export async function POST(request: Request) {
     return response;
   } catch (error: unknown) {
     console.error("SIGNUP ERROR:", errorMessage(error));
+
+    // Unique-constraint violation (e.g. email/slug race) → duplicate account.
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2002"
+    ) {
+      return NextResponse.json(
+        { success: false, error: "An account with this email already exists. Please sign in instead." },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json(
       {

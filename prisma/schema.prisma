@@ -257,3 +257,23 @@ model ProviderCredential {
 
   @@unique([organizationId, provider])
 }
+
+// Inbound sales leads from the public "Book Demo" / Contact forms.
+model Lead {
+  id           String   @id @default(uuid())
+  type         LeadType @default(DEMO)
+  name         String
+  email        String
+  company      String?
+  monthlySpend String?
+  message      String?  @db.Text
+  status       String   @default("NEW")
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+enum LeadType {
+  DEMO
+  CONTACT
+}

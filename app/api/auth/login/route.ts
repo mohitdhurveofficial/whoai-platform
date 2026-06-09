@@ -24,12 +24,18 @@ export async function POST(request: Request) {
     const authResult = await supabase.auth.signInWithPassword({ email, password });
 
     if (authResult.error || !authResult.data.user) {
+      // Distinguish an unconfirmed email from genuinely bad credentials so a
+      // newly-registered user isn't told their password is wrong.
+      const raw = authResult.error?.message ?? "";
+      const needsConfirmation = /confirm/i.test(raw);
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid credentials",
+          error: needsConfirmation
+            ? "Please confirm your email address before signing in."
+            : "Invalid credentials",
         },
-        { status: 401 },
+        { status: needsConfirmation ? 403 : 401 },
       );
     }
 

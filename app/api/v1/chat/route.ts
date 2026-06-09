@@ -63,6 +63,29 @@ export async function POST(req: Request) {
       );
     }
 
+    // Attribute spend to a real agent the caller owns — never a hardcoded id.
+    const agentId = req.headers.get("x-agent-id") || body.agent_id;
+    if (!agentId) {
+      return Response.json(
+        { error: "x-agent-id header or agent_id in body is required" },
+        { status: 400 }
+      );
+    }
+
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, organizationId: apiKey.organizationId },
+      select: { id: true, status: true },
+    });
+    if (!agent) {
+      return Response.json(
+        { error: "Agent not found or does not belong to your organization" },
+        { status: 403 }
+      );
+    }
+    if (agent.status !== "ACTIVE") {
+      return Response.json({ error: `Agent is ${agent.status}` }, { status: 403 });
+    }
+
     const start = Date.now();
 
     const completion = await openai.chat.completions.create({
@@ -81,13 +104,10 @@ export async function POST(req: Request) {
       promptTokens * 0.00000015 +
       completionTokens * 0.0000006;
 
-    const DEFAULT_AGENT_ID =
-      "c2853d1e-46f1-41e4-a890-66d29ca6f99d";
-
     try {
   await SpendEngine.recordSpend({
     organizationId: apiKey.organizationId,
-    agentId: DEFAULT_AGENT_ID,
+    agentId: agent.id,
     model: body.model || "llama-3.3-70b-versatile",
     provider: "groq",
     tokensIn: promptTokens,
@@ -101,7 +121,7 @@ export async function POST(req: Request) {
   try {
     await UsageEngine.updateUsage({
       organizationId: apiKey.organizationId,
-      agentId: DEFAULT_AGENT_ID,
+      agentId: agent.id,
       tokens: totalTokens,
       cost,
     });
@@ -113,7 +133,7 @@ export async function POST(req: Request) {
   await prisma.requestLog.create({
     data: {
       organizationId: apiKey.organizationId,
-      agentId: DEFAULT_AGENT_ID,
+      agentId: agent.id,
       provider: "groq",
       model: body.model || "llama-3.3-70b-versatile",
       requestPayloadSize: JSON.stringify(body).length,

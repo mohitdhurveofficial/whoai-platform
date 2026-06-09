@@ -1,37 +1,38 @@
 import { ProviderAdapter, ChatRequest, ChatResponse } from "./types";
+import { providerFetch } from "../http";
 
 export class AnthropicAdapter implements ProviderAdapter {
   provider = "anthropic";
 
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();
-    
-    // Convert system message to Anthropic format
-    const systemMessage = request.messages.find(m => m.role === "system")?.content;
+
+    // Anthropic takes the system prompt as a top-level field, not a message.
+    const systemMessage = request.messages.find((m) => m.role === "system")?.content;
     const messages = request.messages
-      .filter(m => m.role !== "system")
-      .map(m => ({ role: m.role, content: m.content }));
+      .filter((m) => m.role !== "system")
+      .map((m) => ({ role: m.role, content: m.content }));
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+    const data = await providerFetch(
+      "https://api.anthropic.com/v1/messages",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: request.model,
+          messages,
+          system: systemMessage,
+          temperature: request.temperature ?? 0.7,
+          // Anthropic requires max_tokens; default when the caller omits it.
+          max_tokens: request.max_tokens || 1024,
+        }),
       },
-      body: JSON.stringify({
-        model: request.model,
-        messages,
-        system: systemMessage,
-        temperature: request.temperature ?? 0.7,
-        max_tokens: request.max_tokens || 1024,
-      }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(`Anthropic Error: ${data.error?.message || res.statusText}`);
-    }
+      { provider: this.provider },
+    );
 
     return {
       id: data.id,

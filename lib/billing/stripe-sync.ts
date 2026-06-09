@@ -40,7 +40,9 @@ export async function handleStripeEvent(
       const organizationId = session.metadata?.organizationId;
       if (!organizationId) return { type: event.type, handled: false };
 
-      await db.organization.update({
+      // updateMany (not update) so a replayed event for a since-deleted org is a
+      // no-op rather than a P2025 throw that makes Stripe retry the event forever.
+      await db.organization.updateMany({
         where: { id: organizationId },
         data: {
           stripeCustomerId:
@@ -62,7 +64,13 @@ export async function handleStripeEvent(
       if (!customerId) return { type: event.type, handled: false };
 
       const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
-      const tier = planForPriceId(priceId);
+      // Only grant the paid tier while the subscription is actually live. A
+      // canceled/unpaid/incomplete "updated" event must drop entitlements to
+      // FREE rather than leave the org on a plan it is no longer paying for.
+      const LIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
+      const tier = LIVE_STATUSES.has(subscription.status)
+        ? planForPriceId(priceId)
+        : "FREE";
 
       await db.organization.updateMany({
         where: { stripeCustomerId: customerId },

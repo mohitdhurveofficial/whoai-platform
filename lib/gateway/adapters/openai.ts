@@ -1,28 +1,28 @@
 import { ProviderAdapter, ChatRequest, ChatResponse } from "./types";
+import { providerFetch } from "../http";
 
 export class OpenAIAdapter implements ProviderAdapter {
   provider = "openai";
 
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+    const data = await providerFetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: request.model,
+          messages: request.messages,
+          temperature: request.temperature ?? 0.7,
+          max_tokens: request.max_tokens,
+        }),
       },
-      body: JSON.stringify({
-        model: request.model,
-        messages: request.messages,
-        temperature: request.temperature ?? 0.7,
-        max_tokens: request.max_tokens,
-      }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(`OpenAI Error: ${data.error?.message || res.statusText}`);
-    }
+      { provider: this.provider },
+    );
 
     return {
       id: data.id,
@@ -32,9 +32,9 @@ export class OpenAIAdapter implements ProviderAdapter {
         {
           message: {
             role: "assistant",
-            content: data.choices[0]?.message?.content || "",
+            content: data.choices?.[0]?.message?.content || "",
           },
-          finish_reason: data.choices[0]?.finish_reason || "stop",
+          finish_reason: data.choices?.[0]?.finish_reason || "stop",
         },
       ],
       usage: {
