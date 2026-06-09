@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
+import { getServerAuthContext } from "@/lib/server/auth";
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId;
-
-  if (!orgId) {
+  const auth = await getServerAuthContext();
+  if (!auth) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
+  const orgId = auth.organizationId;
 
   try {
     const organization = await prisma.organization.findUnique({

@@ -6,13 +6,6 @@ export async function checkBudget(
     where: { id: organizationId }
   });
 
-  console.log("BUDGET CHECK", {
-    orgId: org?.id,
-    monthlyBudget: org?.monthlyBudget,
-    currentMonthlySpend: org?.currentMonthlySpend,
-    status: org?.status
-  });
-
   if (!org) {
     throw new Error("Organization not found");
   }

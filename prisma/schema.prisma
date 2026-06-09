@@ -208,13 +208,21 @@ model ApiKey {
   id             String       @id @default(cuid())
   organizationId String
   name           String
-  keyHash        String
+  keyHash        String       @unique
   lastUsedAt     DateTime?
   revoked        Boolean      @default(false)
   createdAt      DateTime     @default(now())
   Organization   Organization @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
+}
+
+// Records every Stripe webhook event we have already processed, so a redelivery
+// (Stripe delivers at-least-once) is detected and skipped rather than replayed.
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
 }
 
 enum OrgTier {

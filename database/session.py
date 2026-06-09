@@ -23,6 +23,13 @@ DATABASE_URL = os.getenv(
     )
 )
 
+# The engine is always async (create_async_engine), so a bare sync Postgres URL
+# (postgresql:// or postgres://, which select psycopg2) crashes at connect time.
+# Normalize to the asyncpg driver so DATABASE_URL works as a safe fallback.
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
 
 
 engine_kwargs = {
@@ -68,8 +75,14 @@ async def get_db():
 
 
 async def init_db():
-    # Import models here so SQLAlchemy registers them
-    # before create_all runs.
+    # In production the schema is owned by Prisma migrations (prisma migrate
+    # deploy). Running create_all there risks drift between the SQLAlchemy models
+    # and the Prisma schema, so it is restricted to local sqlite dev/test.
+    if not DATABASE_URL.startswith("sqlite"):
+        logger.info("Skipping create_all; schema managed by Prisma migrations")
+        return
+
+    # Import models here so SQLAlchemy registers them before create_all runs.
     from database.models import Base as ModelsBase
 
     logger.info("Initializing database tables")

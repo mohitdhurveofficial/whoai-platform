@@ -32,7 +32,12 @@ from runtime.providers.provider_factory import ProviderFactory
 from runtime.encryption import decrypt
 
 router = APIRouter()
-GATEWAY_SECRET = os.getenv("GATEWAY_SECRET", "dev_secret")
+
+# No default: a known fallback secret lets anyone forge agent tokens for any
+# tenant. Fail closed so a misconfigured deploy never silently accepts forgeries.
+GATEWAY_SECRET = os.getenv("GATEWAY_SECRET")
+if not GATEWAY_SECRET:
+    raise RuntimeError("GATEWAY_SECRET environment variable is required")
 
 
 async def get_org_provider_key(db: AsyncSession, org_id: str, provider: str) -> Optional[str]:

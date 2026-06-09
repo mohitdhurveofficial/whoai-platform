@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerAuthContext } from '@/lib/server/auth';
 
-export async function GET(request: Request) {
-  // In a real app, extract organizationId from session/auth
-  // For now, get it from search params or mock it
-  const { searchParams } = new URL(request.url);
-  const organizationId = searchParams.get('organizationId');
-
-  if (!organizationId) {
-    return NextResponse.json({ error: 'organizationId is required' }, { status: 400 });
+export async function GET() {
+  const auth = await getServerAuthContext();
+  if (!auth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const spendLogs = await prisma.spendLog.findMany({
-    where: { organizationId },
+    where: { organizationId: auth.organizationId },
     orderBy: { createdAt: 'desc' },
     take: 100,
     include: { agent: true },

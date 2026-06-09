@@ -115,6 +115,22 @@ export async function handleStripeEvent(
       return { type: event.type, handled: true };
     }
 
+    case "invoice.payment_succeeded": {
+      // A recovered payment must lift the org back out of past_due. Only touch
+      // orgs currently marked past_due so we never clobber a more specific
+      // status (e.g. canceled) set by a subscription event.
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId =
+        typeof invoice.customer === "string" ? invoice.customer : null;
+      if (!customerId) return { type: event.type, handled: false };
+
+      await db.organization.updateMany({
+        where: { stripeCustomerId: customerId, subscriptionStatus: "past_due" },
+        data: { subscriptionStatus: "active" },
+      });
+      return { type: event.type, handled: true };
+    }
+
     default:
       return { type: event.type, handled: false };
   }

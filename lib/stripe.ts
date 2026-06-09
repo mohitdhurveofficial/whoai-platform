@@ -10,7 +10,10 @@ export function getStripe(): Stripe {
     if (!secretKey) {
       throw new Error("STRIPE_SECRET_KEY environment variable is not set");
     }
-    client = new Stripe(secretKey);
+    // Pin the API version so the response shapes match what stripe-sync.ts
+    // reads (e.g. current_period_end on subscription items in dahlia), instead
+    // of silently following the account's default dashboard version.
+    client = new Stripe(secretKey, { apiVersion: "2026-05-27.dahlia" });
   }
   return client;
 }
