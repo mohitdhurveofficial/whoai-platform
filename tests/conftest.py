@@ -1,7 +1,14 @@
+import os
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+# Required secrets must exist before importing the app: the gateway now fails
+# closed when GATEWAY_SECRET is unset. Provide test defaults so the suite runs
+# without a .env file (e.g. in CI).
+os.environ.setdefault("GATEWAY_SECRET", "test-gateway-secret-do-not-use-in-prod")
+os.environ.setdefault("ENCRYPTION_KEY", "a" * 64)
 
 import pytest
 from httpx import AsyncClient, ASGITransport

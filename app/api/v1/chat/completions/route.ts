@@ -9,6 +9,16 @@ import { CostEngine } from "@/lib/cost-engine";
 import { SpendEngine } from "@/lib/spend-engine";
 import { UsageEngine } from "@/lib/usage-engine";
 import { GatewayError, providerErrorToStatus } from "@/lib/gateway/http";
+import { corsHeaders, corsPreflight, rateLimit } from "@/lib/gateway/cors";
+
+export function OPTIONS() {
+  return corsPreflight();
+}
+
+// JSON response carrying CORS headers, signature-compatible with NextResponse.json.
+function json(body: unknown, init?: { status?: number }) {
+  return NextResponse.json(body, { status: init?.status ?? 200, headers: corsHeaders });
+}
 
 // Rough token estimate for the pre-flight budget check (~4 chars/token).
 function estimateTokens(text: string): number {
@@ -25,25 +35,33 @@ export async function POST(req: Request) {
   try {
     const auth = req.headers.get("authorization");
     if (!auth?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Missing or invalid API Key" }, { status: 401 });
+      return json({ error: "Missing or invalid API Key" }, { status: 401 });
     }
 
     const key = auth.replace("Bearer ", "");
     const apiKey = await validateApiKey(key);
     if (!apiKey) {
-      return NextResponse.json({ error: "Invalid API Key" }, { status: 401 });
+      return json({ error: "Invalid API Key" }, { status: 401 });
+    }
+
+    const limit = rateLimit(apiKey.id);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Slow down." },
+        { status: 429, headers: { ...corsHeaders, "Retry-After": String(limit.retryAfterSec) } },
+      );
     }
 
     const body = await req.json().catch(() => null);
     if (!body?.messages || !body?.provider || !body?.model) {
-      return NextResponse.json(
+      return json(
         { error: "messages, provider, and model are required" },
         { status: 400 },
       );
     }
 
     if (body.stream) {
-      return NextResponse.json(
+      return json(
         { error: "Streaming is not supported on this endpoint yet" },
         { status: 501 },
       );
@@ -52,7 +70,7 @@ export async function POST(req: Request) {
     const providerName = String(body.provider).toLowerCase();
     const agentId = req.headers.get("x-agent-id") || body.agent_id;
     if (!agentId) {
-      return NextResponse.json(
+      return json(
         { error: "x-agent-id header or agent_id in body is required" },
         { status: 400 },
       );
@@ -75,7 +93,7 @@ export async function POST(req: Request) {
     });
 
     if (!governance.allowed) {
-      return NextResponse.json(
+      return json(
         { error: governance.reason, killSwitch: governance.killSwitch ?? false },
         { status: denialStatus(governance.reason) },
       );
@@ -91,7 +109,7 @@ export async function POST(req: Request) {
       },
     });
     if (!credential || credential.status !== "CONNECTED") {
-      return NextResponse.json(
+      return json(
         { error: `Provider ${providerName} is not configured or connected` },
         { status: 400 },
       );
@@ -153,17 +171,17 @@ export async function POST(req: Request) {
       console.error("Gateway accounting error:", logErr instanceof Error ? logErr.message : logErr);
     }
 
-    return NextResponse.json({ ...response, cost });
+    return json({ ...response, cost });
   } catch (error) {
     if (error instanceof GatewayError) {
       console.error(`Gateway upstream error [${error.provider}]:`, error.message);
-      return NextResponse.json(
+      return json(
         { error: error.message, provider: error.provider },
         { status: providerErrorToStatus(error.status) },
       );
     }
     console.error("Gateway Error:", error);
-    return NextResponse.json(
+    return json(
       { error: error instanceof Error ? error.message : "Internal Gateway Error" },
       { status: 500 },
     );

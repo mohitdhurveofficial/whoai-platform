@@ -1,10 +1,21 @@
-console.log("Database configured:", !!process.env.DATABASE_URL);
 import OpenAI from "openai";
 import { validateApiKey } from "@/lib/security/validate-api-key";
 import { prisma } from "@/lib/prisma";
-import { checkBudget } from "@/lib/budget/check-budget"; // add this
+import { checkBudget } from "@/lib/budget/check-budget";
 import { SpendEngine } from "@/lib/spend-engine";
 import { UsageEngine } from "@/lib/usage-engine";
+import { corsHeaders, corsPreflight, rateLimit } from "@/lib/gateway/cors";
+
+export function OPTIONS() {
+  return corsPreflight();
+}
+
+function json(body: unknown, init?: { status?: number; headers?: Record<string, string> }) {
+  return Response.json(body, {
+    status: init?.status ?? 200,
+    headers: { ...corsHeaders, ...(init?.headers ?? {}) },
+  });
+}
 
 function getGroqClient() {
   const groqApiKey = process.env.GROQ_API_KEY;
@@ -21,17 +32,12 @@ function getGroqClient() {
 
 export async function POST(req: Request) {
   try {
-    console.log("STEP 0: REQUEST RECEIVED");
-
     const openai = getGroqClient();
 
     const auth = req.headers.get("authorization");
 
     if (!auth?.startsWith("Bearer ")) {
-      return Response.json(
-        { error: "Missing API Key" },
-        { status: 401 }
-      );
+      return json({ error: "Missing API Key" }, { status: 401 });
     }
 
     const key = auth.replace("Bearer ", "");
@@ -39,16 +45,21 @@ export async function POST(req: Request) {
     const apiKey = await validateApiKey(key);
 
     if (!apiKey) {
-      return Response.json(
-        { error: "Invalid API Key" },
-        { status: 401 }
+      return json({ error: "Invalid API Key" }, { status: 401 });
+    }
+
+    const limit = rateLimit(apiKey.id);
+    if (!limit.allowed) {
+      return json(
+        { error: "Rate limit exceeded. Slow down." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } },
       );
     }
 
     const allowed = await checkBudget(apiKey.organizationId);
 
     if (!allowed) {
-      return Response.json(
+      return json(
         { error: "Budget exceeded" },
         { status: 402 }
       );
@@ -57,7 +68,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     if (!body?.messages) {
-      return Response.json(
+      return json(
         { error: "Messages are required" },
         { status: 400 }
       );
@@ -66,7 +77,7 @@ export async function POST(req: Request) {
     // Attribute spend to a real agent the caller owns — never a hardcoded id.
     const agentId = req.headers.get("x-agent-id") || body.agent_id;
     if (!agentId) {
-      return Response.json(
+      return json(
         { error: "x-agent-id header or agent_id in body is required" },
         { status: 400 }
       );
@@ -77,13 +88,13 @@ export async function POST(req: Request) {
       select: { id: true, status: true },
     });
     if (!agent) {
-      return Response.json(
+      return json(
         { error: "Agent not found or does not belong to your organization" },
         { status: 403 }
       );
     }
     if (agent.status !== "ACTIVE") {
-      return Response.json({ error: `Agent is ${agent.status}` }, { status: 403 });
+      return json({ error: `Agent is ${agent.status}` }, { status: 403 });
     }
 
     const start = Date.now();
@@ -147,11 +158,11 @@ export async function POST(req: Request) {
   throw error;
 }
 
-    return Response.json(completion);
+    return json(completion);
   } catch (error) {
     console.error("Chat API Error:", error);
 
-    return Response.json(
+    return json(
       {
         error: error instanceof Error ? error.message : "Internal Server Error",
       },
