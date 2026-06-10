@@ -148,6 +148,9 @@ async def format_stream_response(
         db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, "SUCCESS",
         {"model": model, "provider": provider, "latency_ms": latency_ms, "cost": str(cost)}
     )
+    # Persist telemetry for streamed requests too; the session is otherwise
+    # rolled back on close and all spend for this request is lost.
+    await db.commit()
 
 async def execute_with_retry(provider_instance, method_name: str, *args, **kwargs):
     max_retries = 3
@@ -292,7 +295,11 @@ async def unified_chat_completions(
                     db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, "SUCCESS",
                     {"model": model, "provider": current_provider, "latency_ms": latency_ms, "cost": str(cost)}
                 )
-                
+                # Persist telemetry. Without this commit get_db() closes the
+                # session and rolls back the SpendLog, UsageMetrics, completion
+                # ActivityLog, and the spend counters — so budgets never see spend.
+                await db.commit()
+
                 return response
         except Exception as e:
             last_error = e
