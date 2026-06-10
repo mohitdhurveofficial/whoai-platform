@@ -9,12 +9,14 @@ import {
   getSpendByModel,
 } from "@/lib/analytics/service";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { prisma } from "@/lib/prisma";
 import {
   SpendAgentBarChart,
   SpendLineChart,
   SpendModelPieChart,
 } from "@/app/components/analytics/DashboardCharts";
 import { SummaryCards } from "./SummaryCards";
+import { ProviderSetupBanner } from "@/components/ProviderSetupBanner";
 
 function EmptyChart({ label }: { label: string }) {
   return (
@@ -28,11 +30,12 @@ export default async function DashboardPage() {
   const auth = await getServerAuthContext();
   if (!auth) redirect("/login");
 
-  const [summary, spendByDay, spendByAgent, spendByModel] = await Promise.all([
+  const [summary, spendByDay, spendByAgent, spendByModel, providerCount] = await Promise.all([
     getDashboardSummary(auth.organizationId),
     getSpendByDay(auth.organizationId),
     getSpendByAgent(auth.organizationId),
     getSpendByModel(auth.organizationId),
+    prisma.providerCredential.count({ where: { organizationId: auth.organizationId } }),
   ]);
 
   const hasSpend = summary.totalSpend > 0;
@@ -53,6 +56,8 @@ export default async function DashboardPage() {
           Usage Explorer
         </Link>
       </header>
+
+      <ProviderSetupBanner configuredCount={providerCount} />
 
       <SummaryCards />
 

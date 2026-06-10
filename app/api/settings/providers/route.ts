@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
 import { encrypt } from "@/lib/encryption";
+import { validateKeyFormat } from "@/lib/providers/key-format";
 
 export async function GET() {
   const auth = await getServerAuthContext();
@@ -16,12 +17,21 @@ export async function GET() {
         id: true,
         provider: true,
         status: true,
+        keyLast4: true,
+        lastTestedAt: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return NextResponse.json({ success: true, providers });
+    // Never return the raw or encrypted key. Surface only a masked hint built
+    // from the non-sensitive last 4 characters.
+    const masked = providers.map((p) => ({
+      ...p,
+      maskedKey: p.keyLast4 ? `••••••••${p.keyLast4}` : null,
+    }));
+
+    return NextResponse.json({ success: true, providers: masked });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal error" },
@@ -47,12 +57,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const validProviders = ["openai", "anthropic", "gemini", "grok", "deepseek"];
-    if (!validProviders.includes(provider)) {
-      return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
+    // Validate the key shape before doing anything else. On failure we return
+    // the reason but never echo the key back.
+    const format = validateKeyFormat(provider, apiKey);
+    if (!format.ok) {
+      return NextResponse.json({ error: format.reason }, { status: 400 });
     }
 
-    const encryptedApiKey = encrypt(apiKey);
+    const key = String(apiKey).trim();
+    const encryptedApiKey = encrypt(key);
+    const keyLast4 = key.slice(-4);
 
     const credential = await prisma.providerCredential.upsert({
       where: {
@@ -63,12 +77,15 @@ export async function POST(req: Request) {
       },
       update: {
         encryptedApiKey,
+        keyLast4,
         status: "CONNECTED",
+        lastTestedAt: null,
       },
       create: {
         organizationId: auth.organizationId,
         provider,
         encryptedApiKey,
+        keyLast4,
         status: "CONNECTED",
       },
     });
@@ -79,6 +96,7 @@ export async function POST(req: Request) {
         id: credential.id,
         provider: credential.provider,
         status: credential.status,
+        maskedKey: `••••••••${credential.keyLast4}`,
       },
     });
   } catch (error) {

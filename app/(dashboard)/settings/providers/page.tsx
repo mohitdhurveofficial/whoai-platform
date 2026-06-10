@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, Trash2, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, Loader2, Plug } from "lucide-react";
 
 type Provider = {
   id: string;
   provider: string;
   status: string;
+  maskedKey: string | null;
+  lastTestedAt: string | null;
 };
 
 const PROVIDERS = [
@@ -21,6 +23,7 @@ export default function ProvidersPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [testing, setTesting] = useState<string | null>(null);
   const [keys, setKeys] = useState<{ [key: string]: string }>({});
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -87,6 +90,30 @@ export default function ProvidersPage() {
     }
   };
 
+  const handleTest = async (providerId: string) => {
+    setTesting(providerId);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/settings/providers/${providerId}/test`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setMessage({ type: "success", text: `${providerId} connection verified.` });
+      } else {
+        setMessage({
+          type: "error",
+          text: data.detail || data.error || `${providerId} connection failed.`,
+        });
+      }
+      fetchProviders();
+    } catch (e) {
+      setMessage({ type: "error", text: e instanceof Error ? e.message : "Connection test failed." });
+    } finally {
+      setTesting(null);
+    }
+  };
+
   const handleDelete = async (providerId: string) => {
     if (!confirm("Are you sure you want to remove this key?")) return;
     
@@ -137,6 +164,7 @@ export default function ProvidersPage() {
         {PROVIDERS.map((provider) => {
           const config = providers.find((p) => p.provider === provider.id);
           const isConnected = !!config;
+          const status = config?.status;
 
           return (
             <div key={provider.id} className="p-5 border border-[#EEE8E2] rounded-lg bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -146,14 +174,30 @@ export default function ProvidersPage() {
                 </div>
                 <div>
                   <h4 className="text-[#111111] font-medium text-[15px]">{provider.name}</h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    {isConnected ? (
-                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span> Connected
-                      </span>
-                    ) : (
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {!isConnected ? (
                       <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#888888] bg-[#FAF7F3] px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#666]"></span> Not Configured
+                      </span>
+                    ) : status === "DISCONNECTED" ? (
+                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Disconnected
+                      </span>
+                    ) : config?.lastTestedAt ? (
+                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Connected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[12px] font-medium text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Not tested
+                      </span>
+                    )}
+                    {config?.maskedKey && (
+                      <span className="text-[12px] text-[#888888] font-mono">{config.maskedKey}</span>
+                    )}
+                    {config?.lastTestedAt && (
+                      <span className="text-[11px] text-[#999999]">
+                        tested {new Date(config.lastTestedAt).toLocaleString()}
                       </span>
                     )}
                   </div>
@@ -168,7 +212,7 @@ export default function ProvidersPage() {
                   onChange={(e) => setKeys({ ...keys, [provider.id]: e.target.value })}
                   className="bg-[#FAF7F3] border border-[#EEE8E2] text-[#111111] text-[14px] rounded-md px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#FF6B00] placeholder-[#999]"
                 />
-                
+
                 <button
                   onClick={() => handleSave(provider.id)}
                   disabled={!keys[provider.id] || saving === provider.id}
@@ -178,13 +222,23 @@ export default function ProvidersPage() {
                 </button>
 
                 {isConnected && (
-                  <button
-                    onClick={() => handleDelete(provider.id)}
-                    disabled={saving === provider.id}
-                    className="p-2 text-[#888] hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleTest(provider.id)}
+                      disabled={testing === provider.id}
+                      title="Test connection"
+                      className="flex items-center gap-1.5 border border-[#EEE8E2] text-[#444] hover:border-[#FF6B00] hover:text-[#FF6B00] disabled:opacity-50 px-3 py-2 rounded-md text-[14px] font-medium transition-colors min-w-[88px] justify-center"
+                    >
+                      {testing === provider.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plug className="w-4 h-4" /> Test</>}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(provider.id)}
+                      disabled={saving === provider.id}
+                      className="p-2 text-[#888] hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>

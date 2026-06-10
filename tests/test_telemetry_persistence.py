@@ -26,10 +26,12 @@ from database.models import (
     Agent,
     Base,
     Organization,
+    ProviderCredential,
     SpendLog,
     UsageMetrics,
 )
 from database.session import get_db
+from runtime.encryption import encrypt
 from runtime.main import app
 from runtime.routers import gateway
 from runtime.telemetry.activity_logger import ActivityAction
@@ -73,6 +75,18 @@ async def _seed(maker, *, daily_budget=Decimal("0"), monthly_budget=Decimal("0")
                 monthlyBudget=monthly_budget,
             )
         )
+        # Strict BYOK: the gateway now requires the org to have its own provider
+        # key, so seed encrypted credentials for the providers these tests call.
+        for provider in ("openai", "anthropic"):
+            s.add(
+                ProviderCredential(
+                    id="cred-" + uuid.uuid4().hex,
+                    organizationId=org_id,
+                    provider=provider,
+                    encryptedApiKey=encrypt(f"sk-test-{provider}-key"),
+                    status="CONNECTED",
+                )
+            )
         await s.commit()
     return org_id, agent_id
 

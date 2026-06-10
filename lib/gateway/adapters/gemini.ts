@@ -1,8 +1,19 @@
-import { ProviderAdapter, ChatRequest, ChatResponse } from "./types";
+import { ProviderAdapter, ChatRequest, ChatResponse, KeyCheckResult } from "./types";
 import { providerFetch } from "../http";
+import { runAuthCheck } from "./connection-test";
 
 export class GeminiAdapter implements ProviderAdapter {
   provider = "gemini";
+
+  async validateKey(apiKey: string): Promise<KeyCheckResult> {
+    // Listing models authenticates the key with no token cost. Key goes in a
+    // header rather than the query string so it never lands in logs/proxies.
+    return runAuthCheck(
+      "https://generativelanguage.googleapis.com/v1beta/models",
+      { method: "GET", headers: { "x-goog-api-key": apiKey } },
+      { provider: this.provider },
+    );
+  }
 
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();

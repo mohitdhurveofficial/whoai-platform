@@ -1,3 +1,8 @@
+// Cost is computed for OBSERVABILITY only. WHOAI is a strict BYOK platform:
+// the customer pays OpenAI/Anthropic/etc. directly with their own key, so this
+// figure is the customer's own provider spend that we surface for FinOps
+// (budgets, alerts, dashboards). It is NOT a charge WHOAI bills or pays —
+// WHOAI revenue is subscription + platform fee only (see REVENUE_MODEL.md).
 export interface CostCalculationParams {
   model: string;
   inputTokens: number;

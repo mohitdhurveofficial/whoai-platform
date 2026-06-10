@@ -1,9 +1,18 @@
-import { ProviderAdapter, ChatRequest, ChatResponse } from "./types";
+import { ProviderAdapter, ChatRequest, ChatResponse, KeyCheckResult } from "./types";
 import { providerFetch } from "../http";
+import { runAuthCheck } from "./connection-test";
 
 // Grok is an OpenAI-compatible API.
 export class GrokAdapter implements ProviderAdapter {
   provider = "grok";
+
+  async validateKey(apiKey: string): Promise<KeyCheckResult> {
+    return runAuthCheck(
+      "https://api.x.ai/v1/models",
+      { method: "GET", headers: { Authorization: `Bearer ${apiKey}` } },
+      { provider: this.provider },
+    );
+  }
 
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();

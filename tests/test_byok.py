@@ -62,7 +62,10 @@ async def test_get_org_provider_key_none_when_absent(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_org_provider_key_falls_back_on_corrupt(monkeypatch):
+async def test_get_org_provider_key_none_when_corrupt(monkeypatch):
+    # A corrupt/undecryptable credential yields None. The gateway treats None as
+    # "no usable key" and fails closed (BYOK_KEY_MISSING) — it never falls back
+    # to a platform key, because WHOAI must never pay model costs.
     monkeypatch.setenv("ENCRYPTION_KEY", TEST_KEY)
     db = _db_returning(_credential("garbage:garbage:garbage"))
     key = await get_org_provider_key(db, "org-1", "openai")

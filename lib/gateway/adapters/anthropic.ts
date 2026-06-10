@@ -1,8 +1,21 @@
-import { ProviderAdapter, ChatRequest, ChatResponse } from "./types";
+import { ProviderAdapter, ChatRequest, ChatResponse, KeyCheckResult } from "./types";
 import { providerFetch } from "../http";
+import { runAuthCheck } from "./connection-test";
 
 export class AnthropicAdapter implements ProviderAdapter {
   provider = "anthropic";
+
+  async validateKey(apiKey: string): Promise<KeyCheckResult> {
+    // GET /v1/models authenticates the key without spending any tokens.
+    return runAuthCheck(
+      "https://api.anthropic.com/v1/models",
+      {
+        method: "GET",
+        headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+      },
+      { provider: this.provider },
+    );
+  }
 
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();

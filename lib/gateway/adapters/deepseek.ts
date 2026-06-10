@@ -1,9 +1,18 @@
-import { ProviderAdapter, ChatRequest, ChatResponse } from "./types";
+import { ProviderAdapter, ChatRequest, ChatResponse, KeyCheckResult } from "./types";
 import { providerFetch } from "../http";
+import { runAuthCheck } from "./connection-test";
 
 // DeepSeek is an OpenAI-compatible API.
 export class DeepSeekAdapter implements ProviderAdapter {
   provider = "deepseek";
+
+  async validateKey(apiKey: string): Promise<KeyCheckResult> {
+    return runAuthCheck(
+      "https://api.deepseek.com/models",
+      { method: "GET", headers: { Authorization: `Bearer ${apiKey}` } },
+      { provider: this.provider },
+    );
+  }
 
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();

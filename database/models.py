@@ -144,6 +144,9 @@ class ProviderCredential(Base):
     # AES-256-GCM ciphertext, format "iv:authTag:ciphertext" (see lib/encryption.ts).
     encryptedApiKey = Column(Text, nullable=False)
     status = Column(String, default="CONNECTED")
+    # Non-sensitive last 4 characters of the key, for masked display only.
+    keyLast4 = Column(String, nullable=True)
+    lastTestedAt = Column(DateTime, nullable=True)
 
     createdAt = Column(DateTime, default=datetime.utcnow)
     updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -259,6 +259,8 @@ model ProviderCredential {
   provider        String
   encryptedApiKey String       @db.Text
   status          String       @default("CONNECTED")
+  keyLast4        String?
+  lastTestedAt    DateTime?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

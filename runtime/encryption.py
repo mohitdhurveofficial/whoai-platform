@@ -42,3 +42,20 @@ def decrypt(payload: str) -> str:
 
     plaintext = decryptor.update(ciphertext) + decryptor.finalize()
     return plaintext.decode("utf-8")
+
+
+def encrypt(plaintext: str) -> str:
+    """Encrypt to the same "iv:authTag:ciphertext" hex format as lib/encryption.ts.
+
+    Production credentials are encrypted by the Next.js control plane; this
+    counterpart exists for parity and for tooling/tests (e.g. seeding a
+    ProviderCredential the gateway can decrypt). Uses a 16-byte IV to match the
+    TS implementation.
+    """
+    iv = os.urandom(16)
+    encryptor = Cipher(
+        algorithms.AES(_key()),
+        modes.GCM(iv),
+    ).encryptor()
+    ciphertext = encryptor.update(plaintext.encode("utf-8")) + encryptor.finalize()
+    return f"{iv.hex()}:{encryptor.tag.hex()}:{ciphertext.hex()}"

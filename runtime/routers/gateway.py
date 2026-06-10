@@ -41,9 +41,14 @@ if not GATEWAY_SECRET:
 
 
 async def get_org_provider_key(db: AsyncSession, org_id: str, provider: str) -> Optional[str]:
-    """Return the org's decrypted BYOK key for a provider, or None to fall back
-    to the platform key. Scoped by organizationId so one org can never use
-    another org's credential."""
+    """Return the org's decrypted BYOK key for a provider, or None if the org
+    has no usable key for it. Scoped by organizationId so one org can never use
+    another org's credential.
+
+    WHOAI is a strict BYOK platform: there is deliberately NO platform-key
+    fallback here. A None result means the gateway must fail the request with a
+    clear "add your key" error rather than spend WHOAI's own credits.
+    """
     result = await db.execute(
         select(ProviderCredential).where(
             ProviderCredential.organizationId == org_id,
@@ -56,8 +61,8 @@ async def get_org_provider_key(db: AsyncSession, org_id: str, provider: str) -> 
     try:
         return decrypt(credential.encryptedApiKey)
     except Exception:
-        # A corrupt/undecryptable credential must not take the gateway down;
-        # fall back to the platform key.
+        # A corrupt/undecryptable credential is treated as "no usable key"; the
+        # caller fails closed and prompts the customer to re-enter it.
         return None
 
 def _pause_reason_from_budget(reason: Optional[str]) -> str:
@@ -262,15 +267,18 @@ async def unified_chat_completions(
         providers_to_try.append(fallback_name)
 
     last_error = None
+    missing_key_providers = []
     for current_provider in providers_to_try:
+        # Strict BYOK: the request must run on the org's own provider key. If no
+        # usable key is configured for this provider, skip it (a fallback
+        # provider may still have one) rather than spending WHOAI's credits.
+        byok_key = await get_org_provider_key(db, org_id, current_provider)
+        if not byok_key:
+            missing_key_providers.append(current_provider)
+            continue
+
         try:
-            # Use the org's own (BYOK) provider key when configured, otherwise
-            # fall back to the platform key.
-            byok_key = await get_org_provider_key(db, org_id, current_provider)
-            if byok_key:
-                provider_instance = ProviderFactory.get_provider(current_provider, api_key=byok_key)
-            else:
-                provider_instance = ProviderFactory.get_provider(current_provider)
+            provider_instance = ProviderFactory.get_provider(current_provider, api_key=byok_key)
             if stream:
                 stream_gen = await provider_instance.stream_completion(model, messages, **body)
                 return StreamingResponse(
@@ -304,7 +312,25 @@ async def unified_chat_completions(
         except Exception as e:
             last_error = e
             continue
-            
+
+    # No provider had a usable BYOK key, and none was actually called. Fail
+    # closed with a clear, actionable error instead of paying with WHOAI's keys.
+    if last_error is None and missing_key_providers:
+        await log_activity(
+            db, org_id, ActivityAction.REQUEST_FAILED, agent_id, "FAILURE",
+            {"reason": "BYOK_KEY_MISSING", "providers": missing_key_providers},
+        )
+        await db.commit()  # persist the audit log
+        primary = missing_key_providers[0]
+        return JSONResponse(
+            status_code=402,
+            content={
+                "error": f"No {primary} API key configured for your organization",
+                "reason": "BYOK_KEY_MISSING",
+                "setup": f"Add your {primary} key in Settings → Providers to start routing requests.",
+            },
+        )
+
     # If all failed
     latency_ms = int((time.time() - start_time) * 1000)
     await log_request(db, agent_id, org_id, provider_name, model, payload_size, 502, latency_ms, ip_address)
