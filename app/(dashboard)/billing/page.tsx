@@ -9,7 +9,8 @@ const TIER_RANK: Record<string, number> = {
   FREE: 0,
   STARTUP: 1,
   GROWTH: 2,
-  ENTERPRISE: 3,
+  PRO: 3,
+  ENTERPRISE: 4,
 };
 
 type Subscription = {
@@ -22,9 +23,10 @@ type Subscription = {
 };
 
 const PLANS = [
-  { tier: "STARTUP", label: "Startup", price: "$2,000/mo", blurb: "Up to 5 agents", agents: "5 agents" },
-  { tier: "GROWTH", label: "Growth", price: "$5,000/mo", blurb: "Up to 25 agents", agents: "25 agents" },
-  { tier: "ENTERPRISE", label: "Enterprise", price: "Custom", blurb: "Unlimited agents", agents: "Unlimited" },
+  { tier: "STARTUP", label: "Starter", price: "$99/mo", blurb: "Budget controls + kill switches", agents: "10 agents" },
+  { tier: "GROWTH", label: "Growth", price: "$299/mo", blurb: "RBAC, governance & anomaly detection", agents: "50 agents" },
+  { tier: "PRO", label: "Pro", price: "$799/mo", blurb: "Scale governance, SSO & audit exports", agents: "200 agents" },
+  { tier: "ENTERPRISE", label: "Enterprise", price: "Custom", blurb: "SAML SSO, SLA, unlimited & self-hosted", agents: "Unlimited" },
 ];
 
 export default function BillingPage() {
@@ -156,7 +158,7 @@ export default function BillingPage() {
       </div>
 
       {/* Plans */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((plan) => {
           const isCurrent = currentTier === plan.tier;
           const isDowngrade = TIER_RANK[plan.tier] < (TIER_RANK[currentTier] ?? 0);

@@ -4,7 +4,7 @@ Logs lifecycle events of AI requests.
 """
 import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,7 +40,7 @@ async def log_activity(
     try:
         activity_log = ActivityLog(
             id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             organizationId=organization_id,
             agentId=agent_id,
             action=action,

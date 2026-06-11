@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
@@ -28,7 +28,7 @@ def _money(value: Any) -> Decimal:
 
 
 def _period_start(period: str) -> datetime:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if period == "month":
         return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -54,19 +54,23 @@ async def _calculate_spend(
 
 
 async def calculate_agent_daily_spend(db: AsyncSession, agent_id: str, organization_id: str) -> Decimal:
-    return await _calculate_spend(db, organization_id=organization_id, agent_id=agent_id, period="day")
+    result = await db.execute(select(Agent.currentDailySpend).where(Agent.id == agent_id))
+    return _money(result.scalar())
 
 
 async def calculate_agent_monthly_spend(db: AsyncSession, agent_id: str, organization_id: str) -> Decimal:
-    return await _calculate_spend(db, organization_id=organization_id, agent_id=agent_id, period="month")
+    result = await db.execute(select(Agent.currentMonthlySpend).where(Agent.id == agent_id))
+    return _money(result.scalar())
 
 
 async def calculate_org_daily_spend(db: AsyncSession, organization_id: str) -> Decimal:
-    return await _calculate_spend(db, organization_id=organization_id, period="day")
+    result = await db.execute(select(Organization.currentDailySpend).where(Organization.id == organization_id))
+    return _money(result.scalar())
 
 
 async def calculate_org_monthly_spend(db: AsyncSession, organization_id: str) -> Decimal:
-    return await _calculate_spend(db, organization_id=organization_id, period="month")
+    result = await db.execute(select(Organization.currentMonthlySpend).where(Organization.id == organization_id))
+    return _money(result.scalar())
 
 
 def _decision(
@@ -147,7 +151,7 @@ async def _record_budget_violation(
     db.add(
         ActivityLog(
             id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             organizationId=organization_id,
             agentId=agent_id,
             action="BUDGET_EXCEEDED",
@@ -162,7 +166,7 @@ async def check_agent_budget(db: AsyncSession, agent: Agent) -> Dict[str, Option
     monthly_limit = _money(agent.monthlyBudget)
 
     if daily_limit > 0:
-        daily_spend = await calculate_agent_daily_spend(db, agent.id, agent.organizationId)
+        daily_spend = _money(agent.currentDailySpend)
         if daily_spend >= daily_limit:
             await _record_budget_violation(
                 db,
@@ -181,7 +185,7 @@ async def check_agent_budget(db: AsyncSession, agent: Agent) -> Dict[str, Option
             )
 
     if monthly_limit > 0:
-        monthly_spend = await calculate_agent_monthly_spend(db, agent.id, agent.organizationId)
+        monthly_spend = _money(agent.currentMonthlySpend)
         if monthly_spend >= monthly_limit:
             await _record_budget_violation(
                 db,
@@ -207,7 +211,7 @@ async def check_org_budget(db: AsyncSession, organization: Organization, agent_i
     monthly_limit = _money(organization.monthlyBudget)
 
     if daily_limit > 0:
-        daily_spend = await calculate_org_daily_spend(db, organization.id)
+        daily_spend = _money(organization.currentDailySpend)
         if daily_spend >= daily_limit:
             await _record_budget_violation(
                 db,
@@ -226,7 +230,7 @@ async def check_org_budget(db: AsyncSession, organization: Organization, agent_i
             )
 
     if monthly_limit > 0:
-        monthly_spend = await calculate_org_monthly_spend(db, organization.id)
+        monthly_spend = _money(organization.currentMonthlySpend)
         if monthly_spend >= monthly_limit:
             await _record_budget_violation(
                 db,

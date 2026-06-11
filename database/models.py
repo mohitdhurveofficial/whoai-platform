@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import (
     Column,
     String,
@@ -35,8 +35,8 @@ class Organization(Base):
     pauseReason = Column(String, nullable=True)
     pausedAt = Column(DateTime, nullable=True)
 
-    createdAt = Column(DateTime, default=datetime.utcnow)
-    updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updatedAt = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 class Agent(Base):
     __tablename__ = "Agent"
@@ -59,7 +59,7 @@ class Agent(Base):
     pausedAt = Column(DateTime, nullable=True)
     pausedBy = Column(String, nullable=True)
 
-    createdAt = Column(DateTime, default=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class SpendLog(Base):
     __tablename__ = "SpendLog"
@@ -76,26 +76,26 @@ class SpendLog(Base):
 
     metadata_ = Column("metadata", JSON, nullable=True)
 
-    createdAt = Column(DateTime, default=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class ActivityLog(Base):
     __tablename__ = "ActivityLog"
 
     id = Column(String, primary_key=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
     agentId = Column(String, ForeignKey("Agent.id", ondelete="SET NULL"), nullable=True)
     action = Column(String, nullable=False)
     status = Column(String, nullable=True)
     metadata_ = Column("metadata", JSON, nullable=True)
     
-    createdAt = Column(DateTime, default=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class RequestLog(Base):
     __tablename__ = "RequestLog"
 
     id = Column(String, primary_key=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=False)
     organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
     
@@ -106,7 +106,7 @@ class RequestLog(Base):
     latencyMs = Column(Integer, default=0)
     ipAddress = Column(String, nullable=True)
 
-    createdAt = Column(DateTime, default=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class UsageMetrics(Base):
     __tablename__ = "UsageMetrics"
@@ -115,7 +115,7 @@ class UsageMetrics(Base):
     agentId = Column(String, ForeignKey("Agent.id", ondelete="CASCADE"), nullable=False)
     organizationId = Column(String, ForeignKey("Organization.id", ondelete="CASCADE"), nullable=False)
     
-    date = Column(DateTime, default=datetime.utcnow)
+    date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     totalRequests = Column(Integer, default=0)
     totalTokens = Column(Integer, default=0)
     totalCost = Column(Numeric(18, 4), default=0)
@@ -132,7 +132,7 @@ class Alert(Base):
     message = Column(String, nullable=False)
     metadata_ = Column("metadata", JSON, nullable=True)
     resolved = Column(Boolean, default=False)
-    createdAt = Column(DateTime, default=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class ProviderCredential(Base):
@@ -148,8 +148,8 @@ class ProviderCredential(Base):
     keyLast4 = Column(String, nullable=True)
     lastTestedAt = Column(DateTime, nullable=True)
 
-    createdAt = Column(DateTime, default=datetime.utcnow)
-    updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updatedAt = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         UniqueConstraint("organizationId", "provider", name="ProviderCredential_organizationId_provider_key"),

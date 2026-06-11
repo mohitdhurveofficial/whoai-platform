@@ -3,23 +3,51 @@
  *
  * The plan tier is stored on Organization.subscriptionTier and kept in sync
  * with Stripe by the billing webhook. Agent limits are enforced on creation.
+ *
+ * Launch pricing (developer-led funnel, value-based expansion):
+ *   Free $0 · Starter $99 · Growth $299 · Pro $799 · Enterprise custom (sales).
+ * `maxAgents` is the hard-enforced limit (see canCreateAgent). `monthlyRequests`
+ * and `retentionDays` document the tier and back the pricing UI; they are not
+ * yet enforced in the gateway.
  */
 
 export const PLAN_LIMITS = {
   FREE: {
-    maxAgents: 1,
+    maxAgents: 2,
+    monthlyRequests: 50_000,
+    retentionDays: 7,
+    priceMonthly: 0,
     label: "Free",
   },
   STARTUP: {
-    maxAgents: 5,
-    label: "Startup",
+    maxAgents: 10,
+    monthlyRequests: 1_000_000,
+    retentionDays: 30,
+    priceMonthly: 99,
+    label: "Starter",
   },
   GROWTH: {
-    maxAgents: 25,
+    maxAgents: 50,
+    monthlyRequests: 5_000_000,
+    retentionDays: 90,
+    priceMonthly: 299,
     label: "Growth",
   },
+  PRO: {
+    maxAgents: 200,
+    monthlyRequests: 20_000_000,
+    retentionDays: 180,
+    priceMonthly: 799,
+    label: "Pro",
+  },
   ENTERPRISE: {
-    maxAgents: 1000,
+    // Infinity → the subscription API reports "unlimited" and canCreateAgent
+    // never blocks. Enterprise volume/retention are negotiated per contract
+    // (priced on AI spend under management, from ~$2,000/mo annual).
+    maxAgents: Infinity,
+    monthlyRequests: Infinity,
+    retentionDays: 365,
+    priceMonthly: null,
     label: "Enterprise",
   },
 } as const;
@@ -49,6 +77,7 @@ export function planForPriceId(priceId?: string | null): PlanType {
   if (!priceId) return "FREE";
   if (priceId === process.env.STRIPE_STARTUP_PRICE_ID) return "STARTUP";
   if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) return "GROWTH";
+  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO";
   if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return "ENTERPRISE";
   return "FREE";
 }
@@ -60,6 +89,8 @@ export function priceIdForTier(tier: PlanType): string | undefined {
       return process.env.STRIPE_STARTUP_PRICE_ID;
     case "GROWTH":
       return process.env.STRIPE_GROWTH_PRICE_ID;
+    case "PRO":
+      return process.env.STRIPE_PRO_PRICE_ID;
     case "ENTERPRISE":
       return process.env.STRIPE_ENTERPRISE_PRICE_ID;
     default:

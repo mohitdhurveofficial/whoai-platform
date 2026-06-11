@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from database.session import get_db
+from database.session import get_db, async_session_maker
 from database.models import Agent, Organization, RequestLog, ProviderCredential
 
 # Telemetry Subsystem Imports
@@ -116,13 +116,13 @@ async def format_stream_response(
     org_id: str,
     model: str,
     provider: str,
-    db: AsyncSession,
     request_ip: str,
     payload_size: int,
     start_time: float
 ) -> AsyncGenerator[str, None]:
     
     tokens_out = 0
+    status_code = 200
     
     try:
         async for chunk in stream:
@@ -133,29 +133,32 @@ async def format_stream_response(
                     tokens_out += max(1, len(delta) // 4)
             yield f"data: {json.dumps(chunk)}\n\n"
         yield "data: [DONE]\n\n"
-    except Exception as e:
+    except BaseException as e:
+        status_code = 499 if isinstance(e, asyncio.CancelledError) else 500
+        raise
+    finally:
         latency_ms = int((time.time() - start_time) * 1000)
-        await log_request(db, agent_id, org_id, provider, model, payload_size, 500, latency_ms, request_ip)
-        raise e
-    
-    latency_ms = int((time.time() - start_time) * 1000)
-    await log_request(db, agent_id, org_id, provider, model, payload_size, 200, latency_ms, request_ip)
+        tokens_in = payload_size // 4
+        total_tokens = tokens_in + tokens_out
+        cost = calculate_cost(model, tokens_in, tokens_out)
+        
+        async def _save_telemetry():
+            # Use a fresh, detached session to ensure telemetry saves even if the
+            # request's dependency session was closed upon client disconnection.
+            async with async_session_maker() as telemetry_db:
+                await log_request(telemetry_db, agent_id, org_id, provider, model, payload_size, status_code, latency_ms, request_ip)
+                await log_spend(telemetry_db, org_id, agent_id, provider, model, tokens_in, tokens_out, total_tokens, cost)
+                await update_daily_metrics(telemetry_db, org_id, agent_id, total_tokens, cost)
+                
+                action_status = "SUCCESS" if status_code == 200 else ("CANCELLED" if status_code == 499 else "FAILURE")
+                await log_activity(
+                    telemetry_db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, action_status,
+                    {"model": model, "provider": provider, "latency_ms": latency_ms, "cost": str(cost)}
+                )
+                await telemetry_db.commit()
 
-    # Estimate input tokens (assuming payload size approx 4 chars per token)
-    tokens_in = payload_size // 4
-    total_tokens = tokens_in + tokens_out
-    cost = calculate_cost(model, tokens_in, tokens_out)
-    
-    # Log telemetry
-    await log_spend(db, org_id, agent_id, provider, model, tokens_in, tokens_out, total_tokens, cost)
-    await update_daily_metrics(db, org_id, agent_id, total_tokens, cost)
-    await log_activity(
-        db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, "SUCCESS",
-        {"model": model, "provider": provider, "latency_ms": latency_ms, "cost": str(cost)}
-    )
-    # Persist telemetry for streamed requests too; the session is otherwise
-    # rolled back on close and all spend for this request is lost.
-    await db.commit()
+        # Fire and forget to prevent CancelledError from interrupting the save
+        asyncio.create_task(_save_telemetry())
 
 async def execute_with_retry(provider_instance, method_name: str, *args, **kwargs):
     max_retries = 3
@@ -282,7 +285,7 @@ async def unified_chat_completions(
             if stream:
                 stream_gen = await provider_instance.stream_completion(model, messages, **body)
                 return StreamingResponse(
-                    format_stream_response(stream_gen, agent_id, org_id, model, current_provider, db, ip_address, payload_size, start_time),
+                    format_stream_response(stream_gen, agent_id, org_id, model, current_provider, ip_address, payload_size, start_time),
                     media_type="text/event-stream"
                 )
             else:
@@ -339,7 +342,7 @@ async def unified_chat_completions(
 
 @router.get("/providers/status")
 async def provider_health_checks():
-    providers = ["openai", "anthropic", "gemini", "grok", "deepseek"]
+    providers = ["openai", "anthropic", "grok", "deepseek"]
     results = {}
     
     async def check(prov_name):

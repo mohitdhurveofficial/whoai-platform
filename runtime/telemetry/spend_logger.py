@@ -3,7 +3,7 @@ Spend Logger for WHOAI Telemetry Engine.
 """
 import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import update
@@ -30,7 +30,7 @@ async def log_spend(
     try:
         spend_log = SpendLog(
             id=str(uuid.uuid4()),
-            createdAt=datetime.utcnow(),
+            createdAt=datetime.now(timezone.utc),
             organizationId=organization_id,
             agentId=agent_id,
             provider=provider,

@@ -90,3 +90,9 @@ export type UsageFilters = {
   model?: string;
   provider?: string;
 };
+
+export type UsageTimelinePoint = {
+  date: string;
+  requests: number;
+  spend: number;
+};

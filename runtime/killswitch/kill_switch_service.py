@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -74,7 +74,7 @@ def _add_activity(
     db.add(
         ActivityLog(
             id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             organizationId=organization_id,
             agentId=agent_id,
             action=action,
@@ -141,7 +141,7 @@ async def pause_agent(
     if agent.status != TERMINATED:
         agent.status = PAUSED
         agent.pauseReason = reason
-        agent.pausedAt = datetime.utcnow()
+        agent.pausedAt = datetime.now(timezone.utc)
         agent.pausedBy = paused_by
 
     _add_alert(
@@ -207,7 +207,7 @@ async def terminate_agent(
 ) -> Agent:
     agent.status = TERMINATED
     agent.pauseReason = reason
-    agent.pausedAt = datetime.utcnow()
+    agent.pausedAt = datetime.now(timezone.utc)
     agent.pausedBy = terminated_by
     return agent
 
@@ -226,7 +226,7 @@ async def pause_organization(
 
     organization.status = PAUSED
     organization.pauseReason = reason
-    organization.pausedAt = datetime.utcnow()
+    organization.pausedAt = datetime.now(timezone.utc)
 
     _add_alert(
         db,

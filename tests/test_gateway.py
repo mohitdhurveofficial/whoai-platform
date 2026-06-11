@@ -35,7 +35,7 @@ def test_invalid_jwt_token():
 def test_invalid_json_body(mock_token):
     response = client.post(
         "/api/v1/gateway/completions", 
-        data="invalid json",
+        content=b"invalid json",
         headers={"Authorization": f"Bearer {mock_token}"}
     )
     assert response.status_code == 400

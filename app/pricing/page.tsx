@@ -1,85 +1,115 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Server, Building2 } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
+import { ROICalculator } from "./roi-calculator";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple, value-based pricing for AI cost control. Growth, Enterprise Cloud, and self-hosted VPC plans.",
+    "Start free, then $99/mo. Budget controls and kill switches for AI agents — bring your own provider keys. Self-serve Free, Starter, Growth, and Pro plans, plus Enterprise and self-hosted VPC.",
   alternates: { canonical: "/pricing" },
 };
 
 const TIERS = [
   {
-    name: "Growth",
-    price: "$2,000",
+    name: "Free",
+    price: "$0",
     cadence: "/ month",
-    blurb: "For teams starting to scale internal AI agent usage.",
-    cta: "Book a demo",
-    href: "/demo",
+    blurb: "Try WHOAI with no risk",
+    cta: "Start free",
+    href: "/signup",
     highlighted: false,
     features: [
-      "High-performance AI gateway",
-      "Real-time cost tracking & telemetry",
-      "Spend by agent, model & team",
-      "Basic spend alerts",
-      "FinOps executive dashboards",
-      "Up to 25 agents",
+      "Bring your own keys (OpenAI, Anthropic & more)",
+      "Real-time spend & token analytics",
+      "Usage dashboards",
+      "1 budget alert",
+      "2 agents · 50k requests / mo",
+      "7-day data retention",
     ],
   },
   {
-    name: "Enterprise Cloud",
-    price: "$5k–$10k",
+    name: "Starter",
+    price: "$99",
     cadence: "/ month",
-    blurb: "For organizations with significant monthly token burn.",
-    cta: "Talk to sales",
-    href: "/demo",
+    blurb: "Stop runaway agents before they burn your budget.",
+    cta: "Start free trial",
+    href: "/signup",
     highlighted: true,
     features: [
-      "Everything in Growth",
-      "Automated budget controls & hard limits",
+      "Everything in Free",
+      "Budget controls & hard limits",
       "Instant kill switch for runaway agents",
-      "Cost anomaly detection",
-      "Organization RBAC & policy enforcement",
-      "Unlimited agents",
-      "Priority support",
+      "Multi-provider routing",
+      "10 agents · 1M requests / mo",
+      "30-day retention · email support",
     ],
   },
   {
-    name: "On-Prem / VPC",
-    price: "Custom",
-    cadence: "",
-    blurb: "For regulated industries needing strict data privacy.",
-    cta: "Contact us",
-    href: "/contact",
+    name: "Growth",
+    price: "$299",
+    cadence: "/ month",
+    blurb: "Governance and analytics for a fleet of agents in production.",
+    cta: "Start free trial",
+    href: "/signup",
     highlighted: false,
     features: [
-      "Everything in Enterprise Cloud",
-      "Private VPC / self-hosted deployment",
-      "Zero-data-retention gateway",
-      "SSO & custom integrations",
-      "Enterprise SLA & dedicated support",
+      "Everything in Starter",
+      "Org RBAC & policy enforcement",
+      "Cost anomaly detection",
+      "Provider failover routing",
+      "50 agents · 5M requests / mo",
+      "90-day retention · priority support",
+    ],
+  },
+  {
+    name: "Pro",
+    price: "$799",
+    cadence: "/ month",
+    blurb: "Mission-critical control once AI spend runs into five figures a month.",
+    cta: "Start free trial",
+    href: "/signup",
+    highlighted: false,
+    features: [
+      "Everything in Growth",
+      "SSO (Google / Okta) & audit-log export",
+      "Advanced governance policies",
+      "Onboarding & solution support",
+      "200 agents · 20M requests / mo",
+      "180-day retention",
     ],
   },
 ];
 
 const FAQ = [
   {
-    q: "How does WHOAI pay for itself?",
-    a: "Most teams reduce AI spend 15–30% through visibility, anomaly prevention, and budget enforcement. Preventing a single runaway-agent incident often covers a year of WHOAI.",
+    q: "Do I pay WHOAI for model usage?",
+    a: "No. WHOAI is bring-your-own-key (BYOK) — you connect your own OpenAI and Anthropic keys and pay those providers directly. Your WHOAI subscription covers the gateway, governance, and analytics only. We never mark up or resell tokens.",
+  },
+  {
+    q: "When is WHOAI worth paying for?",
+    a: "Once your agents are spending real money, a single runaway loop can burn thousands overnight. As a rule of thumb: Starter and Growth pay for themselves around $2k–10k/mo of AI spend; Pro and Enterprise are built for teams past ~$15k/mo, where the subscription is a small fraction of what one prevented incident saves.",
+  },
+  {
+    q: "Is there really a free plan?",
+    a: "Yes — Free is free forever, no credit card required. It's enough to instrument a couple of agents and see your spend. Upgrade when you need budget enforcement, more agents, or longer retention.",
+  },
+  {
+    q: "What makes WHOAI different from observability tools?",
+    a: "Most tools watch your spend after the fact. WHOAI sits in the path and can act — enforce hard budget limits and hit a kill switch the moment an agent goes haywire. That enforcement starts on the $99 Starter plan, not buried in an enterprise tier.",
   },
   {
     q: "Do you charge per seat?",
-    a: "No. Pricing is based on capabilities and deployment model, not seat counts — your whole team can use WHOAI.",
+    a: "No. Plans are based on agents and usage, not headcount — your whole team can use WHOAI on any plan.",
   },
   {
-    q: "Which providers are supported?",
-    a: "OpenAI, Anthropic, Google Gemini, Azure OpenAI, and AWS Bedrock through a single gateway, with more added regularly.",
+    q: "Can I self-host?",
+    a: "Yes. Enterprise customers can deploy WHOAI in their own cloud or VPC, including air-gapped environments with a zero-data-retention gateway. Talk to us about a self-hosted plan.",
   },
   {
-    q: "Is there a free trial?",
-    a: "Yes — start a free trial to explore the dashboard, or book a demo for a guided walkthrough tailored to your stack.",
+    q: "Do you mark up tokens?",
+    a: "No. WHOAI is bring-your-own-key (BYOK)—you connect your own OpenAI and Anthropic keys and pay those providers directly. Your WHOAI subscription covers the gateway, governance, and analytics only. We never mark up or resell tokens.",
   },
 ];
 
@@ -92,21 +122,24 @@ export default function PricingPage() {
             Pricing
           </span>
           <h1 className="text-[40px] md:text-[52px] leading-[1.1] font-extrabold tracking-tight mb-6">
-            Pay for control, not headcount
+            Start free. Scale when you do.
           </h1>
           <p className="text-[18px] text-[#666666] leading-relaxed">
-            Value-based plans that scale with your AI spend. Every plan includes the gateway,
-            real-time cost analytics, and a 30-day onboarding.
+            Budget controls and kill switches for your AI agents — on your own provider keys.
+            No token markup, no per-seat fees. Self-serve in minutes.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 items-start">
+        {/* ROI Calculator */}
+        <ROICalculator />
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
           {TIERS.map((tier) => (
             <div
               key={tier.name}
-              className={`rounded-2xl border p-8 flex flex-col ${
+              className={`rounded-2xl border p-7 flex flex-col h-full ${
                 tier.highlighted
-                  ? "border-[#FF6B00] bg-white shadow-xl shadow-[#FF6B00]/10 md:-translate-y-3"
+                  ? "border-[#FF6B00] bg-white shadow-xl shadow-[#FF6B00]/10 lg:-translate-y-2"
                   : "border-[#EEE8E2] bg-white shadow-sm"
               }`}
             >
@@ -116,10 +149,13 @@ export default function PricingPage() {
                 </span>
               )}
               <h3 className="text-[20px] font-bold mb-2">{tier.name}</h3>
-              <p className="text-[14px] text-[#666666] mb-6 min-h-[40px]">{tier.blurb}</p>
-              <div className="mb-6">
-                <span className="text-[36px] font-extrabold tracking-tight">{tier.price}</span>
-                <span className="text-[15px] text-[#888888]">{tier.cadence}</span>
+              <p className="text-[13px] text-[#666666] mb-6 min-h-[56px]">{tier.blurb}</p>
+              <div className="mb-6 flex items-start">
+                <span className="text-[34px] font-extrabold tracking-tight">{tier.price}</span>
+                <span className="text-[15px] text-[#888888] ml-2">{tier.cadence}</span>
+              </div>
+              <div className="mt-2 inline-block text-[12px] bg-[#FF6B00]/20 text-[#FF6B00] px-2 py-1 rounded">
+                Save 20% with annual billing
               </div>
               <Link
                 href={tier.href}
@@ -143,6 +179,67 @@ export default function PricingPage() {
           ))}
         </div>
 
+        <p className="text-center text-[13px] text-[#888888] mt-6">
+          All plans include the gateway, BYOK, and real-time spend analytics. Annual billing saves
+          two months. You always pay your AI providers directly — WHOAI never marks up tokens.
+        </p>
+
+        {/* Founding customer offer — the real lever for the first cohort. */}
+        <div className="mt-8 rounded-2xl border border-[#FF6B00]/30 bg-[#FFF8F3] p-6 text-center">
+          <p className="text-[15px] text-[#444444]">
+            <span className="font-bold text-[#111111]">Founding customers:</span>{" "}
+            we&rsquo;re onboarding a small first cohort at{" "}
+            <span className="font-semibold text-[#FF6B00]">50% off for 12 months</span> in exchange
+            for feedback and a short case study.{" "}
+            <Link href="/demo" className="font-semibold text-[#FF6B00] hover:underline">
+              Apply here →
+            </Link>
+          </p>
+        </div>
+
+        {/* Enterprise + On-prem bands — understated anchors, sales-led. */}
+        <div className="mt-6 grid md:grid-cols-2 gap-5">
+          <div className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF7F3] flex items-center justify-center shrink-0">
+                <Building2 className="h-5 w-5 text-[#FF6B00]" />
+              </div>
+              <h3 className="text-[18px] font-bold">Enterprise</h3>
+            </div>
+            <p className="text-[14px] text-[#666666] mb-4 flex-1">
+              For organizations running AI agents at scale. SAML SSO, unlimited agents, custom
+              volume and retention, audit exports, dedicated support, and an SLA. Priced on AI
+              spend under management — typically from $2,000/mo on an annual plan.
+            </p>
+            <Link
+              href="/demo"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] bg-white border border-[#EEE8E2] text-[#111111] hover:border-[#DCD5CD] transition-colors"
+            >
+              Talk to sales <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF7F3] flex items-center justify-center shrink-0">
+                <Server className="h-5 w-5 text-[#FF6B00]" />
+              </div>
+              <h3 className="text-[18px] font-bold">Self-Hosted / On-Prem (VPC)</h3>
+            </div>
+            <p className="text-[14px] text-[#666666] mb-4 flex-1">
+              Run the entire gateway inside your own cloud or air-gapped network with a
+              zero-data-retention guarantee — for regulated teams where data can never leave the
+              perimeter. Includes everything in Enterprise. Custom pricing.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] bg-white border border-[#EEE8E2] text-[#111111] hover:border-[#DCD5CD] transition-colors"
+            >
+              Contact us <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
         <div className="max-w-[760px] mx-auto mt-24">
           <h2 className="text-[28px] font-extrabold tracking-tight text-center mb-10">
             Frequently asked questions
@@ -158,12 +255,12 @@ export default function PricingPage() {
         </div>
 
         <div className="text-center mt-20">
-          <p className="text-[18px] font-semibold mb-4">Not sure which plan fits?</p>
+          <p className="text-[18px] font-semibold mb-4">Ready to see where your agent spend goes?</p>
           <Link
-            href="/demo"
+            href="/signup"
             className="inline-flex items-center gap-2 bg-[#FF6B00] text-white px-7 py-3.5 rounded-md font-semibold text-[15px] hover:bg-[#E65A00] transition-colors shadow-md"
           >
-            Book a demo <ArrowRight className="h-4 w-4" />
+            Start free <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>

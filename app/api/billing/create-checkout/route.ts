@@ -4,7 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { getServerAuthContext } from "@/lib/server/auth";
 import { priceIdForTier, type PlanType } from "@/lib/subscription";
 
-const PURCHASABLE_TIERS: PlanType[] = ["STARTUP", "GROWTH", "ENTERPRISE"];
+const PURCHASABLE_TIERS: PlanType[] = ["STARTUP", "GROWTH", "PRO", "ENTERPRISE"];
 
 export async function POST(req: Request) {
   const auth = await getServerAuthContext();

@@ -17,7 +17,7 @@ from database.models import (
     AgentMetric,
 )
 
-from datetime import datetime
+from datetime import datetime, timezone
 import secrets
 
 
@@ -96,7 +96,7 @@ async def seed():
             metric = AgentMetric(
                 agent_id=agent.id,
                 authorize_count=0,
-                updated_at=datetime.utcnow(),
+                updated_at=datetime.now(timezone.utc),
             )
 
             db.add(metric)

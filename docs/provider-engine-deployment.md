@@ -26,7 +26,7 @@ PROVIDER_TIMEOUT_SECONDS=30.0
 ### 1. Dependencies
 Ensure that the new dependencies are installed:
 ```bash
-pip install openai anthropic google-generativeai httpx
+pip install openai anthropic google-genai httpx
 ```
 
 ### 2. Application Startup

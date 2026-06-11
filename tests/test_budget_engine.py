@@ -64,8 +64,8 @@ def _organization(**overrides):
 
 @pytest.mark.asyncio
 async def test_agent_daily_limit():
-    db = _db_with_spend(Decimal("10"))
-    decision = await check_agent_budget(db, _agent())
+    db = _db_with_spend()
+    decision = await check_agent_budget(db, _agent(currentDailySpend=Decimal("10")))
 
     assert decision["allowed"] is False
     assert decision["reason"] == AGENT_DAILY_LIMIT_EXCEEDED
@@ -76,8 +76,8 @@ async def test_agent_daily_limit():
 
 @pytest.mark.asyncio
 async def test_agent_monthly_limit():
-    db = _db_with_spend(Decimal("5"), Decimal("100"))
-    decision = await check_agent_budget(db, _agent())
+    db = _db_with_spend()
+    decision = await check_agent_budget(db, _agent(currentMonthlySpend=Decimal("100")))
 
     assert decision["allowed"] is False
     assert decision["reason"] == AGENT_MONTHLY_LIMIT_EXCEEDED
@@ -85,8 +85,8 @@ async def test_agent_monthly_limit():
 
 @pytest.mark.asyncio
 async def test_org_daily_limit():
-    db = _db_with_spend(Decimal("50"))
-    decision = await check_org_budget(db, _organization(), agent_id="agent-1")
+    db = _db_with_spend()
+    decision = await check_org_budget(db, _organization(currentDailySpend=Decimal("50")), agent_id="agent-1")
 
     assert decision["allowed"] is False
     assert decision["reason"] == ORG_DAILY_LIMIT_EXCEEDED
@@ -94,8 +94,8 @@ async def test_org_daily_limit():
 
 @pytest.mark.asyncio
 async def test_org_monthly_limit():
-    db = _db_with_spend(Decimal("25"), Decimal("500"))
-    decision = await check_org_budget(db, _organization(), agent_id="agent-1")
+    db = _db_with_spend()
+    decision = await check_org_budget(db, _organization(currentMonthlySpend=Decimal("500")), agent_id="agent-1")
 
     assert decision["allowed"] is False
     assert decision["reason"] == ORG_MONTHLY_LIMIT_EXCEEDED
@@ -103,8 +103,8 @@ async def test_org_monthly_limit():
 
 @pytest.mark.asyncio
 async def test_alert_creation_and_activity_log_creation():
-    db = _db_with_spend(Decimal("11"))
-    await check_agent_budget(db, _agent())
+    db = _db_with_spend()
+    await check_agent_budget(db, _agent(currentDailySpend=Decimal("11")))
 
     added = [call.args[0] for call in db.add.call_args_list]
     alert = next(item for item in added if isinstance(item, Alert))

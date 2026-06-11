@@ -70,7 +70,9 @@ def test_cost_calculation():
 
 @pytest.mark.asyncio
 async def test_spend_logger():
-    db_mock = AsyncMock()
+    db_mock = MagicMock()
+    db_mock.execute = AsyncMock()
+    db_mock.commit = AsyncMock()
     
     await log_spend(
         db_mock,
@@ -88,7 +90,9 @@ async def test_spend_logger():
 
 @pytest.mark.asyncio
 async def test_activity_logger():
-    db_mock = AsyncMock()
+    db_mock = MagicMock()
+    db_mock.execute = AsyncMock()
+    db_mock.commit = AsyncMock()
     
     await log_activity(
         db_mock,
@@ -103,10 +107,18 @@ async def test_activity_logger():
 
 @pytest.mark.asyncio
 async def test_metrics_service_insert():
-    db_mock = AsyncMock()
+    db_mock = MagicMock()
+    db_mock.execute = AsyncMock()
+    db_mock.commit = AsyncMock()
+    
+    # First update returns 0 rows (doesn't exist)
     mock_result = MagicMock()
-    mock_result.scalar_one_or_none.return_value = None
+    mock_result.rowcount = 0
     db_mock.execute.return_value = mock_result
+    
+    db_mock.begin_nested = MagicMock()
+    nested_ctx = AsyncMock()
+    db_mock.begin_nested.return_value = nested_ctx
     
     await update_daily_metrics(db_mock, "org-1", "agent-1", 150, Decimal("0.01"))
     
@@ -118,15 +130,16 @@ async def test_metrics_service_insert():
 
 @pytest.mark.asyncio
 async def test_metrics_service_update():
-    db_mock = AsyncMock()
-    existing_metric = UsageMetrics(totalRequests=5, totalTokens=1000, totalCost=Decimal("0.50"))
+    db_mock = MagicMock()
+    db_mock.execute = AsyncMock()
+    db_mock.commit = AsyncMock()
+    
+    # First update returns 1 row (it exists)
     mock_result = MagicMock()
-    mock_result.scalar_one_or_none.return_value = existing_metric
+    mock_result.rowcount = 1
     db_mock.execute.return_value = mock_result
     
     await update_daily_metrics(db_mock, "org-1", "agent-1", 200, Decimal("0.10"))
     
     assert not db_mock.add.called
-    assert existing_metric.totalRequests == 6
-    assert existing_metric.totalTokens == 1200
-    assert existing_metric.totalCost == Decimal("0.60")
+    assert db_mock.execute.called

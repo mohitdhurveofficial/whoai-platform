@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from database.models import Agent, SpendLog, RequestLog, Alert, UsageMetrics, ActivityLog
@@ -9,7 +9,7 @@ async def detect_anomalies(db: AsyncSession, agent_id: str, org_id: str):
     Run anomaly detection for Spend, Tokens, and Requests.
     Triggered after metrics update.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     yesterday_start = today_start - timedelta(days=1)
     
@@ -107,7 +107,7 @@ async def detect_anomalies(db: AsyncSession, agent_id: str, org_id: str):
             title=anomaly["title"],
             message=anomaly["message"],
             metadata_=anomaly["metadata"],
-            createdAt=datetime.utcnow()
+            createdAt=datetime.now(timezone.utc)
         )
         db.add(alert)
         
@@ -118,7 +118,7 @@ async def detect_anomalies(db: AsyncSession, agent_id: str, org_id: str):
             action="ANOMALY_DETECTED",
             status="SUCCESS",
             metadata_=anomaly["metadata"],
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         db.add(activity)
         
