@@ -131,7 +131,7 @@ uvicorn==0.48.0
 uvloop==0.22.1
 wassima==2.1.1
 watchfiles==1.2.0
-websockets==16.0
+websockets==14.2
 x-wr-timezone==2.0.1
 youtube-transcript-api==1.2.4
 
