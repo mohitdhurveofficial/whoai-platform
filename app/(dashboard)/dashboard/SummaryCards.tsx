@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bot, DollarSign, Activity, Database } from "lucide-react";
+import { Bot, DollarSign, Activity, Database, AlertTriangle, Wallet } from "lucide-react";
 
 const money = (value: number) =>
   `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -39,6 +39,8 @@ export function SummaryCards() {
     totalRequests: 0,
     totalTokens: 0,
     activeAgents: 0,
+    budgetRemaining: null as number | null,
+    activeAlerts: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -82,6 +84,12 @@ export function SummaryCards() {
         icon={<DollarSign className="h-4 w-4" />}
       />
       <KpiCard
+        label="Budget Remaining"
+        value={loading ? "..." : data.budgetRemaining === null ? "∞" : money(data.budgetRemaining)}
+        detail="of organization budget"
+        icon={<Wallet className="h-4 w-4" />}
+      />
+      <KpiCard
         label="Total Requests"
         value={loading ? "..." : numberFormat(data.totalRequests)}
         detail="Lifetime API requests"
@@ -98,6 +106,12 @@ export function SummaryCards() {
         value={loading ? "..." : numberFormat(data.activeAgents)}
         detail="Agents with ACTIVE status"
         icon={<Bot className="h-4 w-4" />}
+      />
+      <KpiCard
+        label="Active Alerts"
+        value={loading ? "..." : numberFormat(data.activeAlerts)}
+        detail="requiring attention"
+        icon={<AlertTriangle className="h-4 w-4 text-[#FF6B00]" />}
       />
     </section>
   );

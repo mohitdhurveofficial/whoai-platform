@@ -26,7 +26,16 @@ export async function GET() {
   const orgId = auth.organizationId;
 
   try {
-    const [spendAgg, reqAgg, metricsAgg, activeAgentsCount] =
+    // Fetch organization to get budget and current spend
+    const organization = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: {
+        monthlyBudget: true,
+        currentMonthlySpend: true,
+      },
+    });
+
+    const [spendAgg, reqAgg, metricsAgg, activeAgentsCount, alertCount] =
       await Promise.all([
         prisma.spendLog.aggregate({
           where: { organizationId: orgId },
@@ -57,6 +66,13 @@ export async function GET() {
             status: "ACTIVE",
           },
         }),
+
+        prisma.alert.count({
+          where: {
+            organizationId: orgId,
+            resolved: false,
+          },
+        }),
       ]);
 
     const spendLogCost = toNumber(spendAgg._sum.cost);
@@ -74,11 +90,18 @@ export async function GET() {
     const metricsTokens = toNumber(metricsAgg._sum.totalTokens);
     const totalTokens = spendLogTokens || metricsTokens;
 
+    // Calculate budget remaining
+    const monthlyBudget = toNumber(organization?.monthlyBudget ?? 0);
+    const currentMonthlySpend = toNumber(organization?.currentMonthlySpend ?? 0);
+    const budgetRemaining = monthlyBudget > 0 ? monthlyBudget - currentMonthlySpend : null;
+
     return NextResponse.json({
       totalSpend,
       totalRequests,
       totalTokens,
       activeAgents: activeAgentsCount,
+      budgetRemaining,
+      activeAlerts: alertCount,
     });
   } catch (error) {
     console.error("Error fetching dashboard summary:", error);

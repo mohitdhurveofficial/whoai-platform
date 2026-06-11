@@ -87,12 +87,11 @@ export default function LandingPage() {
 
         {/* TRUST BADGES */}
         <p className="text-[12px] font-semibold tracking-widest text-[#888888] uppercase mb-6">Trusted infrastructure for modern AI teams</p>
-        <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 text-[#888888] font-bold text-[18px] grayscale opacity-60">
-          <span className="flex items-center gap-2"><Box className="h-5 w-5" /> OpenAI</span>
-          <span className="flex items-center gap-2"><Fingerprint className="h-5 w-5" /> Anthropic</span>
-          <span className="flex items-center gap-2"><Zap className="h-5 w-5" /> Google Gemini</span>
-          <span className="flex items-center gap-2"><Bot className="h-5 w-5" /> Azure</span>
-          <span className="flex items-center gap-2"><Activity className="h-5 w-5" /> AWS</span>
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Fortune 500 Bank</span>
+          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Global Hospital Network</span>
+          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Top 10 Retailer</span>
+          <span className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-[#FF6B00]" /> SOC 2 Type II In Progress</span>
         </div>
       </section>
 
@@ -186,6 +185,29 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* HOW IT WORKS */}
+      <section className="relative z-10 py-16">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <h2 className="text-[24px] font-bold text-[#111111] mb-6">How It Works</h2>
+          <div className="grid gap-8 md:grid-cols-3 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <Bot className="h-10 w-10 text-[#FF6B00]" />
+              <p className="text-[13px] font-bold">Your App</p>
+              <p className="text-[12px] text-[#666666]">Send AI calls as usual</p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <ShieldAlert className="h-10 w-10 text-[#FF6B00]" />
+              <p className="text-[13px] font-bold">WHOAI Gateway</p>
+              <p className="text-[12px] text-[#666666]">Encrypts, logs, enforces budgets</p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Zap className="h-10 w-10 text-[#FF6B00]" />
+              <p className="text-[13px] font-bold">AI Provider</p>
+              <p className="text-[12px] text-[#666666]">OpenAI, Anthropic, etc.</p>
             </div>
           </div>
         </div>
