@@ -71,8 +71,17 @@ export default function SignupPage() {
 
     // Signup already established a session cookie — go straight into the app
     // instead of bouncing the new user back to the login screen.
-    router.refresh();
-    router.push(data?.redirectTo || "/dashboard");
+    if ((data as any).token) {
+  document.cookie = `whoai_auth=${(data as any).token}; path=/; max-age=86400; SameSite=Lax`;
+}
+
+if ((data as any).user) {
+  localStorage.setItem("user", JSON.stringify((data as any).user));
+}
+
+localStorage.setItem("is_authenticated", "true");
+
+window.location.href = "/dashboard";
   } catch (err: unknown) {
     setError(
       err instanceof Error
