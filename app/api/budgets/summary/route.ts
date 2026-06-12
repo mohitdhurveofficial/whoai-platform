@@ -81,8 +81,11 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : "Internal error" },
-      { status: 500 },
-    );
+  {
+    success: false,
+    error: error instanceof Error ? error.message : "Internal error",
+  },
+  { status: 500 },
+  );
   }
 }

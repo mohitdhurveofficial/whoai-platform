@@ -3,36 +3,34 @@ import time
 import uuid
 from typing import Dict, Any, AsyncGenerator
 from runtime.providers.base import BaseProvider
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 
 class GeminiProvider(BaseProvider):
     def __init__(self, api_key: str = None, timeout: float = 30.0):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        self.timeout = timeout
         if self.api_key:
-            self.client = genai.Client(api_key=self.api_key)
-        else:
-            self.client = None
+            genai.configure(api_key=self.api_key)
+        self.timeout = timeout
 
     def _convert_messages(self, messages: list) -> list:
         # Convert standard messages to Gemini format
         gemini_msgs = []
         for msg in messages:
             role = "user" if msg["role"] in ["user", "system"] else "model"
-            gemini_msgs.append({"role": role, "parts": [{"text": msg["content"]}]})
+            gemini_msgs.append({"role": role, "parts": [msg["content"]]})
         return gemini_msgs
 
     async def chat_completion(self, model: str, messages: list, **kwargs) -> Dict[str, Any]:
         gemini_msgs = self._convert_messages(messages)
+        generative_model = genai.GenerativeModel(model)
         
-        response = await self.client.aio.models.generate_content(
-            model=model,
-            contents=gemini_msgs,
-        )
+        # We use synchronous call wrapped or asyncio if SDK supports it. 
+        # google-generativeai supports generate_content_async
+        response = await generative_model.generate_content_async(gemini_msgs)
         
-        prompt_tokens = response.usage_metadata.prompt_token_count if hasattr(response, 'usage_metadata') and response.usage_metadata else 0
-        completion_tokens = response.usage_metadata.candidates_token_count if hasattr(response, 'usage_metadata') and response.usage_metadata else 0
+        # Estimate usage as Gemini SDK sometimes doesn't return it perfectly in all versions
+        prompt_tokens = generative_model.count_tokens(gemini_msgs).total_tokens if hasattr(generative_model, 'count_tokens') else 0
+        completion_tokens = generative_model.count_tokens(response.text).total_tokens if hasattr(generative_model, 'count_tokens') else 0
 
         return {
             "id": f"chatcmpl-{uuid.uuid4()}",
@@ -58,16 +56,14 @@ class GeminiProvider(BaseProvider):
 
     async def stream_completion(self, model: str, messages: list, **kwargs) -> AsyncGenerator[Dict[str, Any], None]:
         gemini_msgs = self._convert_messages(messages)
+        generative_model = genai.GenerativeModel(model)
         
-        response_stream = await self.client.aio.models.generate_content_stream(
-            model=model,
-            contents=gemini_msgs,
-        )
+        response = await generative_model.generate_content_async(gemini_msgs, stream=True)
         
         req_id = f"chatcmpl-{uuid.uuid4()}"
         created = int(time.time())
 
-        async for chunk in response_stream:
+        async for chunk in response:
             yield {
                 "id": req_id,
                 "object": "chat.completion.chunk",
@@ -99,14 +95,12 @@ class GeminiProvider(BaseProvider):
         }
 
     async def health_check(self) -> str:
-        if not self.api_key or not self.client:
+        if not self.api_key:
             return "unhealthy"
 
         try:
-            await self.client.aio.models.generate_content(
-                model="gemini-2.5-flash",
-                contents="hello"
-            )
+            generative_model = genai.GenerativeModel("gemini-2.5-flash")
+            await generative_model.generate_content_async("hello")
             return "healthy"
         except Exception:
             return "unhealthy"
