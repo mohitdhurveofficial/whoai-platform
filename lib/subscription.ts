@@ -19,7 +19,7 @@ export const PLAN_LIMITS = {
     priceMonthly: 0,
     label: "Free",
   },
-  STARTUP: {
+  STARTER: {
     maxAgents: 10,
     monthlyRequests: 1_000_000,
     retentionDays: 30,
@@ -75,7 +75,7 @@ export function canCreateAgent(
 /** Map a Stripe price ID (from env) back to a plan tier. */
 export function planForPriceId(priceId?: string | null): PlanType {
   if (!priceId) return "FREE";
-  if (priceId === process.env.STRIPE_STARTUP_PRICE_ID) return "STARTUP";
+  if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return "STARTER";
   if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) return "GROWTH";
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO";
   if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return "ENTERPRISE";
@@ -85,8 +85,8 @@ export function planForPriceId(priceId?: string | null): PlanType {
 /** Map a plan tier to its configured Stripe price ID (from env), if any. */
 export function priceIdForTier(tier: PlanType): string | undefined {
   switch (tier) {
-    case "STARTUP":
-      return process.env.STRIPE_STARTUP_PRICE_ID;
+    case "STARTER":
+      return process.env.STRIPE_STARTER_PRICE_ID;
     case "GROWTH":
       return process.env.STRIPE_GROWTH_PRICE_ID;
     case "PRO":
