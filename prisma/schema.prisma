@@ -35,12 +35,12 @@ model Organization {
   ApiKey               ApiKey[]
   budgetViolations     BudgetViolation[]
   policies             Policy[]
+  providerCredentials  ProviderCredential[]
   requestLogs          RequestLog[]
   spendLogs            SpendLog[]
   subscription         Subscription?
   usageMetrics         UsageMetrics[]
   users                User[]
-  providerCredentials  ProviderCredential[]
 }
 
 model User {
@@ -217,12 +217,39 @@ model ApiKey {
   @@index([organizationId])
 }
 
-// Records every Stripe webhook event we have already processed, so a redelivery
-// (Stripe delivers at-least-once) is detected and skipped rather than replayed.
 model StripeEvent {
   id          String   @id
   type        String
   processedAt DateTime @default(now())
+}
+
+model ProviderCredential {
+  id              String       @id @default(uuid())
+  organizationId  String
+  provider        String
+  encryptedApiKey String
+  status          String       @default("CONNECTED")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  keyLast4        String?
+  lastTestedAt    DateTime?
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+}
+
+model Lead {
+  id           String   @id @default(uuid())
+  type         LeadType @default(DEMO)
+  name         String
+  email        String
+  company      String?
+  monthlySpend String?
+  message      String?
+  status       String   @default("NEW")
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 enum OrgTier {
@@ -251,36 +278,6 @@ enum AlertStatus {
   OPEN
   ACKNOWLEDGED
   RESOLVED
-}
-
-model ProviderCredential {
-  id              String       @id @default(uuid())
-  organizationId  String
-  provider        String
-  encryptedApiKey String       @db.Text
-  status          String       @default("CONNECTED")
-  keyLast4        String?
-  lastTestedAt    DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([organizationId, provider])
-}
-
-// Inbound sales leads from the public "Book Demo" / Contact forms.
-model Lead {
-  id           String   @id @default(uuid())
-  type         LeadType @default(DEMO)
-  name         String
-  email        String
-  company      String?
-  monthlySpend String?
-  message      String?  @db.Text
-  status       String   @default("NEW")
-  createdAt    DateTime @default(now())
-
-  @@index([createdAt])
 }
 
 enum LeadType {
