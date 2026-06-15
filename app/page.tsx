@@ -86,12 +86,12 @@ export default function LandingPage() {
         </div>
 
         {/* TRUST BADGES */}
-        <p className="text-[12px] font-semibold tracking-widest text-[#888888] uppercase mb-6">Trusted infrastructure for modern AI teams</p>
+        <p className="text-[12px] font-semibold tracking-widest text-[#888888] uppercase mb-6">Built for teams spending $500+/mo on AI APIs</p>
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Fortune 500 Bank</span>
-          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Global Hospital Network</span>
-          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Top 10 Retailer</span>
-          <span className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-[#FF6B00]" /> SOC 2 Type II In Progress</span>
+          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> OpenAI & Anthropic Compatible</span>
+          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> BYOK — You Keep Your Keys</span>
+          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Kill Switch Instantly Pauses Agents</span>
+          <span className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-[#FF6B00]" /> Pilot Program Now Open</span>
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resend } from "@/lib/email";
+import { getResend } from "@/lib/email";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_TYPES = new Set(["DEMO", "CONTACT"]);
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   // Best-effort notification — never fail the request if email delivery fails.
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM_ADDRESS,
       to: [SALES_INBOX],
       replyTo: email,

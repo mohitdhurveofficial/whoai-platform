@@ -21,6 +21,9 @@ export async function POST(req: Request, context: { params: { id: string } | Pro
       const resumed = await tx.organization.update({
         where: { id: params.id },
         data: {
+          status: "ACTIVE",
+          pausedAt: null,
+          pauseReason: null,
         },
       });
 

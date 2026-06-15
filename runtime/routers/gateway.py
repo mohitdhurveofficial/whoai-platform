@@ -4,6 +4,7 @@ import uuid
 import json
 import jwt
 import asyncio
+import logging
 from typing import Optional, Dict, AsyncGenerator, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
@@ -18,6 +19,7 @@ from runtime.telemetry.pricing import calculate_cost
 from runtime.telemetry.spend_logger import log_spend
 from runtime.telemetry.activity_logger import log_activity, ActivityAction
 from runtime.telemetry.metrics_service import update_daily_metrics
+from runtime.telemetry.anomaly_detector import detect_anomalies
 from runtime.budget.budget_service import check_agent_budget, check_org_budget
 from runtime.killswitch.kill_switch_service import (
     DAILY_BUDGET_EXCEEDED,
@@ -32,6 +34,20 @@ from runtime.providers.provider_factory import ProviderFactory
 from runtime.encryption import decrypt
 
 router = APIRouter()
+
+logger = logging.getLogger("whoai.gateway")
+
+
+async def _run_anomaly_detection(org_id: str, agent_id: str) -> None:
+    """Detached runaway/anomaly detection. Runs after telemetry is committed so
+    it reads freshly persisted daily metrics. Owns its own session and swallows
+    every error: detection must never block or break the request path.
+    """
+    try:
+        async with async_session_maker() as adb:
+            await detect_anomalies(adb, agent_id, org_id)
+    except Exception as e:
+        logger.warning(f"Anomaly detection failed for agent {agent_id}: {e}")
 
 # No default: a known fallback secret lets anyone forge agent tokens for any
 # tenant. Fail closed so a misconfigured deploy never silently accepts forgeries.
@@ -156,6 +172,11 @@ async def format_stream_response(
                     {"model": model, "provider": provider, "latency_ms": latency_ms, "cost": str(cost)}
                 )
                 await telemetry_db.commit()
+
+            # Metrics are committed; run runaway/anomaly detection on a fresh
+            # session. Still inside the detached task, so it never blocks the
+            # streamed response.
+            await _run_anomaly_detection(org_id, agent_id)
 
         # Fire and forget to prevent CancelledError from interrupting the save
         asyncio.create_task(_save_telemetry())
@@ -310,6 +331,10 @@ async def unified_chat_completions(
                 # session and rolls back the SpendLog, UsageMetrics, completion
                 # ActivityLog, and the spend counters — so budgets never see spend.
                 await db.commit()
+
+                # Runaway/anomaly detection on a detached session and task so it
+                # never adds latency to the response the caller is awaiting.
+                asyncio.create_task(_run_anomaly_detection(org_id, agent_id))
 
                 return response
         except Exception as e:

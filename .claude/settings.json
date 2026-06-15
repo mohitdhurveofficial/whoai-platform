@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(npm install *)",
+      "Bash(awk '{print $2}')",
+      "Bash(grep -vE \"^\\(runtime|database|app|lib\\)$\")",
+      "Bash(jobs)",
+      "Bash(/opt/homebrew/bin/python3.14 -m venv .venv)",
+      "Bash(.venv/bin/python --version)",
+      "Bash(.venv/bin/pip install *)",
+      "Bash(.venv/bin/pip list *)",
+      "Bash(npx prisma *)",
+      "Bash(npm run *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(node -e \"console.log\\(process.version\\)\")",
+      "Bash(DEBUG=\"*\" npx prisma -v)",
+      "Bash(./node_modules/.bin/prisma -v)",
+      "Bash(./node_modules/.bin/prisma generate *)",
+      "Bash(./node_modules/.bin/next build *)",
+      "Bash(git rm *)",
+      "Bash(python3 -m py_compile runtime/routers/gateway.py)"
+    ]
+  }
+}

@@ -34,14 +34,13 @@ export default async function DashboardPage() {
   const auth = await getServerAuthContext();
   if (!auth) redirect("/login");
 
-  const [summary, spendByDay, spendByAgent, spendByModel, providerCount, recentRequests] = await Promise.all([
-    getDashboardSummary(auth.organizationId),
-    getSpendByDay(auth.organizationId),
-    getSpendByAgent(auth.organizationId),
-    getSpendByModel(auth.organizationId),
-    prisma.providerCredential.count({ where: { organizationId: auth.organizationId } }),
-    getUsageRequests(auth.organizationId),
-  ]);
+  // Sequential queries prevent PgBouncer deadlock in production (connection_limit=1).
+  const summary = await getDashboardSummary(auth.organizationId);
+  const spendByDay = await getSpendByDay(auth.organizationId);
+  const spendByAgent = await getSpendByAgent(auth.organizationId);
+  const spendByModel = await getSpendByModel(auth.organizationId);
+  const providerCount = await prisma.providerCredential.count({ where: { organizationId: auth.organizationId } });
+  const recentRequests = await getUsageRequests(auth.organizationId);
 
   const hasSpend = summary.totalSpend > 0;
 

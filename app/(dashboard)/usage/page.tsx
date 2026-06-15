@@ -45,22 +45,21 @@ export default async function UsagePage({
   const { filters, error } = parseUsageFilters(urlParams);
   const safeFilters = filters ?? {};
 
-  const [summary, requests, agents, models, providers] = await Promise.all([
-    error ? null : getUsageSummary(auth.organizationId, safeFilters),
-    error ? [] : getUsageRequests(auth.organizationId, safeFilters),
-    prisma.agent.findMany({
-      where: { organizationId: auth.organizationId },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    getSpendByModel(auth.organizationId),
-    prisma.requestLog.findMany({
-      where: { organizationId: auth.organizationId },
-      distinct: ["provider"],
-      select: { provider: true },
-      orderBy: { provider: "asc" },
-    }),
-  ]);
+  // Sequential to prevent PgBouncer deadlock in production.
+  const summary = error ? null : await getUsageSummary(auth.organizationId, safeFilters);
+  const requests = error ? [] : await getUsageRequests(auth.organizationId, safeFilters);
+  const agents = await prisma.agent.findMany({
+    where: { organizationId: auth.organizationId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+  const models = await getSpendByModel(auth.organizationId);
+  const providers = await prisma.requestLog.findMany({
+    where: { organizationId: auth.organizationId },
+    distinct: ["provider"],
+    select: { provider: true },
+    orderBy: { provider: "asc" },
+  });
 
   return (
     <div className="space-y-8 pb-10">

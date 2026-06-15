@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "start:frontend": "next dev",
+    "start:frontend": "node node_modules/next/dist/bin/next dev",
     "start:backend": ".venv/bin/uvicorn runtime.main:app --reload --port 8001",
-    "build": "prisma generate && next build",
-    "start": "next start",
+    "build": "prisma generate && node node_modules/next/dist/bin/next build",
+    "start": "node node_modules/next/dist/bin/next start",
     "lint": "eslint",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "seed": "npx tsx scripts/seed-dashboard.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -39,6 +40,7 @@
     "eslint-config-next": "16.2.6",
     "knip": "^6.15.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.8"
   }

@@ -25,7 +25,7 @@ async def update_daily_metrics(
     Ensures safe upsert behavior per agent per day.
     """
     try:
-        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).replace(tzinfo=None)
         
         result = await db.execute(
             update(UsageMetrics).where(

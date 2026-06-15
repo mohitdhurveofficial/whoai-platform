@@ -10,7 +10,7 @@ function makeDb() {
 
 beforeEach(() => {
   process.env.STRIPE_GROWTH_PRICE_ID = "price_growth";
-  process.env.STRIPE_STARTUP_PRICE_ID = "price_startup";
+  process.env.STRIPE_STARTER_PRICE_ID = "price_startup";
 });
 
 describe("handleStripeEvent", () => {
@@ -134,7 +134,7 @@ describe("handleStripeEvent", () => {
       data: {
         stripeSubscriptionId: "sub_123",
         subscriptionStatus: "past_due",
-        subscriptionTier: "STARTUP",
+        subscriptionTier: "STARTER",
         currentPeriodEnd: new Date(1_900_000_000 * 1000),
       },
     });

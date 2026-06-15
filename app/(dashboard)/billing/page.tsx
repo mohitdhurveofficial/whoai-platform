@@ -7,7 +7,7 @@ import { CheckCircle, Loader2, CreditCard } from "lucide-react";
 // Plan ordering used to label a plan switch as an upgrade vs a downgrade.
 const TIER_RANK: Record<string, number> = {
   FREE: 0,
-  STARTUP: 1,
+  STARTER: 1,
   GROWTH: 2,
   PRO: 3,
   ENTERPRISE: 4,
@@ -23,7 +23,7 @@ type Subscription = {
 };
 
 const PLANS = [
-  { tier: "STARTUP", label: "Starter", price: "$99/mo", blurb: "Budget controls + kill switches", agents: "10 agents" },
+  { tier: "STARTER", label: "Starter", price: "$99/mo", blurb: "Budget controls + kill switches", agents: "10 agents" },
   { tier: "GROWTH", label: "Growth", price: "$299/mo", blurb: "RBAC, governance & anomaly detection", agents: "50 agents" },
   { tier: "PRO", label: "Pro", price: "$799/mo", blurb: "Scale governance, SSO & audit exports", agents: "200 agents" },
   { tier: "ENTERPRISE", label: "Enterprise", price: "Custom", blurb: "SAML SSO, SLA, unlimited & self-hosted", agents: "Unlimited" },

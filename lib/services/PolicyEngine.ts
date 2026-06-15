@@ -32,16 +32,15 @@ export class GovernanceEngine {
     
     // 2. Daily & Monthly Budget Checks
     // Note: For high scale, these should move to a Redis-backed counter.
-    const [dailyAgg, monthlyAgg] = await Promise.all([
-      prisma.spendLog.aggregate({
-        where: { agentId: params.agentId, createdAt: { gte: startOfDay(now) } },
-        _sum: { cost: true },
-      }),
-      prisma.spendLog.aggregate({
-        where: { agentId: params.agentId, createdAt: { gte: startOfMonth(now) } },
-        _sum: { cost: true },
-      })
-    ]);
+    // Sequential to prevent PgBouncer deadlock in production.
+    const dailyAgg = await prisma.spendLog.aggregate({
+      where: { agentId: params.agentId, createdAt: { gte: startOfDay(now) } },
+      _sum: { cost: true },
+    });
+    const monthlyAgg = await prisma.spendLog.aggregate({
+      where: { agentId: params.agentId, createdAt: { gte: startOfMonth(now) } },
+      _sum: { cost: true },
+    });
 
     const currentDailySpend = Number(dailyAgg._sum.cost || 0);
     const currentMonthlySpend = Number(monthlyAgg._sum.cost || 0);

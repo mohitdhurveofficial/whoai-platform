@@ -92,22 +92,21 @@ function buildRequestWhere(organizationId: string, filters: UsageFilters = {}) {
 export async function getDashboardSummary(organizationId: string): Promise<DashboardSummary> {
   const today = startOfUtcDay(new Date());
 
-  const [totalSpend, todaySpend, activeAgents, blockedRequests] = await Promise.all([
-    prisma.spendLog.aggregate({
-      where: { organizationId },
-      _sum: { cost: true },
-    }),
-    prisma.spendLog.aggregate({
-      where: { organizationId, createdAt: { gte: today } },
-      _sum: { cost: true },
-    }),
-    prisma.agent.count({
-      where: { organizationId, status: "ACTIVE" },
-    }),
-    prisma.activityLog.count({
-      where: { organizationId, action: { in: BLOCKED_ACTIONS } },
-    }),
-  ]);
+  // Sequential to prevent PgBouncer deadlock in production.
+  const totalSpend = await prisma.spendLog.aggregate({
+    where: { organizationId },
+    _sum: { cost: true },
+  });
+  const todaySpend = await prisma.spendLog.aggregate({
+    where: { organizationId, createdAt: { gte: today } },
+    _sum: { cost: true },
+  });
+  const activeAgents = await prisma.agent.count({
+    where: { organizationId, status: "ACTIVE" },
+  });
+  const blockedRequests = await prisma.activityLog.count({
+    where: { organizationId, action: { in: BLOCKED_ACTIONS } },
+  });
 
   return {
     totalSpend: toNumber(totalSpend._sum.cost),
@@ -185,53 +184,51 @@ export async function getAgentsAnalytics(organizationId: string): Promise<AgentA
   const today = startOfUtcDay(new Date());
   const month = startOfUtcMonth(new Date());
 
-  const [agents, todaySpend, monthlySpend, requests, blocked, lastActivity, latestModels] =
-    await Promise.all([
-      prisma.agent.findMany({
-        where: { organizationId },
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          status: true,
-          dailyBudget: true,
-          currentDailySpend: true,
-          monthlyBudget: true,
-          createdAt: true,
-        },
-      }),
-      prisma.spendLog.groupBy({
-        by: ["agentId"],
-        where: { organizationId, createdAt: { gte: today } },
-        _sum: { cost: true },
-      }),
-      prisma.spendLog.groupBy({
-        by: ["agentId"],
-        where: { organizationId, createdAt: { gte: month } },
-        _sum: { cost: true },
-      }),
-      prisma.requestLog.groupBy({
-        by: ["agentId"],
-        where: { organizationId },
-        _count: { _all: true },
-      }),
-      prisma.activityLog.groupBy({
-        by: ["agentId"],
-        where: { organizationId, action: { in: BLOCKED_ACTIONS }, agentId: { not: null } },
-        _count: { _all: true },
-      }),
-      prisma.activityLog.groupBy({
-        by: ["agentId"],
-        where: { organizationId, agentId: { not: null } },
-        _max: { timestamp: true },
-      }),
-      prisma.spendLog.findMany({
-        where: { organizationId },
-        distinct: ["agentId"],
-        orderBy: { createdAt: "desc" },
-        select: { agentId: true, model: true },
-      }),
-    ]);
+  // Sequential to prevent PgBouncer deadlock in production.
+  const agents = await prisma.agent.findMany({
+    where: { organizationId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      dailyBudget: true,
+      currentDailySpend: true,
+      monthlyBudget: true,
+      createdAt: true,
+    },
+  });
+  const todaySpend = await prisma.spendLog.groupBy({
+    by: ["agentId"],
+    where: { organizationId, createdAt: { gte: today } },
+    _sum: { cost: true },
+  });
+  const monthlySpend = await prisma.spendLog.groupBy({
+    by: ["agentId"],
+    where: { organizationId, createdAt: { gte: month } },
+    _sum: { cost: true },
+  });
+  const requests = await prisma.requestLog.groupBy({
+    by: ["agentId"],
+    where: { organizationId },
+    _count: { _all: true },
+  });
+  const blocked = await prisma.activityLog.groupBy({
+    by: ["agentId"],
+    where: { organizationId, action: { in: BLOCKED_ACTIONS }, agentId: { not: null } },
+    _count: { _all: true },
+  });
+  const lastActivity = await prisma.activityLog.groupBy({
+    by: ["agentId"],
+    where: { organizationId, agentId: { not: null } },
+    _max: { timestamp: true },
+  });
+  const latestModels = await prisma.spendLog.findMany({
+    where: { organizationId },
+    distinct: ["agentId"],
+    orderBy: { createdAt: "desc" },
+    select: { agentId: true, model: true },
+  });
 
   const todayByAgent = new Map(todaySpend.map((row) => [row.agentId, toNumber(row._sum.cost)]));
   const monthByAgent = new Map(monthlySpend.map((row) => [row.agentId, toNumber(row._sum.cost)]));
@@ -262,32 +259,31 @@ export async function getUsageSummary(
   organizationId: string,
   filters: UsageFilters = {},
 ): Promise<UsageSummary> {
-  const [requests, spend, metrics] = await Promise.all([
-    prisma.requestLog.aggregate({
-      where: buildRequestWhere(organizationId, filters),
-      _count: { _all: true },
-      _avg: { latencyMs: true },
-    }),
-    prisma.spendLog.aggregate({
-      where: buildSpendWhere(organizationId, filters),
-      _sum: { cost: true },
-    }),
-    prisma.usageMetrics.aggregate({
-      where: {
-        organizationId,
-        ...(filters.from || filters.to
-          ? {
-              date: {
-                ...(filters.from ? { gte: startOfUtcDay(filters.from) } : {}),
-                ...(filters.to ? { lte: startOfUtcDay(filters.to) } : {}),
-              },
-            }
-          : {}),
-        ...(filters.agentId ? { agentId: filters.agentId } : {}),
-      },
-      _sum: { totalTokens: true, totalCost: true, totalRequests: true },
-    }),
-  ]);
+  // Sequential to prevent PgBouncer deadlock in production.
+  const requests = await prisma.requestLog.aggregate({
+    where: buildRequestWhere(organizationId, filters),
+    _count: { _all: true },
+    _avg: { latencyMs: true },
+  });
+  const spend = await prisma.spendLog.aggregate({
+    where: buildSpendWhere(organizationId, filters),
+    _sum: { cost: true },
+  });
+  const metrics = await prisma.usageMetrics.aggregate({
+    where: {
+      organizationId,
+      ...(filters.from || filters.to
+        ? {
+            date: {
+              ...(filters.from ? { gte: startOfUtcDay(filters.from) } : {}),
+              ...(filters.to ? { lte: startOfUtcDay(filters.to) } : {}),
+            },
+          }
+        : {}),
+      ...(filters.agentId ? { agentId: filters.agentId } : {}),
+    },
+    _sum: { totalTokens: true, totalCost: true, totalRequests: true },
+  });
 
   const totalRequests = requests._count._all || metrics._sum.totalRequests || 0;
   const totalSpend = toNumber(spend._sum.cost) || toNumber(metrics._sum.totalCost);
@@ -305,24 +301,23 @@ export async function getUsageRequests(
   organizationId: string,
   filters: UsageFilters = {},
 ): Promise<UsageRequestRow[]> {
-  const [rows, summary] = await Promise.all([
-    prisma.requestLog.findMany({
-      where: buildRequestWhere(organizationId, filters),
-      orderBy: { timestamp: "desc" },
-      take: 100,
-      select: {
-        id: true,
-        timestamp: true,
-        agentId: true,
-        provider: true,
-        model: true,
-        statusCode: true,
-        latencyMs: true,
-        agent: { select: { name: true } },
-      },
-    }),
-    getUsageSummary(organizationId, filters),
-  ]);
+  // Sequential to prevent PgBouncer deadlock in production.
+  const rows = await prisma.requestLog.findMany({
+    where: buildRequestWhere(organizationId, filters),
+    orderBy: { timestamp: "desc" },
+    take: 100,
+    select: {
+      id: true,
+      timestamp: true,
+      agentId: true,
+      provider: true,
+      model: true,
+      statusCode: true,
+      latencyMs: true,
+      agent: { select: { name: true } },
+    },
+  });
+  const summary = await getUsageSummary(organizationId, filters);
 
   const averageTokens = summary.totalRequests > 0 ? summary.totalTokens / summary.totalRequests : 0;
 
@@ -359,40 +354,38 @@ export async function getAgentAnalytics(
 
   if (!agent) return null;
 
-  const [spendByDay, requestsByDayRows, blockedRequests, usage, latestSpend, recentActivity] =
-    await Promise.all([
-      getSpendByDay(organizationId, 30, agentId),
-      prisma.$queryRaw<Array<{ day: Date | string; requests: bigint | number }>>`
-        SELECT DATE("timestamp") AS day, COUNT(*) AS requests
-        FROM "RequestLog"
-        WHERE "organizationId" = ${organizationId}
-          AND "agentId" = ${agentId}
-          AND "timestamp" >= ${lastNDays(30).start}
-        GROUP BY DATE("timestamp")
-        ORDER BY day ASC
-      `,
-      prisma.activityLog.count({
-        where: { organizationId, agentId, action: { in: BLOCKED_ACTIONS } },
-      }),
-      getUsageSummary(organizationId, { agentId }),
-      prisma.spendLog.findFirst({
-        where: { organizationId, agentId },
-        orderBy: { createdAt: "desc" },
-        select: { model: true },
-      }),
-      prisma.activityLog.findMany({
-        where: { organizationId, agentId },
-        orderBy: { timestamp: "desc" },
-        take: 12,
-        select: {
-          id: true,
-          action: true,
-          status: true,
-          timestamp: true,
-          metadata: true,
-        },
-      }),
-    ]);
+  // Sequential to prevent PgBouncer deadlock in production.
+  const spendByDay = await getSpendByDay(organizationId, 30, agentId);
+  const requestsByDayRows = await prisma.$queryRaw<Array<{ day: Date | string; requests: bigint | number }>>`
+    SELECT DATE("timestamp") AS day, COUNT(*) AS requests
+    FROM "RequestLog"
+    WHERE "organizationId" = ${organizationId}
+      AND "agentId" = ${agentId}
+      AND "timestamp" >= ${lastNDays(30).start}
+    GROUP BY DATE("timestamp")
+    ORDER BY day ASC
+  `;
+  const blockedRequests = await prisma.activityLog.count({
+    where: { organizationId, agentId, action: { in: BLOCKED_ACTIONS } },
+  });
+  const usage = await getUsageSummary(organizationId, { agentId });
+  const latestSpend = await prisma.spendLog.findFirst({
+    where: { organizationId, agentId },
+    orderBy: { createdAt: "desc" },
+    select: { model: true },
+  });
+  const recentActivity = await prisma.activityLog.findMany({
+    where: { organizationId, agentId },
+    orderBy: { timestamp: "desc" },
+    take: 12,
+    select: {
+      id: true,
+      action: true,
+      status: true,
+      timestamp: true,
+      metadata: true,
+    },
+  });
 
   const { points } = lastNDays(30);
   const requestsByDate = new Map(

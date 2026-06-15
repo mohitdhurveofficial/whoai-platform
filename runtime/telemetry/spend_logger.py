@@ -30,7 +30,7 @@ async def log_spend(
     try:
         spend_log = SpendLog(
             id=str(uuid.uuid4()),
-            createdAt=datetime.now(timezone.utc),
+            createdAt=datetime.now(timezone.utc).replace(tzinfo=None),
             organizationId=organization_id,
             agentId=agent_id,
             provider=provider,

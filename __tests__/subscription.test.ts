@@ -9,8 +9,8 @@ import {
 
 describe("canCreateAgent", () => {
   it("enforces the Starter limit (10)", () => {
-    expect(canCreateAgent(9, "STARTUP")).toBe(true);
-    expect(canCreateAgent(10, "STARTUP")).toBe(false);
+    expect(canCreateAgent(9, "STARTER")).toBe(true);
+    expect(canCreateAgent(10, "STARTER")).toBe(false);
   });
 
   it("enforces the Growth limit (50)", () => {
@@ -41,7 +41,7 @@ describe("canCreateAgent", () => {
 
 describe("normalizeTier", () => {
   it("uppercases and falls back to FREE", () => {
-    expect(normalizeTier("startup")).toBe("STARTUP");
+    expect(normalizeTier("starter")).toBe("STARTER");
     expect(normalizeTier("pro")).toBe("PRO");
     expect(normalizeTier("nope")).toBe("FREE");
     expect(normalizeTier(null)).toBe("FREE");
@@ -57,14 +57,14 @@ describe("planConfig", () => {
 
 describe("price <-> tier mapping", () => {
   beforeEach(() => {
-    process.env.STRIPE_STARTUP_PRICE_ID = "price_startup";
+    process.env.STRIPE_STARTER_PRICE_ID = "price_startup";
     process.env.STRIPE_GROWTH_PRICE_ID = "price_growth";
     process.env.STRIPE_PRO_PRICE_ID = "price_pro";
     process.env.STRIPE_ENTERPRISE_PRICE_ID = "price_ent";
   });
 
   it("maps price id to tier", () => {
-    expect(planForPriceId("price_startup")).toBe("STARTUP");
+    expect(planForPriceId("price_startup")).toBe("STARTER");
     expect(planForPriceId("price_growth")).toBe("GROWTH");
     expect(planForPriceId("price_pro")).toBe("PRO");
     expect(planForPriceId("price_ent")).toBe("ENTERPRISE");
@@ -73,7 +73,7 @@ describe("price <-> tier mapping", () => {
   });
 
   it("maps tier to price id", () => {
-    expect(priceIdForTier("STARTUP")).toBe("price_startup");
+    expect(priceIdForTier("STARTER")).toBe("price_startup");
     expect(priceIdForTier("GROWTH")).toBe("price_growth");
     expect(priceIdForTier("PRO")).toBe("price_pro");
     expect(priceIdForTier("FREE")).toBeUndefined();

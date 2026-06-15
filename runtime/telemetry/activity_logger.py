@@ -40,7 +40,7 @@ async def log_activity(
     try:
         activity_log = ActivityLog(
             id=str(uuid.uuid4()),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
             organizationId=organization_id,
             agentId=agent_id,
             action=action,

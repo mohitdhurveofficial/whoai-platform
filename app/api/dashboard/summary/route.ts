@@ -35,45 +35,25 @@ export async function GET() {
       },
     });
 
-    const [spendAgg, reqAgg, metricsAgg, activeAgentsCount, alertCount] =
-      await Promise.all([
-        prisma.spendLog.aggregate({
-          where: { organizationId: orgId },
-          _sum: {
-            cost: true,
-            tokensIn: true,
-            tokensOut: true,
-          },
-        }),
-
-        prisma.requestLog.aggregate({
-          where: { organizationId: orgId },
-          _count: { _all: true },
-        }),
-
-        prisma.usageMetrics.aggregate({
-          where: { organizationId: orgId },
-          _sum: {
-            totalCost: true,
-            totalRequests: true,
-            totalTokens: true,
-          },
-        }),
-
-        prisma.agent.count({
-          where: {
-            organizationId: orgId,
-            status: "ACTIVE",
-          },
-        }),
-
-        prisma.alert.count({
-          where: {
-            organizationId: orgId,
-            resolved: false,
-          },
-        }),
-      ]);
+    // Sequential to prevent PgBouncer deadlock (connection_limit=1 in production).
+    const spendAgg = await prisma.spendLog.aggregate({
+      where: { organizationId: orgId },
+      _sum: { cost: true, tokensIn: true, tokensOut: true },
+    });
+    const reqAgg = await prisma.requestLog.aggregate({
+      where: { organizationId: orgId },
+      _count: { _all: true },
+    });
+    const metricsAgg = await prisma.usageMetrics.aggregate({
+      where: { organizationId: orgId },
+      _sum: { totalCost: true, totalRequests: true, totalTokens: true },
+    });
+    const activeAgentsCount = await prisma.agent.count({
+      where: { organizationId: orgId, status: "ACTIVE" },
+    });
+    const alertCount = await prisma.alert.count({
+      where: { organizationId: orgId, resolved: false },
+    });
 
     const spendLogCost = toNumber(spendAgg._sum.cost);
     const metricsCost = toNumber(metricsAgg._sum.totalCost);
