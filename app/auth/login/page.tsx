@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
@@ -33,7 +32,6 @@ const trustItems = [
 ];
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -80,18 +78,16 @@ export default function LoginPage() {
         throw new Error("Token not received");
       }
 
-      // Set the cookie expected by middleware and lib/auth.ts
-      document.cookie = `whoai_auth=${data.token}; path=/; max-age=86400; SameSite=Lax`;
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("is_authenticated", "true");
 
-      router.refresh();
-      router.push("/dashboard");
+      // Hard redirect ensures cookie (set by server response) is included.
+      // router.push() can race with RSC payload fetching on fresh cookies.
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Authentication failed"
       );
-    } finally {
       setIsLoading(false);
     }
   };
