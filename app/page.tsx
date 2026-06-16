@@ -67,14 +67,15 @@ export default function LandingPage() {
       {/* NAVIGATION */}
       <SiteNav />
 
+      <main>
       {/* HERO SECTION */}
-      <section className="relative z-10 pt-32 pb-24 px-6 text-center max-w-[900px] mx-auto">
+      <section className="relative z-10 pt-32 pb-24 px-6 text-center max-w-[900px] mx-auto" aria-label="Hero">
         <h1 className="text-[56px] leading-[1.05] md:text-[72px] font-extrabold tracking-tight text-[#111111] mb-8">
-          Control Every Dollar <br className="hidden md:block" />
-          Your AI Agents Spend
+          AI FinOps Platform — Track &amp; Control <br className="hidden md:block" />
+          OpenAI, Anthropic &amp; Gemini Costs
         </h1>
         <p className="text-[18px] md:text-[21px] text-[#666666] mb-12 max-w-[700px] mx-auto leading-relaxed">
-          Track token usage, monitor AI agents, detect cost anomalies, and stop runaway API bills before they impact your business.
+          Real-time LLM cost tracking, token usage monitoring, and AI agent budget enforcement. Stop runaway API bills from GPT-4o, Claude 3.5 Sonnet, and Gemini before they hit your business.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
           <Link href="/signup" className="w-full sm:w-auto bg-[#FF6B00] text-white px-8 py-4 rounded-md font-semibold text-[16px] hover:bg-[#E65A00] transition-colors shadow-md flex items-center justify-center gap-2">
@@ -296,6 +297,32 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* SUPPORTED PROVIDERS — SEO-rich section for model-specific searches */}
+      <section className="relative z-10 py-24 bg-[#FFFFFF] border-y border-[#EEE8E2]" aria-label="Supported LLM Providers">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <h2 className="text-[28px] font-bold text-[#111111] mb-4 text-center">
+            Supported AI Models &amp; Providers
+          </h2>
+          <p className="text-[16px] text-[#666666] text-center mb-10 max-w-[600px] mx-auto">
+            WHOAI tracks costs for every major LLM provider and model. New releases are added automatically.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            {[
+              { name: "OpenAI", models: "GPT-4o, GPT-4.1, GPT-3.5" },
+              { name: "Anthropic", models: "Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku" },
+              { name: "Google", models: "Gemini 2.5 Pro, Gemini 2.5 Flash" },
+              { name: "xAI", models: "Grok 2, Grok 2 Latest" },
+              { name: "DeepSeek", models: "DeepSeek Chat, DeepSeek Reasoner" },
+            ].map((p) => (
+              <div key={p.name} className="bg-[#FAF7F3] border border-[#EEE8E2] rounded-lg p-5">
+                <h3 className="text-[15px] font-bold text-[#111111] mb-1">{p.name}</h3>
+                <p className="text-[12px] text-[#888888]">{p.models}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* DASHBOARD SHOWCASE 2 */}
       <section className="relative z-10 py-24 bg-[#111111] text-[#FFFFFF] overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-6 flex flex-col lg:flex-row items-center gap-16">
@@ -395,11 +422,132 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ SECTION — Rich Snippets for Google */}
+      <section className="relative z-10 py-24 bg-[#FAF7F3] border-y border-[#EEE8E2]">
+        <div className="max-w-[800px] mx-auto px-6">
+          <h2 className="text-[36px] font-bold tracking-tight text-[#111111] mb-4 text-center">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-[16px] text-[#666666] text-center mb-12">
+            Everything you need to know about tracking and controlling AI costs with WHOAI.
+          </p>
+          <div className="space-y-6">
+            {[
+              {
+                q: "What is an AI FinOps platform and why do I need one?",
+                a: "An AI FinOps platform like WHOAI gives you real-time visibility into every dollar your AI agents spend on LLM APIs like OpenAI GPT-4o, Anthropic Claude, Gemini, Grok, and DeepSeek. Without it, autonomous agents can burn through budgets silently—costs spike 400% overnight and teams only find out when the monthly bill arrives.",
+              },
+              {
+                q: "How does WHOAI track AI cost per request?",
+                a: "WHOAI intercepts every API call through a high-performance gateway, logging exact token counts (prompt + completion), model used, provider, latency, and precise cost in Decimal cents. You see real spend per agent, per request, per model—no averages, no estimates.",
+              },
+              {
+                q: "Which LLM providers does WHOAI support?",
+                a: "WHOAI supports OpenAI (GPT-4o, GPT-4.1, GPT-3.5), Anthropic (Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku), Google Gemini (2.5 Pro, 2.5 Flash, 1.5 Pro, 1.5 Flash), xAI Grok, DeepSeek, and Meta Llama. New models are added automatically as they release.",
+              },
+              {
+                q: "What is BYOK and why does it matter for security?",
+                a: "BYOK means Bring Your Own Key. Your organization keeps its own API credentials for every provider. WHOAI never stores or pays with its own keys—you control access, rotation, and revocation. This prevents vendor lock-in and keeps your data within your security perimeter.",
+              },
+              {
+                q: "How do budget controls and kill switches prevent runaway AI costs?",
+                a: "Set hard daily and monthly spend limits per agent and per organization. WHOAI uses atomic budget pre-reservation: every request reserves its projected cost before execution. If a limit would be exceeded, the request is blocked instantly. The kill switch pauses the agent immediately—no runaway loops, no surprise bills.",
+              },
+              {
+                q: "Can WHOAI detect AI cost anomalies automatically?",
+                a: "Yes. WHOAI monitors spend velocity, token burn rate, and request patterns in real time. If an agent suddenly spikes by 400% or behaves outside its historical baseline, you get an instant alert in Slack, Teams, or email—before the damage compounds.",
+              },
+              {
+                q: "How long does setup take?",
+                a: "Most teams are live in under 5 minutes. Point your existing AI API calls at the WHOAI gateway, add your provider keys in Settings, and budgets start enforcing immediately. No code changes to your LLM prompts or agent logic.",
+              },
+            ].map((faq, i) => (
+              <details key={i} className="group bg-[#FFFFFF] border border-[#EEE8E2] rounded-lg p-6 open:shadow-sm transition-all">
+                <summary className="flex justify-between items-center cursor-pointer list-none font-semibold text-[16px] text-[#111111] group-open:mb-3">
+                  {faq.q}
+                  <ChevronRight className="h-4 w-4 text-[#888888] group-open:rotate-90 transition-transform" />
+                </summary>
+                <p className="text-[15px] text-[#666666] leading-relaxed">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+
+          {/* FAQPage JSON-LD for rich snippets */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  {
+                    "@type": "Question",
+                    name: "What is an AI FinOps platform and why do I need one?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "An AI FinOps platform like WHOAI gives you real-time visibility into every dollar your AI agents spend on LLM APIs. Without it, autonomous agents can burn through budgets silently.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How does WHOAI track AI cost per request?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "WHOAI intercepts every API call through a high-performance gateway, logging exact token counts, model used, provider, latency, and precise cost. You see real spend per agent, per request, per model.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Which LLM providers does WHOAI support?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "WHOAI supports OpenAI, Anthropic, Google Gemini, xAI Grok, DeepSeek, and Meta Llama. New models are added automatically.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "What is BYOK and why does it matter for security?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "BYOK means Bring Your Own Key. Your organization keeps its own API credentials for every provider. WHOAI never stores or pays with its own keys.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How do budget controls and kill switches prevent runaway AI costs?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Set hard daily and monthly spend limits. WHOAI uses atomic budget pre-reservation so every request reserves projected cost before execution. If a limit would be exceeded, the request is blocked instantly.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Can WHOAI detect AI cost anomalies automatically?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Yes. WHOAI monitors spend velocity, token burn rate, and request patterns. If an agent spikes by 400%, you get an instant alert before the damage compounds.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How long does setup take?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Most teams are live in under 5 minutes. Point your AI API calls at the WHOAI gateway and budgets start enforcing immediately.",
+                    },
+                  },
+                ],
+              }),
+            }}
+          />
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <section className="relative z-10 py-32 bg-[#FFFFFF]">
         <div className="max-w-[800px] mx-auto px-6 text-center">
           <h2 className="text-[48px] font-extrabold tracking-tight text-[#111111] mb-6">
-            Stop Guessing Where Your <br/> AI Budget Goes
+            Stop Guessing Where Your <br /> AI Budget Goes
           </h2>
           <p className="text-[20px] text-[#666666] mb-12">
             Get complete visibility into every AI request, token, and dollar spent. Set up WHOAI in 5 minutes.
@@ -414,6 +562,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      </main>
 
       {/* FOOTER */}
       <SiteFooter />

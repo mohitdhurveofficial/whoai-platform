@@ -19,7 +19,8 @@
       "Bash(./node_modules/.bin/prisma generate *)",
       "Bash(./node_modules/.bin/next build *)",
       "Bash(git rm *)",
-      "Bash(python3 -m py_compile runtime/routers/gateway.py)"
+      "Bash(python3 -m py_compile runtime/routers/gateway.py)",
+      "WebSearch"
     ]
   }
 }
