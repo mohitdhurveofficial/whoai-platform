@@ -61,7 +61,9 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "google-site-verification-code", // Replace with actual code from Google Search Console
+    // INSTRUCTION: Get your verification code from https://search.google.com/search-console
+    // Go to Add Property → Domain → Copy the meta tag content value → paste below.
+    google: "google-site-verification-code",
   },
   other: {
     "theme-color": "#FF6B00",
@@ -78,7 +80,7 @@ const structuredData = {
       "@id": "https://whoai-platform.vercel.app/#organization",
       name: "WHOAI",
       url: "https://whoai-platform.vercel.app",
-      logo: "https://whoai-platform.vercel.app/logo.png",
+      logo: "https://whoai-platform.vercel.app/logo.svg",
       sameAs: [
         "https://twitter.com/whoai",
         "https://linkedin.com/company/whoai",
