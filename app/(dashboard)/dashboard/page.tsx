@@ -10,7 +10,6 @@ import {
   getUsageRequests,
 } from "@/lib/analytics/service";
 import { getServerAuthContext } from "@/lib/server/auth";
-import { prisma } from "@/lib/prisma";
 import {
   SpendAgentBarChart,
   SpendLineChart,
@@ -34,13 +33,14 @@ export default async function DashboardPage() {
   const auth = await getServerAuthContext();
   if (!auth) redirect("/login");
 
-  // Sequential queries prevent PgBouncer deadlock in production (connection_limit=1).
+  // Batched raw SQL queries eliminate PgBouncer connection overhead.
   const summary = await getDashboardSummary(auth.organizationId);
   const spendByDay = await getSpendByDay(auth.organizationId);
   const spendByAgent = await getSpendByAgent(auth.organizationId);
   const spendByModel = await getSpendByModel(auth.organizationId);
-  const providerCount = await prisma.providerCredential.count({ where: { organizationId: auth.organizationId } });
   const recentRequests = await getUsageRequests(auth.organizationId);
+
+  const providerCount = summary.providerCount;
 
   const hasSpend = summary.totalSpend > 0;
 

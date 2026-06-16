@@ -3,6 +3,7 @@ export type DashboardSummary = {
   todaySpend: number;
   activeAgents: number;
   blockedRequests: number;
+  providerCount: number;
 };
 
 export type SpendByDayPoint = {
