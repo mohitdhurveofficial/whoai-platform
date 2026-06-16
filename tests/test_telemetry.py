@@ -15,16 +15,16 @@ from database.models import Agent, SpendLog, ActivityLog, UsageMetrics
 
 def test_pricing_registry():
     pricing = get_pricing("gpt-4o")
-    assert pricing["input"] == 0.005
-    assert pricing["output"] == 0.015
+    assert pricing["input"] == Decimal("0.005")
+    assert pricing["output"] == Decimal("0.015")
 
-    # Test fallback
-    fallback = get_pricing("unknown-model")
-    assert fallback["input"] == 0.005  # defaults to gpt-4o
+    # Unknown model returns None — never silently defaults
+    unknown = get_pricing("unknown-model")
+    assert unknown is None
 
     # Test substring match
     sonnet = get_pricing("claude-3-5-sonnet-latest")
-    assert sonnet["input"] == 0.003
+    assert sonnet["input"] == Decimal("0.003")
 
 def test_token_extraction_openai():
     response = {
@@ -85,8 +85,10 @@ async def test_spend_logger():
     assert isinstance(added_obj, SpendLog)
     assert added_obj.cost == Decimal("0.05")
     assert added_obj.tokensIn == 100
-    
-    assert db_mock.execute.called
+
+    # log_spend no longer updates denormalized counters — those are managed
+    # atomically by budget pre-reservation in budget_service.py.
+    # assert db_mock.execute.called  # REMOVED: counter updates extracted
 
 @pytest.mark.asyncio
 async def test_activity_logger():

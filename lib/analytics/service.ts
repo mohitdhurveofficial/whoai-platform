@@ -370,37 +370,70 @@ export async function getUsageRequests(
   organizationId: string,
   filters: UsageFilters = {},
 ): Promise<UsageRequestRow[]> {
-  // Sequential to prevent PgBouncer deadlock in production.
-  const rows = await prisma.requestLog.findMany({
-    where: buildRequestWhere(organizationId, filters),
-    orderBy: { timestamp: "desc" },
-    take: 100,
-    select: {
-      id: true,
-      timestamp: true,
-      agentId: true,
-      provider: true,
-      model: true,
-      statusCode: true,
-      latencyMs: true,
-      agent: { select: { name: true } },
-    },
-  });
-  const summary = await getUsageSummary(organizationId, filters);
-
-  const averageTokens = summary.totalRequests > 0 ? summary.totalTokens / summary.totalRequests : 0;
+  // Single raw query joins SpendLog (real tokens / cost) with nearest RequestLog
+  // (status / latency) via LATERAL, so every row shows its ACTUAL values instead
+  // of averaged garbage.
+  const rows = await prisma.$queryRaw<
+    Array<{
+      id: string;
+      timestamp: Date;
+      agent_id: string;
+      agent_name: string;
+      provider: string;
+      model: string;
+      status_code: number | null;
+      latency_ms: number | null;
+      tokens_in: number;
+      tokens_out: number;
+      cost: Prisma.Decimal | number;
+    }>
+  >`
+    SELECT
+      s.id,
+      s."createdAt" AS timestamp,
+      s."agentId" AS agent_id,
+      a.name AS agent_name,
+      s.provider,
+      s.model,
+      r."statusCode" AS status_code,
+      r."latencyMs" AS latency_ms,
+      s."tokensIn" AS tokens_in,
+      s."tokensOut" AS tokens_out,
+      s.cost
+    FROM "SpendLog" s
+    LEFT JOIN LATERAL (
+      SELECT "statusCode", "latencyMs"
+      FROM "RequestLog"
+      WHERE "organizationId" = s."organizationId"
+        AND "agentId" = s."agentId"
+        AND model = s.model
+        AND timestamp >= s."createdAt" - INTERVAL '2 seconds'
+        AND timestamp <= s."createdAt" + INTERVAL '2 seconds'
+      ORDER BY ABS(EXTRACT(EPOCH FROM (timestamp - s."createdAt")))
+      LIMIT 1
+    ) r ON true
+    LEFT JOIN "Agent" a ON a.id = s."agentId"
+    WHERE s."organizationId" = ${organizationId}
+      AND (${filters.agentId ?? null}::text IS NULL OR s."agentId" = ${filters.agentId ?? null})
+      AND (${filters.model ?? null}::text IS NULL OR s.model = ${filters.model ?? null})
+      AND (${filters.provider ?? null}::text IS NULL OR s.provider = ${filters.provider ?? null})
+      AND (${filters.from ?? null}::timestamp IS NULL OR s."createdAt" >= ${filters.from ?? null})
+      AND (${filters.to ?? null}::timestamp IS NULL OR s."createdAt" <= ${filters.to ?? null})
+    ORDER BY s."createdAt" DESC
+    LIMIT 100
+  `;
 
   return rows.map((row) => ({
     id: row.id,
     timestamp: row.timestamp.toISOString(),
-    agentId: row.agentId,
-    agentName: row.agent.name,
+    agentId: row.agent_id,
+    agentName: row.agent_name ?? "Deleted agent",
     provider: row.provider,
     model: row.model,
-    statusCode: row.statusCode,
-    latencyMs: row.latencyMs,
-    tokens: Math.round(averageTokens),
-    spend: summary.averageCost,
+    statusCode: row.status_code ?? 200,
+    latencyMs: row.latency_ms ?? 0,
+    tokens: row.tokens_in + row.tokens_out,
+    spend: toNumber(row.cost),
   }));
 }
 

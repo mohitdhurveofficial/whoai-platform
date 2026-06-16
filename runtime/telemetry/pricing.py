@@ -1,55 +1,52 @@
 """
 Model Pricing Registry for WHOAI Telemetry Engine.
-Single source of truth for pricing calculations across the platform.
+Single source of truth: reads from pricing.json at project root.
 """
+import json
+import os
+import logging
+from decimal import Decimal, getcontext
 
-# Pricing per 1,000 tokens in USD
-MODEL_PRICING = {
-    # OpenAI
-    "gpt-4o": {"input": 0.005, "output": 0.015},
-    "gpt-4.1": {"input": 0.005, "output": 0.015},
-    "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-    "gpt-5": {"input": 0.015, "output": 0.045}, # Placeholder
-    "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
-    
-    # Anthropic
-    "claude-3-5-sonnet": {"input": 0.003, "output": 0.015},
-    "claude-3-5-sonnet-20240620": {"input": 0.003, "output": 0.015},
-    "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
-    "claude-3-haiku": {"input": 0.00025, "output": 0.00125},
-    
-    # Gemini
-    "gemini-2.5-pro": {"input": 0.00125, "output": 0.00375},
-    "gemini-2.5-flash": {"input": 0.000075, "output": 0.0003},
-    
-    # Grok
-    "grok-2": {"input": 0.002, "output": 0.01},
-    "grok-2-latest": {"input": 0.002, "output": 0.01},
-    
-    # DeepSeek
-    "deepseek-chat": {"input": 0.00014, "output": 0.00028},
-    "deepseek-reasoner": {"input": 0.00055, "output": 0.00219}
-}
+getcontext().prec = 28
 
-def get_pricing(model: str) -> dict:
+logger = logging.getLogger("whoai.telemetry.pricing")
+
+# Load once at module import time — avoids drift across restarts.
+_pricing_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "pricing.json")
+with open(_pricing_path, "r") as f:
+    MODEL_PRICING = {k.lower(): v for k, v in json.load(f)["models"].items()}
+
+
+def get_pricing(model: str) -> dict | None:
     """
-    Get pricing for a specific model, defaulting to gpt-4o if unknown.
+    Return pricing dict {input: Decimal, output: Decimal} for a model.
+    Returns None if the model is completely unknown.
     """
     model_lower = model.lower()
-    if model_lower in MODEL_PRICING:
-        return MODEL_PRICING[model_lower]
-        
-    for key, pricing in MODEL_PRICING.items():
-        if key in model_lower:
-            return pricing
-            
-    return MODEL_PRICING["gpt-4o"]
 
-def calculate_cost(model: str, tokens_in: int, tokens_out: int) -> float:
+    if model_lower in MODEL_PRICING:
+        raw = MODEL_PRICING[model_lower]
+        return {"input": Decimal(str(raw["input"])), "output": Decimal(str(raw["output"]))}
+
+    # Fuzzy match: does any known key appear inside the model name?
+    for key, raw in MODEL_PRICING.items():
+        if key in model_lower:
+            return {"input": Decimal(str(raw["input"])), "output": Decimal(str(raw["output"]))}
+
+    return None
+
+
+def calculate_cost(model: str, tokens_in: int, tokens_out: int) -> Decimal:
     """
-    Calculate the total cost of a request.
+    Calculate the exact request cost in Decimal.
+    Unknown models log a warning and return $0 — never silently default to gpt-4o.
     """
     pricing = get_pricing(model)
-    cost_in = (tokens_in / 1000.0) * pricing["input"]
-    cost_out = (tokens_out / 1000.0) * pricing["output"]
-    return cost_in + cost_out
+    if pricing is None:
+        logger.warning(f"Unknown model '{model}' — pricing unavailable. Cost logged as $0.")
+        return Decimal("0")
+
+    d_1000 = Decimal("1000")
+    cost_in = (Decimal(tokens_in) / d_1000) * pricing["input"]
+    cost_out = (Decimal(tokens_out) / d_1000) * pricing["output"]
+    return (cost_in + cost_out).quantize(Decimal("0.00000001"))

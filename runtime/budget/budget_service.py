@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import ActivityLog, Agent, Alert, Organization, SpendLog
@@ -17,6 +17,118 @@ ORG_MONTHLY_LIMIT_EXCEEDED = "ORG_MONTHLY_LIMIT_EXCEEDED"
 WARNING_THRESHOLD = Decimal("0.75")
 CRITICAL_THRESHOLD = Decimal("0.90")
 BLOCKED_THRESHOLD = Decimal("1.00")
+
+
+# ── Atomic budget pre-reservation ──
+# Prevents the concurrency race where N requests all read the same pre-increment
+# spend and each passes the budget check, then all increment past the cap.
+
+async def pre_reserve_agent_budget(db: AsyncSession, agent_id: str, estimated_cost: Decimal) -> bool:
+    """
+    Atomically check agent budget and reserve estimated cost.
+    Returns True if reservation succeeded, False if budget would be exceeded.
+    """
+    if estimated_cost <= 0:
+        return True
+
+    result = await db.execute(
+        text('''
+            UPDATE "Agent"
+            SET "currentDailySpend"   = "currentDailySpend"   + :est,
+                "currentMonthlySpend" = "currentMonthlySpend" + :est
+            WHERE id = :id
+              AND ("dailyBudget"   <= 0 OR "currentDailySpend"   + :est <= "dailyBudget")
+              AND ("monthlyBudget" <= 0 OR "currentMonthlySpend" + :est <= "monthlyBudget")
+        '''),
+        {"id": agent_id, "est": estimated_cost},
+    )
+    return result.rowcount > 0
+
+
+async def pre_reserve_org_budget(db: AsyncSession, org_id: str, estimated_cost: Decimal) -> bool:
+    """
+    Atomically check org budget and reserve estimated cost.
+    """
+    if estimated_cost <= 0:
+        return True
+
+    result = await db.execute(
+        text('''
+            UPDATE "Organization"
+            SET "currentDailySpend"   = "currentDailySpend"   + :est,
+                "currentMonthlySpend" = "currentMonthlySpend" + :est
+            WHERE id = :id
+              AND ("dailyBudget"   <= 0 OR "currentDailySpend"   + :est <= "dailyBudget")
+              AND ("monthlyBudget" <= 0 OR "currentMonthlySpend" + :est <= "monthlyBudget")
+        '''),
+        {"id": org_id, "est": estimated_cost},
+    )
+    return result.rowcount > 0
+
+
+async def adjust_agent_budget(db: AsyncSession, agent_id: str, actual_cost: Decimal, estimated_cost: Decimal) -> None:
+    """
+    Adjust pre-reserved budget to actual cost.
+    delta = actual - estimated (can be negative if actual < estimate).
+    """
+    delta = actual_cost - estimated_cost
+    if delta == 0:
+        return
+    await db.execute(
+        text('''
+            UPDATE "Agent"
+            SET "currentDailySpend"   = "currentDailySpend"   + :delta,
+                "currentMonthlySpend" = "currentMonthlySpend" + :delta
+            WHERE id = :id
+        '''),
+        {"id": agent_id, "delta": delta},
+    )
+
+
+async def adjust_org_budget(db: AsyncSession, org_id: str, actual_cost: Decimal, estimated_cost: Decimal) -> None:
+    """Adjust pre-reserved org budget to actual cost."""
+    delta = actual_cost - estimated_cost
+    if delta == 0:
+        return
+    await db.execute(
+        text('''
+            UPDATE "Organization"
+            SET "currentDailySpend"   = "currentDailySpend"   + :delta,
+                "currentMonthlySpend" = "currentMonthlySpend" + :delta
+            WHERE id = :id
+        '''),
+        {"id": org_id, "delta": delta},
+    )
+
+
+async def release_agent_budget(db: AsyncSession, agent_id: str, estimated_cost: Decimal) -> None:
+    """Release pre-reserved budget when request fails before completion."""
+    if estimated_cost <= 0:
+        return
+    await db.execute(
+        text('''
+            UPDATE "Agent"
+            SET "currentDailySpend"   = "currentDailySpend"   - :est,
+                "currentMonthlySpend" = "currentMonthlySpend" - :est
+            WHERE id = :id
+        '''),
+        {"id": agent_id, "est": estimated_cost},
+    )
+
+
+async def release_org_budget(db: AsyncSession, org_id: str, estimated_cost: Decimal) -> None:
+    """Release pre-reserved org budget when request fails."""
+    if estimated_cost <= 0:
+        return
+    await db.execute(
+        text('''
+            UPDATE "Organization"
+            SET "currentDailySpend"   = "currentDailySpend"   - :est,
+                "currentMonthlySpend" = "currentMonthlySpend" - :est
+            WHERE id = :id
+        '''),
+        {"id": org_id, "est": estimated_cost},
+    )
 
 
 def _money(value: Any) -> Decimal:

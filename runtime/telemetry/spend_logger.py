@@ -39,26 +39,16 @@ async def log_spend(
             tokensOut=tokens_out,
             cost=cost
         )
-        
-        # We can add totalTokens to metadata since it's not a primary DB column in SpendLog
+
+        # totalTokens stored in metadata since it's not a primary column.
         spend_log.metadata_ = {"totalTokens": total_tokens}
-        
+
         db.add(spend_log)
-        
-        # Keep denormalized counters fresh for low-latency dashboards.
-        await db.execute(
-            update(Agent).where(Agent.id == agent_id).values(
-                currentDailySpend=Agent.currentDailySpend + cost,
-                currentMonthlySpend=Agent.currentMonthlySpend + cost,
-            )
-        )
-        await db.execute(
-            update(Organization).where(Organization.id == organization_id).values(
-                currentDailySpend=Organization.currentDailySpend + cost,
-                currentMonthlySpend=Organization.currentMonthlySpend + cost,
-            )
-        )
-        
+        # NOTE: denormalized counters (currentDailySpend / currentMonthlySpend) are
+        # managed by atomic budget pre-reservation in budget_service.py, NOT here.
+        # This prevents the concurrency race where N requests all read the same
+        # pre-increment value and each passes the budget check.
+
     except Exception as e:
         # Never block the request flow
         logger.error(f"Failed to log spend for agent {agent_id}: {str(e)}", exc_info=True)

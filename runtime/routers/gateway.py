@@ -5,6 +5,7 @@ import json
 import jwt
 import asyncio
 import logging
+from decimal import Decimal
 from typing import Optional, Dict, AsyncGenerator, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
@@ -20,7 +21,12 @@ from runtime.telemetry.spend_logger import log_spend
 from runtime.telemetry.activity_logger import log_activity, ActivityAction
 from runtime.telemetry.metrics_service import update_daily_metrics
 from runtime.telemetry.anomaly_detector import detect_anomalies
-from runtime.budget.budget_service import check_agent_budget, check_org_budget
+from runtime.budget.budget_service import (
+    check_agent_budget, check_org_budget,
+    pre_reserve_agent_budget, pre_reserve_org_budget,
+    adjust_agent_budget, adjust_org_budget,
+    release_agent_budget, release_org_budget,
+)
 from runtime.killswitch.kill_switch_service import (
     DAILY_BUDGET_EXCEEDED,
     MONTHLY_BUDGET_EXCEEDED,
@@ -101,14 +107,26 @@ async def verify_agent_identity(authorization: Optional[str] = Header(None)) -> 
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def _estimate_request_cost(model: str, messages: list, payload_size: int) -> Decimal:
+    """
+    Conservative pre-request cost estimate for atomic budget reservation.
+    Input tokens from payload size; output estimated as 2x input (common case).
+    Unknown models estimate $0 — pre-reservation becomes a no-op.
+    """
+    from runtime.telemetry.pricing import calculate_cost
+    est_tokens_in = max(1, payload_size // 4)
+    est_tokens_out = est_tokens_in * 2
+    return calculate_cost(model, est_tokens_in, est_tokens_out)
+
+
 async def log_request(
-    db: AsyncSession, 
-    agent_id: str, 
-    org_id: str, 
-    provider: str, 
-    model: str, 
-    payload_size: int, 
-    status_code: int, 
+    db: AsyncSession,
+    agent_id: str,
+    org_id: str,
+    provider: str,
+    model: str,
+    payload_size: int,
+    status_code: int,
     latency_ms: int,
     ip_address: str
 ):
@@ -134,19 +152,29 @@ async def format_stream_response(
     provider: str,
     request_ip: str,
     payload_size: int,
-    start_time: float
+    start_time: float,
+    estimated_cost: Decimal = Decimal("0"),
 ) -> AsyncGenerator[str, None]:
-    
+
     tokens_out = 0
+    tokens_in = 0
     status_code = 200
-    
+    real_usage: Optional[Dict[str, int]] = None
+
     try:
         async for chunk in stream:
-            if "choices" in chunk and len(chunk["choices"]) > 0:
-                delta = chunk["choices"][0].get("delta", {}).get("content", "")
+            # OpenAI / Anthropic may include usage in the final chunk
+            usage = chunk.get("usage")
+            if usage:
+                real_usage = usage
+
+            choices = chunk.get("choices", [])
+            if choices:
+                delta = choices[0].get("delta", {}).get("content", "")
                 if delta:
-                    # Very rough approximation for stream tokens
-                    tokens_out += max(1, len(delta) // 4)
+                    # Fallback estimate only if no real usage received yet
+                    if not real_usage:
+                        tokens_out += max(1, len(delta) // 4)
             yield f"data: {json.dumps(chunk)}\n\n"
         yield "data: [DONE]\n\n"
     except BaseException as e:
@@ -154,18 +182,31 @@ async def format_stream_response(
         raise
     finally:
         latency_ms = int((time.time() - start_time) * 1000)
-        tokens_in = payload_size // 4
+
+        # Prefer real usage from provider's final chunk over estimates.
+        if real_usage:
+            tokens_in = real_usage.get("prompt_tokens", real_usage.get("input_tokens", 0))
+            tokens_out = real_usage.get("completion_tokens", real_usage.get("output_tokens", 0))
+        else:
+            tokens_in = payload_size // 4
+
         total_tokens = tokens_in + tokens_out
         cost = calculate_cost(model, tokens_in, tokens_out)
-        
+
         async def _save_telemetry():
-            # Use a fresh, detached session to ensure telemetry saves even if the
-            # request's dependency session was closed upon client disconnection.
             async with async_session_maker() as telemetry_db:
+                # Adjust pre-reserved budget to actual (or release on failure).
+                if status_code == 200:
+                    await adjust_agent_budget(telemetry_db, agent_id, cost, estimated_cost)
+                    await adjust_org_budget(telemetry_db, org_id, cost, estimated_cost)
+                else:
+                    await release_agent_budget(telemetry_db, agent_id, estimated_cost)
+                    await release_org_budget(telemetry_db, org_id, estimated_cost)
+
                 await log_request(telemetry_db, agent_id, org_id, provider, model, payload_size, status_code, latency_ms, request_ip)
                 await log_spend(telemetry_db, org_id, agent_id, provider, model, tokens_in, tokens_out, total_tokens, cost)
                 await update_daily_metrics(telemetry_db, org_id, agent_id, total_tokens, cost)
-                
+
                 action_status = "SUCCESS" if status_code == 200 else ("CANCELLED" if status_code == 499 else "FAILURE")
                 await log_activity(
                     telemetry_db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, action_status,
@@ -173,12 +214,8 @@ async def format_stream_response(
                 )
                 await telemetry_db.commit()
 
-            # Metrics are committed; run runaway/anomaly detection on a fresh
-            # session. Still inside the detached task, so it never blocks the
-            # streamed response.
             await _run_anomaly_detection(org_id, agent_id)
 
-        # Fire and forget to prevent CancelledError from interrupting the save
         asyncio.create_task(_save_telemetry())
 
 async def execute_with_retry(provider_instance, method_name: str, *args, **kwargs):
@@ -258,31 +295,31 @@ async def unified_chat_completions(
             content={"error": org_state_decision["error"], "reason": org_state_decision["reason"]},
         )
 
-    # Check Budgets
-    agent_budget_decision = await check_agent_budget(db, agent)
-    if not agent_budget_decision["allowed"]:
-        await pause_agent(
-            db, agent, reason=_pause_reason_from_budget(agent_budget_decision["reason"]),
-            paused_by="SYSTEM", budget_limit=agent_budget_decision.get("budgetLimit"),
-            current_spend=agent_budget_decision.get("currentSpend")
-        )
-        await db.commit()  # persist the auto-pause, alert, and audit log
+    # ── Atomic Budget Pre-Reservation ──
+    # Compute conservative estimate BEFORE execution so concurrent requests
+    # can't all read the same pre-increment spend and blow past the cap.
+    estimated_cost = _estimate_request_cost(model, messages, payload_size)
+
+    agent_reserved = await pre_reserve_agent_budget(db, agent_id, estimated_cost)
+    if not agent_reserved:
+        await log_activity(db, org_id, ActivityAction.BUDGET_EXCEEDED, agent_id, "FAILURE",
+                           {"reason": "AGENT_DAILY_LIMIT_EXCEEDED", "estimatedCost": str(estimated_cost)})
+        await db.commit()
         return JSONResponse(
             status_code=402,
-            content={"error": "Budget exceeded", "reason": agent_budget_decision["reason"]},
+            content={"error": "Budget exceeded", "reason": "AGENT_DAILY_LIMIT_EXCEEDED"},
         )
 
-    org_budget_decision = await check_org_budget(db, organization, agent_id=agent_id)
-    if not org_budget_decision["allowed"]:
-        await pause_organization(
-            db, organization, reason=_pause_reason_from_budget(org_budget_decision["reason"]),
-            paused_by="SYSTEM", budget_limit=org_budget_decision.get("budgetLimit"),
-            current_spend=org_budget_decision.get("currentSpend"), agent_id=agent_id
-        )
-        await db.commit()  # persist the auto-pause, alert, and audit log
+    org_reserved = await pre_reserve_org_budget(db, org_id, estimated_cost)
+    if not org_reserved:
+        # Roll back agent reservation before rejecting
+        await release_agent_budget(db, agent_id, estimated_cost)
+        await log_activity(db, org_id, ActivityAction.BUDGET_EXCEEDED, agent_id, "FAILURE",
+                           {"reason": "ORG_DAILY_LIMIT_EXCEEDED", "estimatedCost": str(estimated_cost)})
+        await db.commit()
         return JSONResponse(
             status_code=402,
-            content={"error": "Budget exceeded", "reason": org_budget_decision["reason"]},
+            content={"error": "Budget exceeded", "reason": "ORG_DAILY_LIMIT_EXCEEDED"},
         )
 
     # Routing
@@ -306,44 +343,52 @@ async def unified_chat_completions(
             if stream:
                 stream_gen = await provider_instance.stream_completion(model, messages, **body)
                 return StreamingResponse(
-                    format_stream_response(stream_gen, agent_id, org_id, model, current_provider, ip_address, payload_size, start_time),
+                    format_stream_response(
+                        stream_gen, agent_id, org_id, model, current_provider,
+                        ip_address, payload_size, start_time, estimated_cost
+                    ),
                     media_type="text/event-stream"
                 )
             else:
                 response = await execute_with_retry(provider_instance, "chat_completion", model, messages, **body)
-                
+
                 latency_ms = int((time.time() - start_time) * 1000)
                 await log_request(db, agent_id, org_id, current_provider, model, payload_size, 200, latency_ms, ip_address)
-                
+
                 tokens_in = response.get("usage", {}).get("prompt_tokens", 0)
                 tokens_out = response.get("usage", {}).get("completion_tokens", 0)
                 total_tokens = response.get("usage", {}).get("total_tokens", 0)
-                
+
                 cost = calculate_cost(model, tokens_in, tokens_out)
-                
+
+                # Adjust pre-reserved budget from estimate to actual.
+                await adjust_agent_budget(db, agent_id, cost, estimated_cost)
+                await adjust_org_budget(db, org_id, cost, estimated_cost)
+
                 await log_spend(db, org_id, agent_id, current_provider, model, tokens_in, tokens_out, total_tokens, cost)
                 await update_daily_metrics(db, org_id, agent_id, total_tokens, cost)
                 await log_activity(
                     db, org_id, ActivityAction.REQUEST_COMPLETED, agent_id, "SUCCESS",
                     {"model": model, "provider": current_provider, "latency_ms": latency_ms, "cost": str(cost)}
                 )
-                # Persist telemetry. Without this commit get_db() closes the
-                # session and rolls back the SpendLog, UsageMetrics, completion
-                # ActivityLog, and the spend counters — so budgets never see spend.
                 await db.commit()
 
-                # Runaway/anomaly detection on a detached session and task so it
-                # never adds latency to the response the caller is awaiting.
                 asyncio.create_task(_run_anomaly_detection(org_id, agent_id))
-
                 return response
         except Exception as e:
+            # Request failed before completion — release the pre-reserved budget.
+            await release_agent_budget(db, agent_id, estimated_cost)
+            await release_org_budget(db, org_id, estimated_cost)
+            await db.commit()
             last_error = e
             continue
 
     # No provider had a usable BYOK key, and none was actually called. Fail
     # closed with a clear, actionable error instead of paying with WHOAI's keys.
+    # Release the pre-reserved budget since no LLM call was made.
     if last_error is None and missing_key_providers:
+        await release_agent_budget(db, agent_id, estimated_cost)
+        await release_org_budget(db, org_id, estimated_cost)
         await log_activity(
             db, org_id, ActivityAction.REQUEST_FAILED, agent_id, "FAILURE",
             {"reason": "BYOK_KEY_MISSING", "providers": missing_key_providers},
