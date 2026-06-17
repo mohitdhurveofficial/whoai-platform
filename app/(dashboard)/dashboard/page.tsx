@@ -17,6 +17,8 @@ import {
 } from "@/app/components/analytics/DashboardCharts";
 import { SummaryCards } from "./SummaryCards";
 import { ProviderSetupBanner } from "@/components/ProviderSetupBanner";
+import { forecastSpend } from "@/lib/predictive-budget";
+import { efficiencyLeaderboard } from "@/lib/efficiency-score";
 
 function EmptyChart({ label }: { label: string }) {
   return (
@@ -39,6 +41,12 @@ export default async function DashboardPage() {
   const spendByAgent = await getSpendByAgent(auth.organizationId);
   const spendByModel = await getSpendByModel(auth.organizationId);
   const recentRequests = await getUsageRequests(auth.organizationId);
+
+  // AI-powered features
+  const [forecast, leaderboard] = await Promise.all([
+    forecastSpend(auth.organizationId, 30).catch(() => null),
+    efficiencyLeaderboard(auth.organizationId, 7).catch(() => []),
+  ]);
 
   const providerCount = summary.providerCount;
 
@@ -64,6 +72,76 @@ export default async function DashboardPage() {
       <ProviderSetupBanner configuredCount={providerCount} />
 
       <SummaryCards />
+
+      {/* AI-POWERED FORECAST */}
+      {forecast && (
+        <section className="rounded-xl border border-[#FF6B00]/20 bg-[#FFF8F3] p-5 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-[15px] font-bold text-[#111111]">Predictive Budget AI</h2>
+              <p className="mt-1 text-[13px] text-[#666666]">
+                Forecast: ${forecast.nextDay}/day · ${forecast.nextWeek}/week · ${forecast.nextMonth}/month
+                {forecast.alert && (
+                  <span className="ml-2 inline-flex items-center gap-1 rounded bg-[#DC2626] px-2 py-0.5 text-[11px] font-bold text-white">
+                    ALERT: Budget exhaustion in {forecast.daysUntilExhaustion} days
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-[11px] text-[#888888]">Suggested daily limit</p>
+                <p className="text-[18px] font-bold text-[#FF6B00]">${forecast.suggestedDailyBudget}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] text-[#888888]">Confidence</p>
+                <p className="text-[18px] font-bold">{Math.round((1 - forecast.confidence) * 100)}%</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* AGENT EFFICIENCY LEADERBOARD */}
+      {leaderboard.length > 0 && (
+        <section className="rounded-xl border border-[#EEE8E2] bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-[16px] font-bold text-[#111111]">Agent Efficiency Leaderboard</h2>
+              <p className="mt-1 text-[13px] text-[#666666]">Cost-per-outcome scoring — higher is better.</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {leaderboard.slice(0, 6).map((agent) => (
+              <div
+                key={agent.agentId}
+                className={`flex items-center justify-between rounded-lg border p-3 ${
+                  agent.score >= 85
+                    ? "border-[#047857]/30 bg-[#ECFDF5]"
+                    : agent.score >= 60
+                    ? "border-[#D97706]/30 bg-[#FFFBEB]"
+                    : "border-[#DC2626]/30 bg-[#FEF2F2]"
+                }`}
+              >
+                <div>
+                  <p className="text-[14px] font-semibold text-[#111111]">{agent.agentName}</p>
+                  <p className="text-[11px] text-[#666666]">
+                    {agent.trend === "improving" ? "Improving" : agent.trend === "degrading" ? "Degrading" : "Stable"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-[20px] font-extrabold ${
+                    agent.score >= 85 ? "text-[#047857]" : agent.score >= 60 ? "text-[#D97706]" : "text-[#DC2626]"
+                  }`}>
+                    {agent.grade}
+                  </p>
+                  <p className="text-[11px] text-[#888888]">{agent.score}/100</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {!hasSpend && (
         <div className="flex items-center gap-3 rounded-lg border border-[#EEE8E2] bg-white p-4 text-[13px] text-[#666666] shadow-sm">

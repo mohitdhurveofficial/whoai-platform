@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/reset-budgets",
       "schedule": "5 0 * * *"
+    },
+    {
+      "path": "/api/cron/dispatch-alerts",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

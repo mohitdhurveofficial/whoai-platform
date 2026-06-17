@@ -1,0 +1,20 @@
+{"timestamp":"2026-06-01T09:00:00Z","model":"gpt-4o","prompt":"Classify this ticket as billing, technical, or other: my card was declined","input_tokens":40,"output_tokens":3,"status":200}
+{"timestamp":"2026-06-01T09:01:00Z","model":"gpt-4o","prompt":"Classify this ticket as billing, technical, or other: my card was declined","input_tokens":40,"output_tokens":3,"status":200}
+{"timestamp":"2026-06-01T09:02:00Z","model":"gpt-4o","prompt":"Classify this ticket as billing, technical, or other: app keeps crashing","input_tokens":39,"output_tokens":3,"status":200}
+{"timestamp":"2026-06-01T09:03:00Z","model":"gpt-4o","prompt":"Classify this ticket as billing, technical, or other: how do I reset my password","input_tokens":41,"output_tokens":4,"status":200}
+{"timestamp":"2026-06-01T09:04:00Z","model":"gpt-4o","prompt":"Extract the order number from: Order #99201 shipped","input_tokens":30,"output_tokens":6,"status":200}
+{"timestamp":"2026-06-01T09:05:00Z","model":"claude-3-opus-20240229","prompt":"Summarize in one line: customer wants a refund for late delivery","input_tokens":48,"output_tokens":18,"status":200}
+{"timestamp":"2026-06-01T09:06:00Z","model":"claude-3-opus-20240229","prompt":"Summarize in one line: customer wants a refund for late delivery","input_tokens":48,"output_tokens":18,"status":200}
+{"timestamp":"2026-06-01T09:07:00Z","model":"claude-3-opus-20240229","prompt":"Summarize in one line: user reports the dashboard is slow on mobile","input_tokens":50,"output_tokens":20,"status":200}
+{"timestamp":"2026-06-01T09:08:00Z","model":"gpt-4o","prompt":"Is this email spam? Subject: You won a prize","input_tokens":35,"output_tokens":2,"status":500}
+{"timestamp":"2026-06-01T09:09:00Z","model":"gpt-4o","prompt":"Is this email spam? Subject: You won a prize","input_tokens":35,"output_tokens":2,"status":500}
+{"timestamp":"2026-06-01T09:10:00Z","model":"gpt-4o","prompt":"Is this email spam? Subject: You won a prize","input_tokens":35,"output_tokens":2,"status":200}
+{"timestamp":"2026-06-01T09:11:00Z","model":"gemini-2.5-pro","prompt":"Translate to French: Your appointment is confirmed","input_tokens":22,"output_tokens":9,"status":200}
+{"timestamp":"2026-06-01T09:12:00Z","model":"gemini-2.5-pro","prompt":"Translate to French: Your appointment is confirmed","input_tokens":22,"output_tokens":9,"status":200}
+{"timestamp":"2026-06-01T09:13:00Z","model":"gpt-4o","prompt":"Write a detailed 1500-word market analysis of the EV industry covering supply chains, battery tech, and regional demand","input_tokens":60,"output_tokens":1900,"status":200}
+{"timestamp":"2026-06-01T09:14:00Z","model":"claude-3-5-sonnet","prompt":"Tag sentiment positive/negative/neutral: the new update is great","input_tokens":33,"output_tokens":2,"status":200}
+{"timestamp":"2026-06-01T09:15:00Z","model":"claude-3-5-sonnet","prompt":"Tag sentiment positive/negative/neutral: shipping was too slow","input_tokens":34,"output_tokens":2,"status":200}
+{"timestamp":"2026-06-01T09:16:00Z","model":"gpt-4-turbo","prompt":"Return the country code for India","input_tokens":18,"output_tokens":3,"status":200}
+{"timestamp":"2026-06-01T09:17:00Z","model":"gpt-4-turbo","prompt":"Return the country code for Brazil","input_tokens":18,"output_tokens":3,"status":200}
+{"timestamp":"2026-06-01T09:18:00Z","model":"gpt-3.5-turbo","prompt":"Say hello","input_tokens":10,"output_tokens":5,"status":200}
+{"timestamp":"2026-06-01T09:19:00Z","model":"deepseek-chat","prompt":"What is 2+2","input_tokens":12,"output_tokens":4,"status":200}
