@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/dispatch-alerts",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
