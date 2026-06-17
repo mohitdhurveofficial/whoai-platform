@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import MarketingShell from "@/app/components/marketing/MarketingShell";
 
 export const metadata: Metadata = {
   title: "Quickstart Guide",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 
 export default function QuickstartPage() {
   return (
+    <MarketingShell>
     <div className="max-w-[1200px] mx-auto px-6 py-20">
       <div className="text-center max-w-[720px] mx-auto mb-16">
         <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
@@ -72,7 +74,7 @@ export default function QuickstartPage() {
             <p className="text-[15px] text-[#666666]">
               Update your AI agent configuration to route requests through WHOAI's gateway:
               <br />
-              <code className="bg-[#FAF7F3] px-1 py-0.5 rounded text-[13px]">https://gateway.whoai.ai/v1</code>
+              <code className="bg-[#FAF7F3] px-1 py-0.5 rounded text-[13px]">https://whoai-platform.vercel.app/api/v1/chat/completions</code>
               <br />
               Keep your existing API key names; WHOAI will inject your provider keys securely.
             </p>
@@ -120,5 +122,6 @@ export default function QuickstartPage() {
         </Link>
       </div>
     </div>
+    </MarketingShell>
   );
 }

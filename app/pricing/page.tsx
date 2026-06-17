@@ -18,7 +18,6 @@ const TIERS = [
     cadence: "/ month",
     blurb: "Try WHOAI with no risk",
     cta: "Start free",
-    href: "/signup",
     highlighted: false,
     features: [
       "Bring your own keys (OpenAI, Anthropic & more)",
@@ -35,7 +34,6 @@ const TIERS = [
     cadence: "/ month",
     blurb: "Stop runaway agents before they burn your budget.",
     cta: "Start free trial",
-    href: "/signup",
     highlighted: true,
     features: [
       "Everything in Free",
@@ -52,7 +50,6 @@ const TIERS = [
     cadence: "/ month",
     blurb: "Governance and analytics for a fleet of agents in production.",
     cta: "Start free trial",
-    href: "/signup",
     highlighted: false,
     features: [
       "Everything in Starter",
@@ -69,7 +66,6 @@ const TIERS = [
     cadence: "/ month",
     blurb: "Mission-critical control once AI spend runs into five figures a month.",
     cta: "Start free trial",
-    href: "/signup",
     highlighted: false,
     features: [
       "Everything in Growth",
@@ -84,8 +80,8 @@ const TIERS = [
 
 const FAQ = [
   {
-    q: "Do I pay WHOAI for model usage?",
-    a: "No. WHOAI is bring-your-own-key (BYOK) — you connect your own OpenAI and Anthropic keys and pay those providers directly. Your WHOAI subscription covers the gateway, governance, and analytics only. We never mark up or resell tokens.",
+    q: "Do I pay WHOAI for model usage, or do you mark up tokens?",
+    a: "Neither. WHOAI is bring-your-own-key (BYOK) — you connect your own OpenAI and Anthropic keys and pay those providers directly. Your WHOAI subscription covers the gateway, governance, and analytics only. We never mark up or resell tokens.",
   },
   {
     q: "When is WHOAI worth paying for?",
@@ -106,10 +102,6 @@ const FAQ = [
   {
     q: "Can I self-host?",
     a: "Yes. Enterprise customers can deploy WHOAI in their own cloud or VPC, including air-gapped environments with a zero-data-retention gateway. Talk to us about a self-hosted plan.",
-  },
-  {
-    q: "Do you mark up tokens?",
-    a: "No. WHOAI is bring-your-own-key (BYOK)—you connect your own OpenAI and Anthropic keys and pay those providers directly. Your WHOAI subscription covers the gateway, governance, and analytics only. We never mark up or resell tokens.",
   },
 ];
 
@@ -154,11 +146,13 @@ export default function PricingPage() {
                 <span className="text-[34px] font-extrabold tracking-tight">{tier.price}</span>
                 <span className="text-[15px] text-[#888888] ml-2">{tier.cadence}</span>
               </div>
-              <div className="mt-2 inline-block text-[12px] bg-[#FF6B00]/20 text-[#FF6B00] px-2 py-1 rounded">
-                Save 20% with annual billing
-              </div>
+              {tier.price !== "$0" && (
+                <div className="mt-2 inline-block text-[12px] bg-[#FF6B00]/20 text-[#FF6B00] px-2 py-1 rounded">
+                  Annual billing available — contact us
+                </div>
+              )}
               <Link
-                href={tier.href}
+                href={`/signup?plan=${tier.name.toLowerCase()}`}
                 className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] transition-colors mb-8 ${
                   tier.highlighted
                     ? "bg-[#FF6B00] text-white hover:bg-[#E65A00] shadow-md"
@@ -180,8 +174,9 @@ export default function PricingPage() {
         </div>
 
         <p className="text-center text-[13px] text-[#888888] mt-6">
-          All plans include the gateway, BYOK, and real-time spend analytics. Annual billing saves
-          two months. You always pay your AI providers directly — WHOAI never marks up tokens.
+          All plans include the gateway, BYOK, and real-time spend analytics. Annual billing is
+          available — contact us. You always pay your AI providers directly — WHOAI never marks up
+          tokens.
         </p>
 
         {/* Founding customer offer — the real lever for the first cohort. */}

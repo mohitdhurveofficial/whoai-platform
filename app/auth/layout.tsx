@@ -16,8 +16,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="mb-4 flex items-center justify-center gap-2">
             <span className="shield-logo h-12 w-10 bg-[#071126]" />
           </div>
-          <h1 className="text-3xl font-black text-[#071126]">WhoAI</h1>
-          <p className="mt-2 font-medium text-[#071126]/60">Workforce Operating System</p>
+          <h1 className="text-3xl font-black text-[#071126]">WHOAI</h1>
+          <p className="mt-2 font-medium text-[#071126]/60">AI FinOps &amp; governance control plane</p>
         </div>
 
         {children}

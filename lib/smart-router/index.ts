@@ -102,16 +102,33 @@ function getModelCost(modelKey: string): { input: number; output: number } {
 
 /** Capability tier of each model (higher = more capable) */
 const CAPABILITY: Record<string, number> = {
+  "gpt-5.5": 5,
+  "gpt-5.5-pro": 6,
+  "gpt-5.4": 5,
+  "claude-opus-4.8": 6,
+  "claude-4-sonnet": 5,
+  "o3": 5,
+  "o4-mini": 4,
+  "gemini-3.5-flash": 3,
+  "gemini-spark": 3,
+  "gemini-2.5-pro": 4,
+  "deepseek-v4": 4,
+  "deepseek-reasoner": 4,
+  "grok-3": 4,
+  "qwen-3.7-max": 4,
+  "mistral-large-2": 4,
+  "llama-4-maverick": 4,
   "gpt-4o": 4,
   "gpt-4.1": 4,
   "claude-3-5-sonnet": 4,
   "claude-3-opus": 5,
-  "gemini-2.5-pro": 4,
   "gemini-2.5-flash": 3,
   "deepseek-chat": 3,
-  "deepseek-reasoner": 4,
   "grok-2": 3,
+  "llama-4-scout": 3,
   "llama-3.3-70b": 3,
+  "gpt-5.4-mini": 3,
+  "gpt-4.1-nano": 2,
   "gpt-3.5-turbo": 2,
   "claude-3-haiku": 2,
   "gemini-1.5-flash": 2,
@@ -125,16 +142,16 @@ const MIN_CAPABILITY: Record<Complexity, number> = {
   reasoning: 4,
 };
 
-/** Models suitable for each task type */
+/** Models suitable for each task type — latest first */
 const TASK_PREFERRED: Record<TaskType, string[]> = {
-  classification: ["gpt-3.5-turbo", "claude-3-haiku", "gemini-1.5-flash"],
-  summarization: ["gemini-2.5-flash", "gpt-3.5-turbo", "claude-3-haiku"],
-  extraction: ["gpt-4o", "claude-3-5-sonnet", "gemini-2.5-pro"],
-  generation: ["gpt-4o", "claude-3-5-sonnet", "gemini-2.5-pro"],
-  code: ["claude-3-5-sonnet", "gpt-4o", "deepseek-chat"],
-  reasoning: ["claude-3-opus", "gpt-4.1", "deepseek-reasoner"],
-  translation: ["gpt-3.5-turbo", "gemini-1.5-flash", "claude-3-haiku"],
-  chat: ["gpt-4o", "claude-3-5-sonnet", "gemini-2.5-pro"],
+  classification: ["gpt-4.1-nano", "gemini-3.5-flash", "gpt-3.5-turbo", "claude-3-haiku", "gemini-1.5-flash"],
+  summarization: ["gemini-3.5-flash", "gemini-2.5-flash", "gpt-4.1-nano", "gpt-3.5-turbo", "claude-3-haiku"],
+  extraction: ["gpt-5.4", "claude-4-sonnet", "gpt-4o", "claude-3-5-sonnet", "gemini-2.5-pro"],
+  generation: ["gpt-5.5", "claude-opus-4.8", "gpt-5.4", "claude-4-sonnet", "gemini-2.5-pro"],
+  code: ["claude-opus-4.8", "o3", "claude-4-sonnet", "gpt-5.5", "deepseek-v4"],
+  reasoning: ["claude-opus-4.8", "o3", "gpt-5.5", "deepseek-reasoner", "qwen-3.7-max"],
+  translation: ["gpt-4.1-nano", "gemini-3.5-flash", "gpt-3.5-turbo", "gemini-1.5-flash", "claude-3-haiku"],
+  chat: ["gpt-5.5", "claude-4-sonnet", "gpt-5.4", "gemini-2.5-pro", "grok-3"],
 };
 
 export interface RouteResult {
@@ -234,12 +251,14 @@ export function routeModel(
 }
 
 function inferProvider(model: string): string {
-  if (model.startsWith("gpt")) return "openai";
+  if (model.startsWith("gpt") || model.startsWith("o")) return "openai";
   if (model.startsWith("claude")) return "anthropic";
   if (model.startsWith("gemini")) return "google";
   if (model.startsWith("grok")) return "xai";
   if (model.startsWith("deepseek")) return "deepseek";
   if (model.startsWith("llama")) return "groq";
+  if (model.startsWith("qwen")) return "alibaba";
+  if (model.startsWith("mistral")) return "mistral";
   return "openai";
 }
 

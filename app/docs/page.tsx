@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, KeyRound, Terminal, ExternalLink } from "lucide-react";
+import { ArrowRight, BookOpen, KeyRound, Terminal } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 
 export const metadata: Metadata = {
@@ -10,9 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs" },
 };
 
-const LIVE_API_DOCS = "https://whoai-api.onrender.com/docs";
-
-const curlExample = `curl https://app.whoai.ai/api/v1/chat/completions \\
+const curlExample = `curl https://whoai-platform.vercel.app/api/v1/chat/completions \\
   -H "Authorization: Bearer $WHOAI_API_KEY" \\
   -H "x-agent-id: $AGENT_ID" \\
   -H "Content-Type: application/json" \\
@@ -94,14 +92,12 @@ export default function DocsPage() {
               Explore every endpoint, schema, and error code in the live interactive docs.
             </p>
           </div>
-          <a
-            href={LIVE_API_DOCS}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/docs"
             className="shrink-0 inline-flex items-center gap-2 bg-[#111111] text-white px-6 py-3.5 rounded-md font-semibold text-[15px] hover:bg-[#000000] transition-colors"
           >
-            Open API reference <ExternalLink className="h-4 w-4" />
-          </a>
+            Open API reference <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         <p className="text-[15px] text-[#666666] mt-10">

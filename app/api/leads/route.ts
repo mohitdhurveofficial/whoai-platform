@@ -8,7 +8,9 @@ const VALID_TYPES = new Set(["DEMO", "CONTACT"]);
 // Where new-lead notifications are sent. Falls back to a sensible default so
 // the form still works before SALES_EMAIL is configured in the environment.
 const SALES_INBOX = process.env.SALES_EMAIL || "founders@whoai.ai";
-const FROM_ADDRESS = "WHOAI <onboarding@resend.dev>";
+// NOTE: the whoai.ai domain must be verified in Resend for delivery to work
+// in production (otherwise sends will be rejected / undeliverable).
+const FROM_ADDRESS = "WHOAI <notifications@whoai.ai>";
 
 /**
  * Public lead-capture endpoint for the "Book Demo" and Contact forms.

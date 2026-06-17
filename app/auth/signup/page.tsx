@@ -32,6 +32,11 @@ export default function SignupPage() {
     return;
   }
 
+  if (formData.password.length < 8) {
+    setError("Password must be at least 8 characters");
+    return;
+  }
+
   if (formData.password !== formData.confirmPassword) {
     setError("Passwords do not match");
     return;
@@ -100,6 +105,7 @@ export default function SignupPage() {
           value={formData.fullName}
           onChange={handleChange}
           placeholder="Jane Smith"
+          required
           className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
@@ -116,6 +122,7 @@ export default function SignupPage() {
           value={formData.email}
           onChange={handleChange}
           placeholder="jane@company.com"
+          required
           className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
@@ -148,6 +155,8 @@ export default function SignupPage() {
           value={formData.password}
           onChange={handleChange}
           placeholder="••••••••"
+          required
+          minLength={8}
           className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />
@@ -164,6 +173,8 @@ export default function SignupPage() {
           value={formData.confirmPassword}
           onChange={handleChange}
           placeholder="••••••••"
+          required
+          minLength={8}
           className="h-12 w-full rounded-xl border border-black/8 bg-white px-4 text-[14px] font-semibold text-[#071126] outline-none transition placeholder:text-[#071126]/35 focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
           disabled={isLoading}
         />

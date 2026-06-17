@@ -11,6 +11,7 @@ import {
   Zap,
   CircleAlert,
 } from "lucide-react";
+import MarketingShell from "@/app/components/marketing/MarketingShell";
 
 export const metadata: Metadata = {
   title: "Trust Center",
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 
 export default function TrustPage() {
   return (
+    <MarketingShell>
     <div className="max-w-[1200px] mx-auto px-6 py-20">
       <div className="text-center max-w-[720px] mx-auto mb-16">
         <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
@@ -47,7 +49,9 @@ export default function TrustPage() {
             </h3>
             <p className="text-[15px] text-[#666666] mb-4">
               All AI requests flow through our encrypted gateway. We log, enforce budgets,
-              and forward to your providers — never storing or seeing your prompts or responses.
+              and forward to your providers. On Enterprise and VPC plans, the gateway can
+              forward prompts without persisting payloads — so sensitive content never lands
+              in WHOAI storage.
             </p>
             <div className="text-[13px] text-[#888888]">
               <span className="font-medium">Your App</span> &rarr;
@@ -62,8 +66,9 @@ export default function TrustPage() {
               <Lock className="h-5 w-5 text-[#FF6B00]" /> Encryption Everywhere
             </h3>
             <p className="text-[15px] text-[#666666] mb-4">
-              Data at rest is encrypted with AES-256. Data in transit uses TLS 1.2+.
-              Your provider keys are encrypted at rest and never exposed in logs or APIs.
+              Data at rest is encrypted with industry-standard algorithms. Data in transit
+              uses TLS 1.2+. Your provider keys are encrypted at rest and never exposed in
+              logs or APIs.
             </p>
           </div>
         </div>
@@ -146,7 +151,7 @@ export default function TrustPage() {
             href="/legal/dpa"
             className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] bg-white border border-[#EEE8E2] text-[#111111] hover:border-[#DCD5CD] transition-colors"
           >
-            Download DPA
+            View DPA
           </Link>
         </div>
       </section>
@@ -170,8 +175,8 @@ export default function TrustPage() {
           </div>
         </div>
         <p className="text-[13px] text-[#666666] mt-4 text-center">
-          We subprocess only essential infrastructure providers. No data is shared
-          with subprocessors for AI processing — your keys and prompts remain
+          We subprocess only essential infrastructure providers. No prompt or response
+          content is shared with subprocessors for model/AI processing — your keys remain
           strictly within your control.
         </p>
       </section>
@@ -188,5 +193,6 @@ export default function TrustPage() {
         </Link>
       </div>
     </div>
+    </MarketingShell>
   );
 }

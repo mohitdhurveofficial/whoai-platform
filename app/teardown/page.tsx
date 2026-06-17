@@ -186,10 +186,12 @@ export default function TeardownPage() {
               title="Teardown + Setup"
               price="$2,000"
               body="We implement the fixes on your stack — cheaper-model routing, retry guards, caching, and budget guardrails — and verify the savings are real."
+              ctaHref="/checkout"
+              ctaLabel="Get Teardown + Setup"
             />
             <Tier
               tag="Step 3 · Ongoing"
-              title="WHOAI control plane"
+              title="Growth ($299/mo)"
               price="$299/mo"
               body="We keep the fixes enforced continuously: hard budget caps, auto-pause on runaway agents, and a kill-switch so a looping agent can never burn your budget overnight."
             />
@@ -223,11 +225,15 @@ function Tier({
   title,
   price,
   body,
+  ctaHref,
+  ctaLabel,
 }: {
   tag: string;
   title: string;
   price: string;
   body: string;
+  ctaHref?: string;
+  ctaLabel?: string;
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 border-l-2 border-[#FF6B00] pl-5">
@@ -236,7 +242,17 @@ function Tier({
         <p className="text-[18px] font-bold">{title}</p>
         <p className="text-[20px] font-extrabold text-[#FF6B00]">{price}</p>
       </div>
-      <p className="text-[15px] text-[#666666] leading-relaxed">{body}</p>
+      <div className="flex-1">
+        <p className="text-[15px] text-[#666666] leading-relaxed">{body}</p>
+        {ctaHref && ctaLabel && (
+          <Link
+            href={ctaHref}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
+          >
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

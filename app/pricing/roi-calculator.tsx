@@ -2,12 +2,9 @@
 
 import { useState } from "react";
 
-const money = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
 export function ROICalculator() {
   const [monthlySpend, setMonthlySpend] = useState<number | null>(null);
-  const estimatedSavings = monthlySpend ? monthlySpend * 0.22 : null; // 22% average savings
+  const estimatedSavings = monthlySpend ? monthlySpend * 0.22 : null; // 22% — illustrative estimate, not a guarantee
 
   return (
     <div className="bg-[#FAF7F3] rounded-xl border border-[#EEE8E2] p-6 mb-8">
@@ -40,7 +37,8 @@ export function ROICalculator() {
       ) : null}
       {monthlySpend !== null && monthlySpend > 0 ? (
         <p className="text-[13px] text-[#666666] mt-2">
-          ^ Based on industry average of 15–30% savings from budget enforcement and model switching.
+          ^ Illustrative estimate only — assumes ~22% savings from budget enforcement and model
+          switching. Your actual results will vary.
         </p>
       ) : null}
     </div>

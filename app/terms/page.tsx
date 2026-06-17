@@ -97,7 +97,16 @@ export default function TermsPage() {
         effective date. Continued use of the Services after changes take effect constitutes acceptance.
       </p>
 
-      <h2>12. Contact</h2>
+      <h2>12. Governing law and dispute resolution</h2>
+      <p>
+        These Terms are governed by and construed in accordance with the laws of the State of California,
+        without regard to its conflict of laws principles. Any dispute arising out of or in connection with
+        these Terms or the Services will be subject to the exclusive jurisdiction of the state and federal
+        courts located in San Francisco, California, and you consent to the personal jurisdiction of those
+        courts.
+      </p>
+
+      <h2>13. Contact</h2>
       <p>
         Questions about these Terms? Email <a href="mailto:legal@whoai.ai">legal@whoai.ai</a> or visit our{" "}
         <a href="/contact">Contact page</a>.

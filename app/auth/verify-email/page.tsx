@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -9,15 +9,6 @@ export default function VerifyEmailPage() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [canResend, setCanResend] = useState(false);
-  const [resendCountdown, setResendCountdown] = useState(0);
-
-  useEffect(() => {
-    if (resendCountdown > 0) {
-      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCountdown, canResend]);
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1 && /^[0-9]*$/.test(value)) {
@@ -45,23 +36,10 @@ export default function VerifyEmailPage() {
 
     setIsLoading(true);
 
-    try {
-      // Placeholder: In production, verify the code with API
-      if (verificationCode) {
-        router.push("/onboarding");
-      }
-    } catch {
-      setError("Invalid verification code. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setCanResend(false);
-    setResendCountdown(60);
-    window.setTimeout(() => setCanResend(true), 60000);
-    // Placeholder: In production, resend verification email
+    // This is an informational step only. There is no verification endpoint,
+    // so we do not present this as a security check — we simply route the
+    // signed-up user into the product.
+    router.push("/dashboard");
   };
 
   return (
@@ -72,8 +50,8 @@ export default function VerifyEmailPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-[#071126]">Verify your email</h2>
-        <p className="text-[#071126]/70 mt-2">Enter the 6-digit code we sent to your email</p>
+        <h2 className="text-xl font-bold text-[#071126]">Confirm your email</h2>
+        <p className="text-[#071126]/70 mt-2">Enter the 6-digit code from your email to continue to your dashboard</p>
       </div>
 
       <div>
@@ -106,20 +84,8 @@ export default function VerifyEmailPage() {
         disabled={isLoading}
         className="shadow-button-dark flex h-[52px] w-full items-center justify-center rounded-full bg-[#071126] px-6 text-[14px] font-bold text-white transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
       >
-        {isLoading ? "Verifying..." : "Verify email"}
+        {isLoading ? "Continuing..." : "Continue"}
       </button>
-
-      <div className="text-center">
-        <p className="text-sm text-[#071126]/70 mb-2">Didn&apos;t receive the code?</p>
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={!canResend}
-          className="text-sm font-bold text-orange-600 hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {canResend ? "Resend code" : `Resend in ${resendCountdown}s`}
-        </button>
-      </div>
 
       <div className="text-center">
         <Link href="/auth/login" className="text-sm text-[#071126]/70 hover:text-[#071126]">

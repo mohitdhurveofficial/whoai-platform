@@ -19,8 +19,11 @@ const PAYMENT = {
     "Budget caps + runaway kill-switch wired",
     "Savings verified on your live traffic",
   ],
-  // ⬇️ REPLACE with your receiving wallet address (0x...). Leave as-is to disable crypto.
-  receivingAddress: "0x0000000000000000000000000000000000000000",
+  // ⬇️ Set NEXT_PUBLIC_RECEIVING_ADDRESS (0x...) to enable crypto. Falls back to the
+  //    zero-address placeholder, which keeps the crypto button disabled (no funds lost).
+  receivingAddress:
+    process.env.NEXT_PUBLIC_RECEIVING_ADDRESS ||
+    "0x0000000000000000000000000000000000000000",
   chain: {
     id: 8453,
     hexId: "0x2105",
@@ -34,8 +37,8 @@ const PAYMENT = {
     address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // Base USDC
     decimals: 6,
   },
-  // ⬇️ OPTIONAL: your Stripe Payment Link for the card option.
-  stripePaymentLink: "",
+  // ⬇️ OPTIONAL: set NEXT_PUBLIC_STRIPE_PAYMENT_LINK for the card option. Empty disables it.
+  stripePaymentLink: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "",
 };
 
 // ----- minimal EIP-1193 helpers (no web3 library needed) --------------------

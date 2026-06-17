@@ -75,7 +75,7 @@ export default function LandingPage() {
           OpenAI, Anthropic &amp; Gemini Costs
         </h1>
         <p className="text-[18px] md:text-[21px] text-[#666666] mb-12 max-w-[700px] mx-auto leading-relaxed">
-          Real-time LLM cost tracking, token usage monitoring, and AI agent budget enforcement. Stop runaway API bills from GPT-4o, Claude 3.5 Sonnet, and Gemini before they hit your business.
+          Real-time LLM cost tracking, token usage monitoring, and AI agent budget enforcement for GPT-5.5, Claude Opus 4.8, Gemini 3.5 Flash, Grok 3, DeepSeek V4, and every major model. Stop runaway API bills before they hit your business.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
           <Link href="/signup" className="w-full sm:w-auto bg-[#FF6B00] text-white px-8 py-4 rounded-md font-semibold text-[16px] hover:bg-[#E65A00] transition-colors shadow-md flex items-center justify-center gap-2">
@@ -105,14 +105,17 @@ export default function LandingPage() {
             <div className="w-3 h-3 rounded-full bg-[#E5E5E5]"></div>
             <div className="w-3 h-3 rounded-full bg-[#E5E5E5]"></div>
             <div className="mx-auto bg-[#FFFFFF] border border-[#EEE8E2] rounded flex items-center justify-center h-6 px-32 text-[11px] text-[#A3A3A3] font-medium font-mono">
-              app.whoai.ai/dashboard
+              whoai-platform.vercel.app/dashboard
             </div>
           </div>
           
           {/* Dashboard Inside */}
           <div className="p-8 bg-[#FAF7F3]">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-[20px] font-bold">Executive Overview</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-[20px] font-bold">Executive Overview</h3>
+                <span className="bg-[#FFF3E8] text-[#FF6B00] border border-[#FFD9B8] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded">Sample data</span>
+              </div>
               <div className="flex gap-2">
                 <span className="bg-[#FFFFFF] border border-[#EEE8E2] px-3 py-1.5 text-[12px] font-medium rounded shadow-sm">30 Days</span>
                 <span className="bg-[#111111] text-[#FFFFFF] px-3 py-1.5 text-[12px] font-medium rounded shadow-sm">Export</span>
@@ -306,13 +309,16 @@ export default function LandingPage() {
           <p className="text-[16px] text-[#666666] text-center mb-10 max-w-[600px] mx-auto">
             WHOAI tracks costs for every major LLM provider and model. New releases are added automatically.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             {[
-              { name: "OpenAI", models: "GPT-4o, GPT-4.1, GPT-3.5" },
-              { name: "Anthropic", models: "Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku" },
-              { name: "Google", models: "Gemini 2.5 Pro, Gemini 2.5 Flash" },
-              { name: "xAI", models: "Grok 2, Grok 2 Latest" },
-              { name: "DeepSeek", models: "DeepSeek Chat, DeepSeek Reasoner" },
+              { name: "OpenAI", models: "GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o" },
+              { name: "Anthropic", models: "Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet" },
+              { name: "Google", models: "Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro" },
+              { name: "xAI", models: "Grok 3, Grok 2, Grok 2 Latest" },
+              { name: "DeepSeek", models: "DeepSeek V4, DeepSeek Chat, DeepSeek Reasoner" },
+              { name: "Meta", models: "Llama 4 Maverick, Llama 4 Scout, Llama 3.3 70B" },
+              { name: "Alibaba", models: "Qwen 3.7 Max" },
+              { name: "Mistral", models: "Mistral Large 2" },
             ].map((p) => (
               <div key={p.name} className="bg-[#FAF7F3] border border-[#EEE8E2] rounded-lg p-5">
                 <h3 className="text-[15px] font-bold text-[#111111] mb-1">{p.name}</h3>
@@ -404,19 +410,19 @@ export default function LandingPage() {
       {/* SOCIAL PROOF */}
       <section className="relative z-10 py-24 bg-[#FAF7F3] border-y border-[#EEE8E2]">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <p className="text-[14px] font-bold tracking-widest text-[#FF6B00] uppercase mb-8">Platform Scale</p>
+          <p className="text-[14px] font-bold tracking-widest text-[#FF6B00] uppercase mb-8">Built For Cost Control</p>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="p-8">
-              <p className="text-[40px] font-bold text-[#111111] tracking-tight">$18M+</p>
-              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">AI Spend Tracked</p>
+              <p className="text-[28px] font-bold text-[#111111] tracking-tight">$500+/mo AI Spend</p>
+              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Purpose-Built For Teams Scaling AI</p>
             </div>
             <div className="p-8 border-x border-[#EEE8E2]">
-              <p className="text-[40px] font-bold text-[#111111] tracking-tight">250M+</p>
-              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Tokens Monitored</p>
+              <p className="text-[28px] font-bold text-[#111111] tracking-tight">Real-Time Tracking</p>
+              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Per-Token &amp; Per-Cost Visibility</p>
             </div>
             <div className="p-8">
-              <p className="text-[40px] font-bold text-[#111111] tracking-tight">99.99%</p>
-              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Gateway Uptime</p>
+              <p className="text-[28px] font-bold text-[#111111] tracking-tight">Hard Budget Caps</p>
+              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Plus An Instant Kill Switch</p>
             </div>
           </div>
         </div>
@@ -443,7 +449,7 @@ export default function LandingPage() {
               },
               {
                 q: "Which LLM providers does WHOAI support?",
-                a: "WHOAI supports OpenAI (GPT-4o, GPT-4.1, GPT-3.5), Anthropic (Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku), Google Gemini (2.5 Pro, 2.5 Flash, 1.5 Pro, 1.5 Flash), xAI Grok, DeepSeek, and Meta Llama. New models are added automatically as they release.",
+                a: "WHOAI supports OpenAI (GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o), Anthropic (Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet), Google (Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro), xAI Grok 3, DeepSeek V4, Meta Llama 4, Alibaba Qwen 3.7, and Mistral Large 2. New models are added within 48 hours of release.",
               },
               {
                 q: "What is BYOK and why does it matter for security?",
@@ -501,7 +507,7 @@ export default function LandingPage() {
                     name: "Which LLM providers does WHOAI support?",
                     acceptedAnswer: {
                       "@type": "Answer",
-                      text: "WHOAI supports OpenAI, Anthropic, Google Gemini, xAI Grok, DeepSeek, and Meta Llama. New models are added automatically.",
+                      text: "WHOAI supports OpenAI (GPT-5.5, o3), Anthropic (Claude Opus 4.8, Claude 4), Google (Gemini 3.5 Flash, Gemini Spark), xAI Grok 3, DeepSeek V4, Meta Llama 4, Alibaba Qwen 3.7, and Mistral Large 2. New models are added within 48 hours of release.",
                     },
                   },
                   {

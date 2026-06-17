@@ -12,28 +12,31 @@ export default function DPAPage() {
   return (
     <LegalLayout title="Data Processing Agreement (DPA)" effectiveDate="June 9, 2026">
       <p>
-        WHOAI Inc. ("WHOAI", "we", "us", "our") provides a cost observability and FinOps control plane for AI
-        systems. This Data Processing Agreement ("DPA") explains how we process personal data on behalf of our
-        customers ("Customer") and is incorporated into our Terms of Service.
+        WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;, &quot;us&quot;, &quot;our&quot;) provides a cost
+        observability and FinOps control plane for AI systems. This Data Processing Agreement
+        (&quot;DPA&quot;) explains how we process personal data on behalf of our customers
+        (&quot;Customer&quot;) and is incorporated into our Terms of Service.
       </p>
 
       <h2>1. Definitions</h2>
       <ul>
         <li>
-          "Personal Data" means any information relating to an identified or identifiable natural person.
+          &quot;Personal Data&quot; means any information relating to an identified or identifiable natural
+          person.
         </li>
         <li>
-          "Processing" means any operation performed on Personal Data, such as collection, recording,
+          &quot;Processing&quot; means any operation performed on Personal Data, such as collection, recording,
           organization, structuring, storage, adaptation, alteration, retrieval, consultation, use, disclosure
           by transmission, dissemination, or otherwise making available, alignment or combination, restriction,
           erasure, or destruction.
         </li>
         <li>
-          "Sub-processor" means a third party engaged by WHOAI to process Personal Data on behalf of Customer.
+          &quot;Sub-processor&quot; means a third party engaged by WHOAI to process Personal Data on behalf of
+          Customer.
         </li>
       </ul>
 
-      <h2>2. WHOAI's Commitments</h2>
+      <h2>2. WHOAI&apos;s Commitments</h2>
       <ul>
         <li>
           WHOAI will process Personal Data only on documented instructions from Customer, including with
@@ -52,7 +55,7 @@ export default function DPAPage() {
         <li>
           WHOAI will, taking into account the nature of the processing, assist Customer by appropriate
           technical and organizational measures, insofar as this is possible, for the fulfillment of
-          Customer's obligation to respond to requests for exercising the data subject's rights under
+          Customer&apos;s obligation to respond to requests for exercising the data subject&apos;s rights under
           applicable data protection law.
         </li>
         <li>
@@ -89,11 +92,11 @@ export default function DPAPage() {
       <h2>4. International Transfers</h2>
       <p>
         In the event that Personal Data is transferred to a country outside the European Economic Area
-        ("EEA") that does not ensure an adequate level of protection, WHOAI will ensure appropriate
+        (&quot;EEA&quot;) that does not ensure an adequate level of protection, WHOAI will ensure appropriate
         safeguards are in place, such as standard contractual clauses approved by the European Commission.
       </p>
 
-      <h2>5. Data Subjects' Rights</h2>
+      <h2>5. Data Subjects&apos; Rights</h2>
       <p>
         WHOAI will assist Customer in responding to requests from data subjects exercising their rights under
         applicable data protection law, including the right of access, rectification, erasure, restriction of

@@ -1,8 +1,5 @@
 import Link from "next/link";
 
-const LIVE_API_DOCS = "https://whoai-api.onrender.com/docs";
-const STATUS_URL = "https://whoai-api.onrender.com/health";
-
 /**
  * Shared marketing footer used across all public (logged-out) pages.
  * Every link resolves to a real destination — no dead `#` anchors.
@@ -35,15 +32,17 @@ export default function SiteFooter() {
           <h4 className="text-[13px] font-bold text-[#111111] mb-4 uppercase tracking-wider">Resources</h4>
           <ul className="space-y-3">
             <li><Link href="/docs" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Documentation</Link></li>
-            <li><a href={LIVE_API_DOCS} target="_blank" rel="noopener noreferrer" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">API Reference</a></li>
+            <li><Link href="/docs" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">API Reference</Link></li>
             <li><Link href="/security" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Security</Link></li>
-            <li><a href={STATUS_URL} target="_blank" rel="noopener noreferrer" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Status</a></li>
+            <li><Link href="/trust" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Trust Center</Link></li>
+            <li><Link href="/status" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Status</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="text-[13px] font-bold text-[#111111] mb-4 uppercase tracking-wider">Company</h4>
           <ul className="space-y-3">
             <li><Link href="/about" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">About</Link></li>
+            <li><Link href="/teardown" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Free Teardown</Link></li>
             <li><Link href="/contact" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Contact</Link></li>
             <li><Link href="/privacy" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Privacy</Link></li>
             <li><Link href="/terms" className="text-[14px] text-[#666666] hover:text-[#FF6B00] transition-colors">Terms of Service</Link></li>
@@ -55,7 +54,7 @@ export default function SiteFooter() {
         <div className="flex items-center gap-6">
           <Link href="/privacy" className="text-[13px] text-[#888888] hover:text-[#111111]">Privacy</Link>
           <Link href="/terms" className="text-[13px] text-[#888888] hover:text-[#111111]">Terms</Link>
-          <a href={STATUS_URL} target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#888888] hover:text-[#111111]">Status</a>
+          <Link href="/status" className="text-[13px] text-[#888888] hover:text-[#111111]">Status</Link>
         </div>
       </div>
     </footer>

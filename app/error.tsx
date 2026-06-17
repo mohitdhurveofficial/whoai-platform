@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
+import { useEffect } from "react";
+import Link from "next/link";
+import { Home, RotateCcw } from "lucide-react";
 
-export default function GlobalError({
+export default function Error({
   error,
   reset,
 }: {
@@ -11,22 +12,40 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Platform Error Caught by Boundary:", error);
+    // Log the error to an error reporting service
+    console.error(error);
   }, [error]);
 
   return (
-    <div className="flex h-full min-h-[400px] w-full flex-col items-center justify-center rounded-3xl border border-rose-200 bg-rose-50/50 p-8 dark:border-rose-900/50 dark:bg-rose-900/10 m-6">
-      <AlertTriangle className="mb-4 h-12 w-12 text-rose-500" />
-      <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">Workspace Module Error</h2>
-      <p className="mb-6 max-w-md text-center text-sm text-slate-600 dark:text-slate-400">
-        A module encountered an unexpected error. This boundary ensures the rest of your workspace remains fully operational.
-      </p>
-      <button 
-        onClick={() => reset()}
-        className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-all"
-      >
-        Attempt Recovery
-      </button>
+    <div className="min-h-screen bg-[#FAF7F3] text-[#111111] font-sans flex flex-col">
+      <main className="flex-1 flex items-center justify-center px-6 py-24 text-center">
+        <div className="max-w-[480px]">
+          <p className="text-[64px] md:text-[88px] font-extrabold tracking-tight text-[#FF6B00] leading-none">
+            Oops
+          </p>
+          <h1 className="text-[26px] md:text-[32px] font-extrabold tracking-tight mt-4 mb-3">
+            Something went wrong
+          </h1>
+          <p className="text-[16px] text-[#666666] mb-10 leading-relaxed">
+            An unexpected error popped up on our end. Try reloading the page, or head back
+            home and we&apos;ll get you back on track.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => reset()}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#FF6B00] text-white px-6 py-3.5 rounded-md font-semibold text-[15px] hover:bg-[#E65A00] transition-colors shadow-md"
+            >
+              <RotateCcw className="h-4 w-4" /> Reload
+            </button>
+            <Link
+              href="/"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-[#EEE8E2] text-[#111111] px-6 py-3.5 rounded-md font-semibold text-[15px] hover:border-[#DCD5CD] transition-colors"
+            >
+              <Home className="h-4 w-4" /> Back home
+            </Link>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

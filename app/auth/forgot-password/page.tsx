@@ -12,14 +12,35 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!email.trim()) {
+      setError("Please enter your email address");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      if (email) {
-        setSubmitted(true);
-      } else {
-        setError("Please enter your email address");
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (!res.ok) {
+        let message = "Failed to process request. Please try again.";
+        try {
+          const data = (await res.json()) as { error?: string };
+          if (data?.error) message = data.error;
+        } catch {
+          // ignore non-JSON error bodies
+        }
+        setError(message);
+        return;
       }
+
+      // The endpoint always returns an enumeration-safe success message.
+      setSubmitted(true);
     } catch {
       setError("Failed to process request. Please try again.");
     } finally {

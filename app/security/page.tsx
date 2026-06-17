@@ -85,8 +85,8 @@ export default function SecurityPage() {
         </div>
 
         <p className="text-[13px] text-[#999999] mt-8 leading-relaxed">
-          Pursuing formal certifications such as SOC 2? Enterprise and VPC customers can request our
-          current security documentation and roadmap during evaluation.
+          We are actively pursuing SOC 2 Type II. Enterprise and VPC customers can request our current
+          security documentation and roadmap during evaluation.
         </p>
 
         <div className="mt-12 flex items-center gap-4">

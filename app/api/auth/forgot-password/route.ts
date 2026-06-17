@@ -31,6 +31,8 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
+    // NEXT_PUBLIC_APP_URL must be set in production so the reset link resolves
+    // to a real origin. The "/auth/reset-password" page is provided separately.
     const { error } = await supabase.auth.resetPasswordForEmail(
       normalizedEmail,
       {

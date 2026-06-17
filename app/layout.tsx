@@ -13,8 +13,12 @@ export const metadata: Metadata = {
     "AI FinOps platform",
     "LLM cost tracking",
     "AI cost monitoring",
-    "OpenAI cost tracking",
-    "Anthropic cost control",
+    "OpenAI GPT-5.5 cost tracking",
+    "Anthropic Claude Opus 4.8 cost control",
+    "Google Gemini 3.5 Flash pricing",
+    "xAI Grok 3 cost tracking",
+    "DeepSeek V4 pricing",
+    "Meta Llama 4 cost monitoring",
     "AI agent monitoring",
     "token usage tracking",
     "AI budget management",
@@ -25,6 +29,9 @@ export const metadata: Metadata = {
     "AI API cost optimization",
     "BYOK AI gateway",
     "AI cost per request",
+    "smart model router",
+    "prompt cache",
+    "predictive budget AI",
   ],
   authors: [{ name: "WHOAI", url: "https://whoai-platform.vercel.app" }],
   creator: "WHOAI",
@@ -60,15 +67,16 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  verification: {
-    // INSTRUCTION: Get your verification code from https://search.google.com/search-console
-    // Go to Add Property → Domain → Copy the meta tag content value → paste below.
-    google: "google-site-verification-code",
-  },
+  // Only emit Google site verification when the env var is configured.
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
   other: {
     "theme-color": "#FF6B00",
-    "msapplication-TileColor": "#FF6B00",
-    "msapplication-config": "/browserconfig.xml",
   },
 };
 
@@ -96,22 +104,27 @@ const structuredData = {
       operatingSystem: "Web",
       offers: {
         "@type": "Offer",
-        price: "0",
         priceCurrency: "USD",
-      },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "127",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          minPrice: "0",
+          maxPrice: "799",
+          priceCurrency: "USD",
+        },
+        description:
+          "Free tier available. Paid plans start at $99/mo (Starter), $299/mo (Growth), $799/mo (Pro). Enterprise pricing is custom.",
       },
       featureList: [
         "AI cost monitoring and tracking",
         "Token usage analytics",
         "Agent-level budget controls",
         "Real-time anomaly detection",
-        "Multi-provider support (OpenAI, Anthropic, Gemini, Grok, DeepSeek)",
+        "Multi-provider support (OpenAI GPT-5.5, Anthropic Claude Opus 4.8, Google Gemini 3.5 Flash, xAI Grok 3, DeepSeek V4, Meta Llama 4)",
         "BYOK (Bring Your Own Key) architecture",
         "Kill switch for runaway agents",
+        "Smart model router with 30-60% cost savings",
+        "Semantic prompt cache",
+        "Predictive budget AI",
       ],
     },
     {
