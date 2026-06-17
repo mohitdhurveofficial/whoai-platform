@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === "/auth/login") {
+  if (pathname === "/auth/login" || pathname === "/auth/signup") {
     return children;
   }
 
