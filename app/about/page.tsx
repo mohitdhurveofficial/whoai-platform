@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Eye, Gauge, ShieldCheck } from "lucide-react";
+import { ArrowRight, Building2, Eye, Gauge, Mail, ShieldCheck } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 
 export const metadata: Metadata = {
@@ -67,7 +67,43 @@ export default function AboutPage() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-2xl border border-[#EEE8E2] bg-white p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="mt-16 rounded-2xl border border-[#EEE8E2] bg-white p-8">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00] mb-5">
+            <Building2 className="h-5 w-5" />
+          </div>
+          <h2 className="text-[24px] font-bold tracking-tight mb-4">The company</h2>
+          <div className="space-y-4 text-[16px] text-[#444444] leading-relaxed">
+            <p>
+              WHOAI is built and operated by <strong>WHOAI Inc.</strong> Our mission is to be the
+              FinOps &amp; governance control plane for AI — helping teams track every token, enforce
+              budgets, and stop runaway AI spend before it reaches the invoice.
+            </p>
+            <p>
+              We started WHOAI after watching capable teams ship autonomous agents into production
+              with no real way to see what they were spending until the bill arrived. Existing
+              monitoring tools were built for human-driven traffic, not for agents that call
+              expensive models on their own, around the clock. We set out to give every team the
+              same visibility and guardrails over AI spend that they already expect from their cloud
+              and infrastructure.
+            </p>
+          </div>
+          <div className="mt-7 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 pt-6 border-t border-[#EEE8E2]">
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 font-semibold text-[15px] text-[#111111] hover:text-[#FF6B00] transition-colors"
+            >
+              Get in touch <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href="mailto:founders@whoai.ai"
+              className="inline-flex items-center gap-2 font-semibold text-[15px] text-[#666666] hover:text-[#FF6B00] transition-colors"
+            >
+              <Mail className="h-4 w-4" /> founders@whoai.ai
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-[#EEE8E2] bg-white p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-[20px] font-bold mb-1">See WHOAI for yourself</h2>
             <p className="text-[15px] text-[#666666]">A 30-minute walkthrough tailored to your stack.</p>

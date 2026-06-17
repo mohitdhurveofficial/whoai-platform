@@ -23,13 +23,13 @@ export default function SiteNav() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-[14px] font-medium text-[#111111] hover:text-[#FF6B00] transition-colors hidden md:block">
+          <Link href="/auth/login" className="text-[14px] font-medium text-[#111111] hover:text-[#FF6B00] transition-colors hidden md:block">
             Sign In
           </Link>
           <Link href="/demo" className="bg-[#FFFFFF] border border-[#EEE8E2] text-[#111111] px-4 py-2.5 rounded-md font-medium text-[14px] shadow-sm hover:border-[#DCD5CD] transition-colors">
             Book Demo
           </Link>
-          <Link href="/signup" className="bg-[#FF6B00] text-white px-4 py-2.5 rounded-md font-medium text-[14px] hover:bg-[#E65A00] transition-colors shadow-sm">
+          <Link href="/auth/signup" className="bg-[#FF6B00] text-white px-4 py-2.5 rounded-md font-medium text-[14px] hover:bg-[#E65A00] transition-colors shadow-sm">
             Start Free Trial
           </Link>
         </div>

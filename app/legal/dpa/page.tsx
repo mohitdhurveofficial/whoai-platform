@@ -79,6 +79,9 @@ export default function DPAPage() {
       <p>
         WHOAI currently engages the following sub-processors for infrastructure and payment processing:
       </p>
+      <p>
+        <em>Last updated: June 9, 2026</em>
+      </p>
       <ul>
         <li>Vercel – Hosting and CDN</li>
         <li>Supabase – Database and authentication</li>

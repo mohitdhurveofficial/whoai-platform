@@ -4,7 +4,7 @@ import MarketingShell from "@/app/components/marketing/MarketingShell";
 import LeadForm from "@/app/components/marketing/LeadForm";
 
 export const metadata: Metadata = {
-  title: "Book a Demo",
+  title: "Request a Demo",
   description:
     "See WHOAI in action. Get a personalized walkthrough of AI cost tracking, budget controls, and the runaway-agent kill switch.",
   alternates: { canonical: "/demo" },
@@ -34,14 +34,15 @@ export default function DemoPage() {
       <section className="max-w-[1100px] mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-start">
         <div>
           <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
-            Book a demo
+            Request a demo
           </span>
           <h1 className="text-[40px] md:text-[48px] leading-[1.1] font-extrabold tracking-tight mb-6">
             See exactly where your AI budget goes
           </h1>
           <p className="text-[18px] text-[#666666] mb-10 leading-relaxed">
-            A 30-minute walkthrough with our team. No slides — we&apos;ll show WHOAI running against a
-            real agent workload and answer your questions.
+            Tell us about your setup and we&apos;ll reach out within one business day to schedule a
+            30-minute walkthrough. No slides — we&apos;ll show WHOAI running against a real agent
+            workload and answer your questions.
           </p>
           <div className="space-y-6">
             {POINTS.map(({ icon: Icon, title, body }) => (

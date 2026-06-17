@@ -3,6 +3,8 @@ import { ArrowRight, Home } from "lucide-react";
 import SiteNav from "@/app/components/marketing/SiteNav";
 import SiteFooter from "@/app/components/marketing/SiteFooter";
 
+export const metadata = { title: "404 — Page not found" };
+
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-[#FAF7F3] text-[#111111] font-sans flex flex-col">
