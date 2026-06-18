@@ -43,15 +43,33 @@ export default function BillingPage() {
       .then((data) => {
         setSub(data);
         const params = new URLSearchParams(window.location.search);
-        if (params.get("success")) {
+        const planParam = params.get("plan")?.toUpperCase();
+        const hasSuccess = !!params.get("success");
+        const hasCanceled = !!params.get("canceled");
+
+        if (hasSuccess) {
           setMessage({ type: "success", text: "Subscription updated. Thank you!" });
-        } else if (params.get("canceled")) {
+          // The Stripe webhook may lag a beat; poll briefly so the new tier
+          // appears without a manual refresh.
+          let tries = 0;
+          const poll = () => {
+            tries += 1;
+            fetch("/api/billing/subscription")
+              .then((res) => (res.ok ? res.json() : null))
+              .then((fresh) => {
+                if (fresh) setSub(fresh);
+                const tier = (fresh?.tier ?? "FREE").toUpperCase();
+                if (tier === "FREE" && tries < 5) setTimeout(poll, 2000);
+              })
+              .catch(() => {});
+          };
+          setTimeout(poll, 2000);
+        } else if (hasCanceled) {
           setMessage({ type: "error", text: "Checkout canceled." });
         }
 
         // Arrived from the pricing page with a chosen plan → kick off Stripe
         // checkout automatically for paid tiers (skip if already on that plan).
-        const planParam = params.get("plan")?.toUpperCase();
         const paidTiers = ["STARTER", "GROWTH", "PRO"];
         const currentTier = (data?.tier ?? "FREE").toUpperCase();
         if (
@@ -80,6 +98,12 @@ export default function BillingPage() {
               setWorking(null);
               setMessage({ type: "error", text: "Could not start checkout." });
             });
+        }
+
+        // Strip query params so a refresh can't re-trigger checkout or re-show
+        // one-off messages (messages live in state, not the URL).
+        if (planParam || hasSuccess || hasCanceled) {
+          window.history.replaceState({}, "", "/billing");
         }
       })
       .catch(() => setMessage({ type: "error", text: "Could not load subscription." }))

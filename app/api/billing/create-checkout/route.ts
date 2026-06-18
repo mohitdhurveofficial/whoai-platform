@@ -4,12 +4,9 @@ import { getStripe } from "@/lib/stripe";
 import { getServerAuthContext } from "@/lib/server/auth";
 import { priceIdForTier, type PlanType } from "@/lib/subscription";
 
-const PURCHASABLE_TIERS: PlanType[] = [
-  "STARTER",
-  "GROWTH",
-  "PRO",
-  "ENTERPRISE"
-];
+// Self-serve checkout is Starter/Growth/Pro only. Enterprise is sales-led
+// (the UI routes it to "Contact sales"), so it is intentionally excluded here.
+const PURCHASABLE_TIERS: PlanType[] = ["STARTER", "GROWTH", "PRO"];
 
 export async function POST(req: Request) {
   const auth = await getServerAuthContext();
@@ -20,6 +17,15 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as { tier?: string };
     const tier = (body.tier ?? "").toUpperCase() as PlanType;
+
+    // Enterprise is sales-led, not self-serve — keep the API consistent with
+    // the UI so a stray Enterprise call gets a clear, correct response.
+    if (tier === "ENTERPRISE") {
+      return NextResponse.json(
+        { error: "Enterprise plans are sales-led — please contact sales.", contactSales: true },
+        { status: 400 },
+      );
+    }
 
     if (!PURCHASABLE_TIERS.includes(tier)) {
       return NextResponse.json(
