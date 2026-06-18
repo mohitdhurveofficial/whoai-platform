@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, ArrowRight, Server, Building2, Star } from "lucide-react";
+import { Check, ArrowRight, Server, Building2, KeyRound, ShieldCheck, Zap } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 import { ROICalculator } from "./roi-calculator";
 import {
@@ -247,31 +247,28 @@ export default function PricingPage() {
           </StaggerItem>
         </Stagger>
 
-        {/* SOCIAL PROOF */}
+        {/* WHY WHOAI — honest, non-attributed proof points (no fabricated quotes) */}
         <Reveal className="mt-24 text-center">
           <p className="mb-8 text-[12px] font-bold uppercase tracking-[0.16em] text-[#8792A2]">
-            Trusted by teams running agents in production
+            Why teams choose WHOAI
           </p>
         </Reveal>
         <Stagger className="grid gap-5 md:grid-cols-3" stagger={0.08}>
           {[
-            { q: "WHOAI caught a runaway agent before it burned our monthly budget. The kill switch paid for the year.", n: "Maya Chen", r: "VP Engineering" },
-            { q: "Hard budget caps that actually enforce. Our finance team finally trusts our AI spend.", n: "Priya Nair", r: "Director of FinOps" },
-            { q: "We cut AI spend 31% by routing to cheaper models. WHOAI showed us exactly where.", n: "Elena Vasquez", r: "ML Platform Lead" },
-          ].map((t) => (
+            { icon: KeyRound, t: "$0 markup — BYOK", b: "Bring your own provider keys. They never leave your perimeter, and we never resell tokens — you pay OpenAI, Anthropic, and the rest directly." },
+            { icon: ShieldCheck, t: "Enforcement, not just alerts", b: "Hard daily and monthly caps that actually pause an agent the moment it crosses the line, plus an instant kill switch for runaways." },
+            { icon: Zap, t: "Live in 5 minutes", b: "Point one base URL at the WHOAI gateway. Every call is metered, logged, and budget-checked — no prompt or agent changes." },
+          ].map((c) => (
             <StaggerItem
-              key={t.n}
+              key={c.t}
               hover
               className="rounded-2xl border border-[#EEE8E2] bg-white p-7 text-left shadow-sm transition-shadow hover:shadow-md"
             >
-              <div className="flex gap-0.5 text-[#FF6B00]">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-current" />
-                ))}
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#FAF7F3] text-[#FF6B00]">
+                <c.icon className="h-5 w-5" />
               </div>
-              <p className="mt-4 text-[15px] leading-relaxed text-[#444444]">&ldquo;{t.q}&rdquo;</p>
-              <p className="mt-4 text-[14px] font-semibold text-[#111111]">{t.n}</p>
-              <p className="text-[13px] text-[#8792A2]">{t.r}</p>
+              <p className="mt-5 text-[16px] font-bold text-[#111111]">{c.t}</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[#666666]">{c.b}</p>
             </StaggerItem>
           ))}
         </Stagger>

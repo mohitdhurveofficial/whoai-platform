@@ -26,7 +26,7 @@ import {
   MagneticButton,
 } from "./components/marketing/Motion";
 import { PixelHero } from "@/components/ui/pixel-perfect-hero";
-import { WhoaiTestimonials } from "@/components/ui/testimonials-columns";
+import { FoundingPartners } from "@/components/ui/founding-partners";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
 
 export const metadata: Metadata = {
@@ -95,6 +95,7 @@ export default function LandingPage() {
             <Link href="/#features" className="transition-colors hover:text-[#0A2540]">Product</Link>
             <Link href="/pricing" className="transition-colors hover:text-[#0A2540]">Pricing</Link>
             <Link href="/docs" className="transition-colors hover:text-[#0A2540]">Docs</Link>
+            <Link href="/teardown" className="transition-colors hover:text-[#0A2540]">Free Teardown</Link>
             <Link href="/security" className="transition-colors hover:text-[#0A2540]">Security</Link>
           </div>
           <div className="flex items-center gap-3">
@@ -297,8 +298,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <WhoaiTestimonials />
+        {/* FOUNDING PARTNERS — honest pre-launch social proof (no fabricated
+            testimonials); doubles as a lead magnet for the free teardown */}
+        <FoundingPartners />
 
         {/* PROVIDERS — SEO */}
         <section className="py-24" aria-label="Supported LLM Providers">

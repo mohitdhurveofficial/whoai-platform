@@ -19,6 +19,7 @@ export default function SiteNav() {
             <Link href="/#features" className="hover:text-[#111111] transition-colors">Product</Link>
             <Link href="/pricing" className="hover:text-[#111111] transition-colors">Pricing</Link>
             <Link href="/docs" className="hover:text-[#111111] transition-colors">Docs</Link>
+            <Link href="/teardown" className="hover:text-[#111111] transition-colors">Free Teardown</Link>
             <Link href="/security" className="hover:text-[#111111] transition-colors">Security</Link>
           </div>
         </div>

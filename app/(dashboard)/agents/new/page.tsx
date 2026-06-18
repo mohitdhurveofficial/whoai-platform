@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowLeft, CheckCircle2, Copy } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Copy } from "lucide-react";
 import Link from "next/link";
 
 export default function CreateAgentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ text: string; code?: string } | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     status: "ACTIVE",
@@ -40,10 +40,10 @@ export default function CreateAgentPage() {
       if (data.success) {
         setSuccessModal({ isOpen: true, apiKey: data.generatedApiKey });
       } else {
-        setError(data.error);
+        setError({ text: data.error, code: data.code });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create agent");
+      setError({ text: err instanceof Error ? err.message : "Failed to create agent" });
     } finally {
       setLoading(false);
     }
@@ -76,8 +76,18 @@ export default function CreateAgentPage() {
       <form onSubmit={handleSubmit} className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-xl p-8 shadow-sm space-y-6">
         {error && (
           <div className="p-4 bg-[#FFF0F0] border border-[#FEE2E2] rounded-lg flex items-start gap-3 text-[#DC2626]">
-            <AlertCircle className="h-5 w-5 mt-0.5" />
-            <div className="text-[14px] font-medium">{error}</div>
+            <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+            <div className="space-y-2.5">
+              <div className="text-[14px] font-medium">{error.text}</div>
+              {error.code === "PLAN_LIMIT_REACHED" && (
+                <Link
+                  href="/billing"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#FF6B00] px-3 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#E85F00]"
+                >
+                  Upgrade plan <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              )}
+            </div>
           </div>
         )}
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type React from "react";
-import { AlertTriangle, Activity } from "lucide-react";
+import { AlertTriangle, Activity, ArrowRight } from "lucide-react";
 import {
   getDashboardSummary,
   getSpendByAgent,
@@ -98,6 +98,20 @@ export default async function DashboardPage() {
                 <p className="text-[18px] font-bold">{Math.round((1 - forecast.confidence) * 100)}%</p>
               </div>
             </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#FF6B00]/15 pt-4">
+            <Link
+              href="/agents"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00]"
+            >
+              Review budget guardrails <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              href="/usage"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#666666] transition-colors hover:text-[#111111]"
+            >
+              See top cost drivers <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </section>
       )}
