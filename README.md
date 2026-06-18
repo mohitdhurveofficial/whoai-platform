@@ -180,11 +180,19 @@ npm run build
 
 ## Pricing & Business Model
 
-WHOAI is mission-critical infrastructure, not a productivity tool. 
+WHOAI is product-led: self-serve plans that scale with usage, plus a sales-led
+Enterprise tier. You always bring your own provider keys (BYOK) — WHOAI never
+marks up tokens. Self-serve plans are billed via Stripe subscriptions; tier
+limits live in [`lib/subscription.ts`](lib/subscription.ts) — the single source
+of truth for both the pricing UI and entitlement enforcement.
 
-- **Tier 1 ($2,000/month):** Includes Gateway, Cost tracking, Alerts, Dashboards.
-- **Tier 2 ($5,000-$10,000/month):** Includes Budget controls, Kill switch, Advanced Cost Anomaly detection.
-- **Tier 3 ($25,000+/year VPC):** Includes Self-hosted deployment, Enterprise support, SSO, Custom integrations.
+- **Free ($0/mo):** BYOK, real-time spend & token analytics, dashboards, 1 budget alert, 2 agents · 50k requests/mo, 7-day retention.
+- **Starter ($99/mo):** Everything in Free + budget controls & hard limits, instant kill switch, multi-provider routing, 10 agents · 1M requests/mo, 30-day retention.
+- **Growth ($299/mo):** Everything in Starter + org RBAC & policy enforcement, cost anomaly detection, provider failover, 50 agents · 5M requests/mo, 90-day retention.
+- **Pro ($799/mo):** Everything in Growth + SSO (Google/Okta) & audit-log export, advanced governance, 200 agents · 20M requests/mo, 180-day retention.
+- **Enterprise (custom, sales-led):** SAML SSO, unlimited agents, custom volume/retention, audit exports, SLA, and self-hosted/VPC — priced on AI spend under management (typically from ~$2,000/mo on an annual plan).
+
+> See [`REVENUE_MODEL.md`](REVENUE_MODEL.md) for the sales-led Enterprise motion and revenue projections.
 
 ## Product Roadmap
 

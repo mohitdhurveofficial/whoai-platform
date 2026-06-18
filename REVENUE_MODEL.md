@@ -13,9 +13,19 @@ It acts as mission-critical infrastructure to reduce enterprise AI spend by 15-3
 ---
 
 ## 2. Pricing Tiers & Monetization Strategy
-WHOAI is positioned as a high-value B2B enterprise infrastructure product. It is priced based on feature capabilities and deployment models, not just seat counts.
 
-### Tier 1: Growth / Starter
+> **Note — current go-to-market:** WHOAI launches **product-led** with self-serve
+> Stripe subscriptions — **Free $0 · Starter $99 · Growth $299 · Pro $799 / month**
+> (the live `/pricing` page; limits in [`lib/subscription.ts`](lib/subscription.ts)).
+> Self-serve drives acquisition. The tiers below describe the **sales-led
+> Enterprise motion** that sits *above* self-serve — custom contracts priced on
+> AI spend under management, typically from ~$2,000/mo on an annual plan — and
+> drives expansion. The two are complementary, not alternatives.
+
+WHOAI is positioned as a high-value B2B infrastructure product. The Enterprise
+motion is priced on feature capabilities and deployment model, not seat counts.
+
+### Tier E1: Enterprise Entry
 * **Price:** **$2,000 / month** ($24,000 ARR)
 * **Target Audience:** Mid-market companies or departments starting to scale their internal AI agent usage.
 * **Features Included:**

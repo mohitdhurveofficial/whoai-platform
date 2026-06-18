@@ -163,7 +163,7 @@ export default function PricingPage() {
                   </div>
                 )}
                 <Link
-                  href={`/signup?plan=${tier.name.toLowerCase()}`}
+                  href={`/auth/signup?plan=${tier.name.toLowerCase()}`}
                   className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] transition-colors mb-8 ${
                     tier.highlighted
                       ? "bg-[#FF6B00] text-white hover:bg-[#E65A00] shadow-md"

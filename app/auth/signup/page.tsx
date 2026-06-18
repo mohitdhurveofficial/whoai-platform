@@ -110,7 +110,11 @@ export default function SignupPage() {
 
       localStorage.setItem("is_authenticated", "true");
 
-      window.location.href = "/dashboard";
+      // Carry the plan picked on the pricing page into billing so paid tiers
+      // go straight to Stripe checkout; free (or no plan) lands on the app.
+      const plan = new URLSearchParams(window.location.search).get("plan")?.toLowerCase();
+      const paid = plan ? ["starter", "growth", "pro"].includes(plan) : false;
+      window.location.href = paid ? `/billing?plan=${plan}` : "/dashboard";
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "Signup failed. Please try again."

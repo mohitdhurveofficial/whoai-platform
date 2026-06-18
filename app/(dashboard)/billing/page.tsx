@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle, Loader2, CreditCard } from "lucide-react";
 
@@ -34,6 +34,8 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  // Guards the one-shot auto-checkout when a user arrives from /pricing with ?plan=.
+  const autoStartedRef = useRef(false);
 
   useEffect(() => {
     fetch("/api/billing/subscription")
@@ -45,6 +47,39 @@ export default function BillingPage() {
           setMessage({ type: "success", text: "Subscription updated. Thank you!" });
         } else if (params.get("canceled")) {
           setMessage({ type: "error", text: "Checkout canceled." });
+        }
+
+        // Arrived from the pricing page with a chosen plan → kick off Stripe
+        // checkout automatically for paid tiers (skip if already on that plan).
+        const planParam = params.get("plan")?.toUpperCase();
+        const paidTiers = ["STARTER", "GROWTH", "PRO"];
+        const currentTier = (data?.tier ?? "FREE").toUpperCase();
+        if (
+          planParam &&
+          paidTiers.includes(planParam) &&
+          planParam !== currentTier &&
+          !autoStartedRef.current
+        ) {
+          autoStartedRef.current = true;
+          setWorking(planParam);
+          fetch("/api/billing/create-checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tier: planParam }),
+          })
+            .then((res) => res.json())
+            .then((checkout) => {
+              if (checkout?.url) {
+                window.location.assign(checkout.url);
+              } else {
+                setWorking(null);
+                setMessage({ type: "error", text: checkout?.error || "Could not start checkout." });
+              }
+            })
+            .catch(() => {
+              setWorking(null);
+              setMessage({ type: "error", text: "Could not start checkout." });
+            });
         }
       })
       .catch(() => setMessage({ type: "error", text: "Could not load subscription." }))
