@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Free AI Spend Teardown",
@@ -84,40 +85,42 @@ export default function TeardownPage() {
     <MarketingShell>
       {/* Hero */}
       <section className="max-w-[1000px] mx-auto px-6 pt-20 pb-16 text-center">
-        <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-5">
-          Free AI Spend Teardown
-        </span>
-        <h1 className="text-[40px] md:text-[56px] leading-[1.05] font-extrabold tracking-tight mb-6">
-          Find out how much AI spend
-          <br className="hidden md:block" /> you&apos;re wasting — free.
-        </h1>
-        <p className="text-[19px] text-[#666666] max-w-[640px] mx-auto mb-10 leading-relaxed">
-          Most teams running AI agents waste <strong className="text-[#111111]">15–30%</strong> of
-          their model spend on failed calls, duplicate prompts, and over-powered models. Send us a
-          sample of your usage and we&apos;ll show you exactly where — to the dollar.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href={MAILTO}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-7 py-3.5 text-[15px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
-          >
-            Send my logs <ArrowRight className="h-4 w-4" />
-          </a>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#DCD5CD] px-7 py-3.5 text-[15px] font-semibold text-[#111111] hover:border-[#B3B3B3] transition-colors"
-          >
-            Ask a question
-          </Link>
-        </div>
-        <p className="mt-5 text-[13px] text-[#888888]">
-          No integration · read-only · no payment to see your report
-        </p>
+        <Reveal>
+          <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-5">
+            Free AI Spend Teardown
+          </span>
+          <h1 className="text-[40px] md:text-[56px] leading-[1.05] font-extrabold tracking-tight mb-6">
+            Find out how much AI spend
+            <br className="hidden md:block" /> you&apos;re wasting — free.
+          </h1>
+          <p className="text-[19px] text-[#666666] max-w-[640px] mx-auto mb-10 leading-relaxed">
+            Most teams running AI agents waste <strong className="text-[#111111]">15–30%</strong> of
+            their model spend on failed calls, duplicate prompts, and over-powered models. Send us a
+            sample of your usage and we&apos;ll show you exactly where — to the dollar.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href={MAILTO}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-7 py-3.5 text-[15px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
+            >
+              Send my logs <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#DCD5CD] px-7 py-3.5 text-[15px] font-semibold text-[#111111] hover:border-[#B3B3B3] transition-colors"
+            >
+              Ask a question
+            </Link>
+          </div>
+          <p className="mt-5 text-[13px] text-[#888888]">
+            No integration · read-only · no payment to see your report
+          </p>
+        </Reveal>
       </section>
 
       {/* Risk reversal banner */}
       <section className="max-w-[1000px] mx-auto px-6 pb-16">
-        <div className="rounded-2xl bg-[#111111] text-white px-8 py-10 text-center">
+        <Reveal className="rounded-2xl bg-[#111111] text-white px-8 py-10 text-center">
           <ShieldCheck className="h-8 w-8 text-[#FF6B00] mx-auto mb-4" />
           <p className="text-[22px] md:text-[26px] font-bold leading-snug max-w-[680px] mx-auto">
             If we don&apos;t find savings worth more than our fee, you pay nothing.
@@ -125,96 +128,108 @@ export default function TeardownPage() {
           <p className="text-[15px] text-[#AAAAAA] mt-3">
             The risk is entirely ours. You only pay once the savings are on the table.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* How it works */}
       <section className="max-w-[1100px] mx-auto px-6 pb-16">
-        <h2 className="text-[28px] md:text-[34px] font-extrabold tracking-tight text-center mb-12">
-          How it works
-        </h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <Reveal>
+          <h2 className="text-[28px] md:text-[34px] font-extrabold tracking-tight text-center mb-12">
+            How it works
+          </h2>
+        </Reveal>
+        <Stagger className="grid md:grid-cols-3 gap-6">
           {STEPS.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border border-[#EEE8E2] bg-white p-7">
+            <StaggerItem key={title} hover className="rounded-xl border border-[#EEE8E2] bg-white p-7 transition-shadow hover:shadow-md">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00] mb-5">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="text-[18px] font-bold mb-2">{title}</h3>
               <p className="text-[15px] text-[#666666] leading-relaxed">{body}</p>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {/* What we find */}
       <section className="max-w-[1100px] mx-auto px-6 pb-16">
-        <h2 className="text-[28px] md:text-[34px] font-extrabold tracking-tight text-center mb-3">
-          What we find
-        </h2>
-        <p className="text-[16px] text-[#666666] text-center max-w-[560px] mx-auto mb-12">
-          Three leaks hide in almost every AI bill. Each one becomes a line item with a dollar figure
-          in your report.
-        </p>
-        <div className="grid md:grid-cols-3 gap-6">
+        <Reveal>
+          <h2 className="text-[28px] md:text-[34px] font-extrabold tracking-tight text-center mb-3">
+            What we find
+          </h2>
+          <p className="text-[16px] text-[#666666] text-center max-w-[560px] mx-auto mb-12">
+            Three leaks hide in almost every AI bill. Each one becomes a line item with a dollar figure
+            in your report.
+          </p>
+        </Reveal>
+        <Stagger className="grid md:grid-cols-3 gap-6">
           {FINDINGS.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border border-[#EEE8E2] bg-white p-7">
+            <StaggerItem key={title} hover className="rounded-xl border border-[#EEE8E2] bg-white p-7 transition-shadow hover:shadow-md">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00] mb-5">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="text-[18px] font-bold mb-2">{title}</h3>
               <p className="text-[15px] text-[#666666] leading-relaxed">{body}</p>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {/* The offer / what happens next */}
       <section className="max-w-[820px] mx-auto px-6 pb-16">
-        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-8 md:p-10">
+        <Reveal className="rounded-2xl border border-[#EEE8E2] bg-white p-8 md:p-10">
           <h2 className="text-[26px] md:text-[30px] font-extrabold tracking-tight mb-8">
             From teardown to permanent savings
           </h2>
-          <div className="space-y-6">
-            <Tier
-              tag="Step 1 · Free"
-              title="The Teardown"
-              price="$0"
-              body="We analyse your usage and deliver the report. No cost, no commitment, no integration."
-            />
-            <Tier
-              tag="Step 2 · One-time"
-              title="Teardown + Setup"
-              price="$2,000"
-              body="We implement the fixes on your stack — cheaper-model routing, retry guards, caching, and budget guardrails — and verify the savings are real."
-              ctaHref="/checkout"
-              ctaLabel="Get Teardown + Setup"
-            />
-            <Tier
-              tag="Step 3 · Ongoing"
-              title="Growth ($299/mo)"
-              price="$299/mo"
-              body="We keep the fixes enforced continuously: hard budget caps, auto-pause on runaway agents, and a kill-switch so a looping agent can never burn your budget overnight."
-            />
-          </div>
-        </div>
+          <Stagger className="space-y-6">
+            <StaggerItem>
+              <Tier
+                tag="Step 1 · Free"
+                title="The Teardown"
+                price="$0"
+                body="We analyse your usage and deliver the report. No cost, no commitment, no integration."
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <Tier
+                tag="Step 2 · One-time"
+                title="Teardown + Setup"
+                price="$2,000"
+                body="We implement the fixes on your stack — cheaper-model routing, retry guards, caching, and budget guardrails — and verify the savings are real."
+                ctaHref="/checkout"
+                ctaLabel="Get Teardown + Setup"
+              />
+            </StaggerItem>
+            <StaggerItem>
+              <Tier
+                tag="Step 3 · Ongoing"
+                title="Growth ($299/mo)"
+                price="$299/mo"
+                body="We keep the fixes enforced continuously: hard budget caps, auto-pause on runaway agents, and a kill-switch so a looping agent can never burn your budget overnight."
+              />
+            </StaggerItem>
+          </Stagger>
+        </Reveal>
       </section>
 
       {/* Final CTA */}
       <section className="max-w-[820px] mx-auto px-6 pb-24 text-center">
-        <Clock className="h-7 w-7 text-[#FF6B00] mx-auto mb-4" />
-        <h2 className="text-[28px] md:text-[34px] font-extrabold tracking-tight mb-4">
-          See your number this week
-        </h2>
-        <p className="text-[17px] text-[#666666] max-w-[560px] mx-auto mb-8 leading-relaxed">
-          Five minutes to send a sample. Forty-eight hours to your report. Nothing to lose but the
-          spend you didn&apos;t know you were wasting.
-        </p>
-        <a
-          href={MAILTO}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
-        >
-          Send my logs <ArrowRight className="h-4 w-4" />
-        </a>
+        <Reveal>
+          <Clock className="h-7 w-7 text-[#FF6B00] mx-auto mb-4" />
+          <h2 className="text-[28px] md:text-[34px] font-extrabold tracking-tight mb-4">
+            See your number this week
+          </h2>
+          <p className="text-[17px] text-[#666666] max-w-[560px] mx-auto mb-8 leading-relaxed">
+            Five minutes to send a sample. Forty-eight hours to your report. Nothing to lose but the
+            spend you didn&apos;t know you were wasting.
+          </p>
+          <a
+            href={MAILTO}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
+          >
+            Send my logs <ArrowRight className="h-4 w-4" />
+          </a>
+        </Reveal>
       </section>
     </MarketingShell>
   );

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Building2, Eye, Gauge, Mail, ShieldCheck } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/app/components/marketing/Motion";
+import { Boxes } from "@/components/ui/background-boxes";
+import { TeamMarquee } from "@/components/ui/team-marquee";
 
 export const metadata: Metadata = {
   title: "About",
@@ -31,14 +34,25 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <MarketingShell>
+      {/* Animated grid header banner */}
+      <section className="relative overflow-hidden border-b border-[#EEE8E2] bg-white">
+        <div className="absolute inset-0 [mask-image:radial-gradient(circle_at_50%_42%,white,transparent_72%)]">
+          <Boxes />
+        </div>
+        <div className="relative z-10 mx-auto max-w-[820px] px-6 py-24 text-center">
+          <Reveal>
+            <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
+              About WHOAI
+            </span>
+            <h1 className="text-[40px] md:text-[52px] leading-[1.1] font-extrabold tracking-tight">
+              Turn experimental AI into profitable AI
+            </h1>
+          </Reveal>
+        </div>
+      </section>
+
       <section className="max-w-[820px] mx-auto px-6 py-20">
-        <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
-          About WHOAI
-        </span>
-        <h1 className="text-[40px] md:text-[52px] leading-[1.1] font-extrabold tracking-tight mb-8">
-          Turn experimental AI into profitable AI
-        </h1>
-        <div className="space-y-6 text-[18px] text-[#444444] leading-relaxed">
+        <Reveal className="space-y-6 text-[18px] text-[#444444] leading-relaxed">
           <p>
             Autonomous AI agents now run workflows, process data, and call expensive models 24/7. When
             one gets stuck in a loop or quietly switches to a pricier model, the first sign is usually a
@@ -53,21 +67,25 @@ export default function AboutPage() {
             Our mission is simple: give every team complete visibility and control over their AI spend, so
             they can scale AI with confidence instead of fear.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="grid sm:grid-cols-3 gap-6 mt-16">
+        <Stagger className="grid sm:grid-cols-3 gap-6 mt-16">
           {VALUES.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+            <StaggerItem
+              key={title}
+              hover
+              className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md"
+            >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00] mb-4">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="text-[16px] font-bold mb-2">{title}</h3>
               <p className="text-[14px] text-[#666666] leading-relaxed">{body}</p>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
-        <div className="mt-16 rounded-2xl border border-[#EEE8E2] bg-white p-8">
+        <Reveal className="mt-16 rounded-2xl border border-[#EEE8E2] bg-white p-8">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00] mb-5">
             <Building2 className="h-5 w-5" />
           </div>
@@ -101,21 +119,23 @@ export default function AboutPage() {
               <Mail className="h-4 w-4" /> founders@whoai.ai
             </a>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="mt-8 rounded-2xl border border-[#EEE8E2] bg-white p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <Reveal className="mt-8 rounded-2xl border border-[#EEE8E2] bg-white p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-[20px] font-bold mb-1">See WHOAI for yourself</h2>
             <p className="text-[15px] text-[#666666]">A 30-minute walkthrough tailored to your stack.</p>
           </div>
-          <Link
+          <MagneticButton
             href="/demo"
             className="shrink-0 inline-flex items-center gap-2 bg-[#FF6B00] text-white px-6 py-3.5 rounded-md font-semibold text-[15px] hover:bg-[#E65A00] transition-colors shadow-md"
           >
             Book a demo <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+          </MagneticButton>
+        </Reveal>
       </section>
+
+      <TeamMarquee />
     </MarketingShell>
   );
 }

@@ -20,14 +20,14 @@ function KpiCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-[#EEE8E2] bg-white p-5 shadow-sm">
+    <div className="group rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.20)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#FFD9C2] hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_20px_44px_-20px_rgba(17,17,17,0.24)]">
       <div className="flex items-center justify-between gap-4">
         <span className="text-[12px] font-semibold uppercase tracking-wide text-[#666666]">
           {label}
         </span>
-        <div className="rounded-md bg-[#F5F5F5] p-2 text-[#111111]">{icon}</div>
+        <div className="rounded-lg bg-[#FFF1E8] p-2 text-[#FF6B00]">{icon}</div>
       </div>
-      <div className="mt-5 text-3xl font-bold tracking-tight text-[#111111]">{value}</div>
+      <div className="mt-5 text-3xl font-bold tracking-tight tabular-nums text-[#111111]">{value}</div>
       <div className="mt-2 text-[13px] text-[#666666]">{detail}</div>
     </div>
   );

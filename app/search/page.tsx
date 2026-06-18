@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Reveal } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Search WHOAI",
@@ -28,10 +29,12 @@ export default function SearchPage() {
   return (
     <main className="min-h-screen bg-[#FAF7F3] text-[#111111] font-sans">
       <div className="max-w-[800px] mx-auto px-6 py-24">
-        <h1 className="text-[40px] font-bold tracking-tight mb-4">Search WHOAI</h1>
-        <p className="text-[16px] text-[#666666] mb-10">
-          Find guides on AI cost tracking, LLM budget management, and platform documentation.
-        </p>
+        <Reveal>
+          <h1 className="text-[40px] font-bold tracking-tight mb-4">Search WHOAI</h1>
+          <p className="text-[16px] text-[#666666] mb-10">
+            Find guides on AI cost tracking, LLM budget management, and platform documentation.
+          </p>
+        </Reveal>
 
         <div className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-lg p-6 mb-10">
           <p className="text-[14px] text-[#888888] mb-4">Popular searches:</p>

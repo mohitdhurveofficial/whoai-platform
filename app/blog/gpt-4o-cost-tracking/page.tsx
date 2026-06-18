@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Reveal, MagneticButton } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "How to Track GPT-4o API Costs Per Request | WHOAI Blog",
@@ -49,17 +50,19 @@ export default function BlogPost() {
           </Link>
         </nav>
 
-        <header className="mb-10">
-          <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider mb-4">
-            OpenAI · Cost Tracking
-          </span>
-          <h1 className="text-[36px] md:text-[44px] font-bold tracking-tight leading-[1.15] mb-4">
-            How to Track GPT-4o API Costs Per Request
-          </h1>
-          <p className="text-[16px] text-[#666666]">
-            <time dateTime="2026-06-16">June 16, 2026</time> · 6 min read
-          </p>
-        </header>
+        <Reveal>
+          <header className="mb-10">
+            <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider mb-4">
+              OpenAI · Cost Tracking
+            </span>
+            <h1 className="text-[36px] md:text-[44px] font-bold tracking-tight leading-[1.15] mb-4">
+              How to Track GPT-4o API Costs Per Request
+            </h1>
+            <p className="text-[16px] text-[#666666]">
+              <time dateTime="2026-06-16">June 16, 2026</time> · 6 min read
+            </p>
+          </header>
+        </Reveal>
 
         <div className="prose-custom">
           <p className="text-[17px] text-[#666666] leading-relaxed mb-6">
@@ -135,7 +138,7 @@ export default function BlogPost() {
 
           <h2 className="text-[24px] font-bold mt-10 mb-4">Setting a Per-Agent GPT-4o Budget</h2>
           <p className="text-[16px] text-[#666666] leading-relaxed mb-4">
-            With WHOAI, you can set a daily or monthly spend limit per agent. When a GPT-4o request would push the agent over budget, the gateway blocks it instantly and triggers a kill switch. This prevents the "wake up to a $10,000 bill" scenario entirely.
+            With WHOAI, you can set a daily or monthly spend limit per agent. When a GPT-4o request would push the agent over budget, the gateway blocks it instantly and triggers a kill switch. This prevents the &ldquo;wake up to a $10,000 bill&rdquo; scenario entirely.
           </p>
 
           <h2 className="text-[24px] font-bold mt-10 mb-4">Summary</h2>
@@ -143,23 +146,25 @@ export default function BlogPost() {
             Tracking GPT-4o costs per request is not optional at scale. Use a gateway to intercept calls, parse the <code>usage</code> object for accuracy, and enforce atomic budget pre-reservation so concurrent requests cannot bypass your limits. The result: complete visibility into every dollar your AI agents spend.
           </p>
 
-          <div className="bg-[#FF6B00]/5 border border-[#FF6B00]/20 rounded-lg p-5 mt-8">
+          <Reveal className="bg-[#FF6B00]/5 border border-[#FF6B00]/20 rounded-lg p-5 mt-8">
             <p className="text-[15px] font-semibold text-[#111111] mb-1">Ready to track GPT-4o costs in real time?</p>
             <p className="text-[14px] text-[#666666] mb-3">
               WHOAI gives you per-request cost tracking, token analytics, and budget enforcement for OpenAI, Anthropic, Gemini, and more.
             </p>
-            <Link href="/signup" className="inline-block bg-[#FF6B00] text-white px-5 py-2.5 rounded-md font-semibold text-[14px] hover:bg-[#E65A00] transition-colors">
+            <MagneticButton href="/signup" className="inline-block bg-[#FF6B00] text-white px-5 py-2.5 rounded-md font-semibold text-[14px] hover:bg-[#E65A00] transition-colors">
               Start Free Trial
-            </Link>
-          </div>
+            </MagneticButton>
+          </Reveal>
         </div>
 
-        <hr className="border-[#EEE8E2] my-10" />
-        <div className="flex gap-4">
-          <Link href="/blog/preventing-claude-costs" className="text-[14px] font-semibold text-[#FF6B00] hover:underline">
-            Next: Preventing Runaway Claude 3.5 Sonnet Costs →
-          </Link>
-        </div>
+        <Reveal>
+          <hr className="border-[#EEE8E2] my-10" />
+          <div className="flex gap-4">
+            <Link href="/blog/preventing-claude-costs" className="text-[14px] font-semibold text-[#FF6B00] hover:underline">
+              Next: Preventing Runaway Claude 3.5 Sonnet Costs →
+            </Link>
+          </div>
+        </Reveal>
       </article>
     </main>
   );

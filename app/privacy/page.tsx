@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/marketing/LegalLayout";
+import { Reveal } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -10,12 +11,14 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <LegalLayout title="Privacy Policy" effectiveDate="June 9, 2026">
-      <p>
-        WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;, &quot;us&quot;) provides a cost observability and
-        FinOps control plane for AI systems. This Privacy Policy explains what information we collect, how
-        we use it, and the choices you have. It applies to our website and the WHOAI platform (together,
-        the &quot;Services&quot;).
-      </p>
+      <Reveal>
+        <p>
+          WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;, &quot;us&quot;) provides a cost observability and
+          FinOps control plane for AI systems. This Privacy Policy explains what information we collect, how
+          we use it, and the choices you have. It applies to our website and the WHOAI platform (together,
+          the &quot;Services&quot;).
+        </p>
+      </Reveal>
 
       <h2>1. Information we collect</h2>
       <h3>Information you provide</h3>

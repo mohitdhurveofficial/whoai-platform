@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, AlertTriangle, Activity, ArrowRight } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "System Status",
@@ -39,15 +40,17 @@ export default async function StatusPage() {
     <MarketingShell>
       <div className="mx-auto px-6 py-12">
         <div className="max-w-[800px] mx-auto">
-          <h1 className="text-[32px] font-bold tracking-tight text-[#111111] mb-6">
-            System Status
-          </h1>
-          <p className="text-[18px] text-[#666666] mb-8">
-            The live operational status of WHOAI services. We publish status transparently and report
-            incidents here as they occur.
-          </p>
+          <Reveal>
+            <h1 className="text-[32px] font-bold tracking-tight text-[#111111] mb-6">
+              System Status
+            </h1>
+            <p className="text-[18px] text-[#666666] mb-8">
+              The live operational status of WHOAI services. We publish status transparently and report
+              incidents here as they occur.
+            </p>
+          </Reveal>
 
-          <div className="mb-12">
+          <Reveal className="mb-12">
             {isDegraded ? (
               <div className="flex items-center gap-4">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F59E00]/20 text-[#F59E00]">
@@ -71,40 +74,40 @@ export default async function StatusPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Reveal>
 
-          <div className="grid gap-6 md:grid-cols-3 mb-12">
-            <div className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+          <Stagger className="grid gap-6 md:grid-cols-3 mb-12">
+            <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
               <h3 className="text-[16px] font-semibold text-[#666666] mb-2">Gateway</h3>
               {isDegraded ? (
                 <p className="text-[20px] font-bold text-[#F59E00]">Degraded</p>
               ) : (
                 <p className="text-[20px] font-bold text-[#10B981]">Operational</p>
               )}
-            </div>
-            <div className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+            </StaggerItem>
+            <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
               <h3 className="text-[16px] font-semibold text-[#666666] mb-2">Dashboard &amp; API</h3>
               {isDegraded ? (
                 <p className="text-[20px] font-bold text-[#F59E00]">Degraded</p>
               ) : (
                 <p className="text-[20px] font-bold text-[#10B981]">Operational</p>
               )}
-            </div>
-            <div className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+            </StaggerItem>
+            <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
               <h3 className="text-[16px] font-semibold text-[#666666] mb-2">Reported incidents</h3>
               <p className="text-[20px] font-bold text-[#111111]">None</p>
-            </div>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
           {state === "manual" && (
-            <div className="mb-12">
+            <Reveal className="mb-12">
               <p className="text-[13px] text-[#666666]">
                 Status on this page is updated manually.
               </p>
-            </div>
+            </Reveal>
           )}
 
-          <div className="mb-12">
+          <Reveal className="mb-12">
             <h2 className="text-[20px] font-bold text-[#111111] mb-4">Recent Incidents</h2>
             <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 flex items-center gap-3">
               <Activity className={`h-4 w-4 ${isDegraded ? "text-[#F59E00]" : "text-[#10B981]"}`} />
@@ -112,16 +115,16 @@ export default async function StatusPage() {
                 No incidents reported. We&apos;ll post any service disruptions here, with updates until resolved.
               </p>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+          <Reveal className="rounded-xl border border-[#EEE8E2] bg-white p-6">
             <h2 className="text-[20px] font-bold text-[#111111] mb-4">Scheduled Maintenance</h2>
             <p className="text-[15px] text-[#666666]">
               No maintenance scheduled. We provide at least 72 hours&apos; notice for any planned maintenance.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-12 text-center">
+          <Reveal className="mt-12 text-center">
             <p className="text-[14px] text-[#666666] mb-4">
               Questions about availability or need a status update?
             </p>
@@ -131,7 +134,7 @@ export default async function StatusPage() {
             >
               Contact us <ArrowRight className="h-4 w-4" />
             </Link>
-          </div>
+          </Reveal>
         </div>
       </div>
     </MarketingShell>

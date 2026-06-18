@@ -17,6 +17,7 @@ import {
   TriangleAlert,
   UserRound,
 } from "lucide-react";
+import { Reveal, Stagger, StaggerItem, CountUp } from "../../components/marketing/Motion";
 
 const workflowSteps = [
   { icon: Bot, label: "Agent request", tone: "bg-white text-[#071126]" },
@@ -89,7 +90,7 @@ export default function SignupPage() {
 
       const text = await res.text();
 
-      let data: { error?: string; redirectTo?: string } = {};
+      let data: { error?: string; redirectTo?: string; user?: unknown } = {};
 
       try {
         data = text ? JSON.parse(text) : {};
@@ -103,8 +104,8 @@ export default function SignupPage() {
 
       // Signup already established a session cookie — go straight into the app
       // instead of bouncing the new user back to the login screen.
-      if ((data as any).user) {
-        localStorage.setItem("user", JSON.stringify((data as any).user));
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
       localStorage.setItem("is_authenticated", "true");
@@ -138,8 +139,8 @@ export default function SignupPage() {
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(460px,1fr)] lg:py-10">
-          <div className="relative z-10 mx-auto w-full max-w-[438px] lg:mx-0">
-            <div className="mb-7">
+          <Stagger className="relative z-10 mx-auto w-full max-w-[438px] lg:mx-0" stagger={0.1}>
+            <StaggerItem className="mb-7">
               <div className="inline-flex h-8 items-center gap-2 rounded-full border border-black/5 bg-white px-3 text-[13px] font-semibold text-[#071126] shadow-sm">
                 <span className="h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_0_4px_rgba(14,165,233,0.12)]" />
                 AI FinOps &amp; Governance Control Plane
@@ -153,8 +154,9 @@ export default function SignupPage() {
               <p className="mt-5 max-w-[390px] text-[15px] font-medium leading-7 text-[#071126]/78">
                 Track tokens, enforce budgets, and stop runaway AI spend — start governing every AI agent in minutes.
               </p>
-            </div>
+            </StaggerItem>
 
+            <StaggerItem>
             {error && (
               <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">
                 {error}
@@ -313,14 +315,15 @@ export default function SignupPage() {
                 Sign in
               </Link>
             </p>
-          </div>
+            </StaggerItem>
+          </Stagger>
 
           <div className="relative hidden min-h-[560px] lg:block">
             <div className="hero-shield left-[54%] top-3 opacity-[0.16]" />
             <div className="dot-field absolute right-4 top-6 h-48 w-56 opacity-55" />
             <div className="dot-field absolute bottom-12 left-6 h-36 w-48 opacity-45" />
 
-            <div className="premium-panel absolute right-0 top-2 w-[520px] overflow-hidden rounded-[18px] bg-white/86 shadow-[0_28px_72px_rgba(7,17,38,0.13)]">
+            <Reveal x={40} delay={0.15} className="premium-panel absolute right-0 top-2 w-[520px] overflow-hidden rounded-[18px] bg-white/86 shadow-[0_28px_72px_rgba(7,17,38,0.13)]">
               <div className="dark-pattern px-7 py-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
@@ -392,9 +395,9 @@ export default function SignupPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
 
-            <div className="premium-panel absolute bottom-5 left-0 w-[260px] rounded-[16px] bg-white/90 p-5 shadow-[0_20px_56px_rgba(7,17,38,0.12)]">
+            <Reveal x={-40} delay={0.35} className="premium-panel absolute bottom-5 left-0 w-[260px] rounded-[16px] bg-white/90 p-5 shadow-[0_20px_56px_rgba(7,17,38,0.12)]">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#071126]/42">
                   Monthly Budget Used
@@ -404,7 +407,9 @@ export default function SignupPage() {
                 </span>
               </div>
               <div className="mt-4 flex items-end gap-3">
-                <span className="text-[42px] font-black leading-none text-[#071126]">74%</span>
+                <span className="text-[42px] font-black leading-none text-[#071126]">
+                  <CountUp value={74} suffix="%" />
+                </span>
                 <span className="mb-1 rounded-full bg-orange-100 px-2.5 py-1 text-[11px] font-black text-orange-700">
                   $740 / $1k
                 </span>
@@ -412,7 +417,7 @@ export default function SignupPage() {
               <div className="mt-5 h-2 overflow-hidden rounded-full bg-black/6">
                 <div className="h-full w-[74%] rounded-full bg-orange-500" />
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
       </div>

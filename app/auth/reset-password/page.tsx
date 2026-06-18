@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 // A browser Supabase client is created inline because the repo only ships a
 // server client (@/utils/supabase/server). The recovery link from the
@@ -87,7 +88,7 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="space-y-6 text-center">
+      <Reveal className="space-y-6 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 mx-auto">
           <svg className="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -100,13 +101,13 @@ export default function ResetPasswordPage() {
         <Link href="/auth/login" className="inline-block font-bold text-orange-600 hover:text-orange-700">
           Back to login
         </Link>
-      </div>
+      </Reveal>
     );
   }
 
   if (hasSession === false) {
     return (
-      <div className="space-y-6 text-center">
+      <Reveal className="space-y-6 text-center">
         <div>
           <h2 className="text-xl font-bold text-[#071126]">Reset link invalid or expired</h2>
           <p className="text-[#071126]/70 mt-2">This password reset link is no longer valid. Request a new one to continue.</p>
@@ -114,17 +115,19 @@ export default function ResetPasswordPage() {
         <Link href="/auth/forgot-password" className="inline-block font-bold text-orange-600 hover:text-orange-700">
           Request a new link
         </Link>
-      </div>
+      </Reveal>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div>
+    <Stagger className="space-y-5" stagger={0.1}>
+      <StaggerItem>
         <h2 className="text-xl font-bold text-[#071126] mb-2">Set a new password</h2>
         <p className="text-sm text-[#071126]/70">Choose a new password for your account.</p>
-      </div>
+      </StaggerItem>
 
+      <StaggerItem>
+      <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label htmlFor="password" className="mb-2 block text-[13px] font-bold text-[#071126]">
           New password
@@ -176,6 +179,8 @@ export default function ResetPasswordPage() {
           Back to login
         </Link>
       </div>
-    </form>
+      </form>
+      </StaggerItem>
+    </Stagger>
   );
 }

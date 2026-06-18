@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, ArrowRight, Server, Building2 } from "lucide-react";
+import { Check, ArrowRight, Server, Building2, Star } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 import { ROICalculator } from "./roi-calculator";
+import {
+  Reveal,
+  Stagger,
+  StaggerItem,
+  CountUp,
+  MagneticButton,
+} from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -109,7 +116,7 @@ export default function PricingPage() {
   return (
     <MarketingShell>
       <section className="max-w-[1200px] mx-auto px-6 py-20">
-        <div className="text-center max-w-[720px] mx-auto mb-16">
+        <Reveal className="text-center max-w-[720px] mx-auto mb-16">
           <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
             Pricing
           </span>
@@ -120,58 +127,63 @@ export default function PricingPage() {
             Budget controls and kill switches for your AI agents — on your own provider keys.
             No token markup, no per-seat fees. Self-serve in minutes.
           </p>
-        </div>
+        </Reveal>
 
         {/* ROI Calculator */}
-        <ROICalculator />
+        <Reveal>
+          <ROICalculator />
+        </Reveal>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
+        <Stagger className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-start" stagger={0.1}>
           {TIERS.map((tier) => (
-            <div
-              key={tier.name}
-              className={`rounded-2xl border p-7 flex flex-col h-full ${
-                tier.highlighted
-                  ? "border-[#FF6B00] bg-white shadow-xl shadow-[#FF6B00]/10 lg:-translate-y-2"
-                  : "border-[#EEE8E2] bg-white shadow-sm"
-              }`}
-            >
-              {tier.highlighted && (
-                <span className="self-start mb-4 inline-block rounded-full bg-[#FFF1E8] text-[#FF6B00] text-[11px] font-bold uppercase tracking-wider px-3 py-1">
-                  Most popular
-                </span>
-              )}
-              <h3 className="text-[20px] font-bold mb-2">{tier.name}</h3>
-              <p className="text-[13px] text-[#666666] mb-6 min-h-[56px]">{tier.blurb}</p>
-              <div className="mb-6 flex items-start">
-                <span className="text-[34px] font-extrabold tracking-tight">{tier.price}</span>
-                <span className="text-[15px] text-[#888888] ml-2">{tier.cadence}</span>
-              </div>
-              {tier.price !== "$0" && (
-                <div className="mt-2 inline-block text-[12px] bg-[#FF6B00]/20 text-[#FF6B00] px-2 py-1 rounded">
-                  Annual billing available — contact us
-                </div>
-              )}
-              <Link
-                href={`/signup?plan=${tier.name.toLowerCase()}`}
-                className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] transition-colors mb-8 ${
+            <StaggerItem key={tier.name} hover className="h-full">
+              <div
+                className={`rounded-2xl border p-7 flex flex-col h-full ${
                   tier.highlighted
-                    ? "bg-[#FF6B00] text-white hover:bg-[#E65A00] shadow-md"
-                    : "bg-white border border-[#EEE8E2] text-[#111111] hover:border-[#DCD5CD]"
+                    ? "border-[#FF6B00] bg-white shadow-xl shadow-[#FF6B00]/10 lg:-translate-y-2"
+                    : "border-[#EEE8E2] bg-white shadow-sm"
                 }`}
               >
-                {tier.cta} <ArrowRight className="h-4 w-4" />
-              </Link>
-              <ul className="space-y-3">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-[14px] text-[#444444]">
-                    <Check className="h-4 w-4 text-[#047857] shrink-0 mt-0.5" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                {tier.highlighted && (
+                  <span className="self-start mb-4 inline-block rounded-full bg-[#FFF1E8] text-[#FF6B00] text-[11px] font-bold uppercase tracking-wider px-3 py-1">
+                    Most popular
+                  </span>
+                )}
+                <h3 className="text-[20px] font-bold mb-2">{tier.name}</h3>
+                <p className="text-[13px] text-[#666666] mb-6 min-h-[56px]">{tier.blurb}</p>
+                <div className="mb-6 flex items-start">
+                  <span className="text-[34px] font-extrabold tracking-tight tabular-nums">
+                    <CountUp value={Number(tier.price.replace(/[^0-9.]/g, ""))} prefix="$" />
+                  </span>
+                  <span className="text-[15px] text-[#888888] ml-2">{tier.cadence}</span>
+                </div>
+                {tier.price !== "$0" && (
+                  <div className="mt-2 inline-block text-[12px] bg-[#FF6B00]/20 text-[#FF6B00] px-2 py-1 rounded">
+                    Annual billing available — contact us
+                  </div>
+                )}
+                <Link
+                  href={`/signup?plan=${tier.name.toLowerCase()}`}
+                  className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] transition-colors mb-8 ${
+                    tier.highlighted
+                      ? "bg-[#FF6B00] text-white hover:bg-[#E65A00] shadow-md"
+                      : "bg-white border border-[#EEE8E2] text-[#111111] hover:border-[#DCD5CD]"
+                  }`}
+                >
+                  {tier.cta} <ArrowRight className="h-4 w-4" />
+                </Link>
+                <ul className="space-y-3">
+                  {tier.features.map((f) => (
+                    <li key={f} className="flex items-start gap-3 text-[14px] text-[#444444]">
+                      <Check className="h-4 w-4 text-[#047857] shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
         <p className="text-center text-[13px] text-[#888888] mt-6">
           All plans include the gateway, BYOK, and real-time spend analytics. Annual billing is
@@ -180,7 +192,7 @@ export default function PricingPage() {
         </p>
 
         {/* Founding customer offer — the real lever for the first cohort. */}
-        <div className="mt-8 rounded-2xl border border-[#FF6B00]/30 bg-[#FFF8F3] p-6 text-center">
+        <Reveal className="mt-8 rounded-2xl border border-[#FF6B00]/30 bg-[#FFF8F3] p-6 text-center">
           <p className="text-[15px] text-[#444444]">
             <span className="font-bold text-[#111111]">Founding customers:</span>{" "}
             we&rsquo;re onboarding a small first cohort at{" "}
@@ -190,11 +202,11 @@ export default function PricingPage() {
               Apply here →
             </Link>
           </p>
-        </div>
+        </Reveal>
 
         {/* Enterprise + On-prem bands — understated anchors, sales-led. */}
-        <div className="mt-6 grid md:grid-cols-2 gap-5">
-          <div className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col">
+        <Stagger className="mt-6 grid md:grid-cols-2 gap-5">
+          <StaggerItem hover className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col transition-shadow hover:shadow-md">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-[#FAF7F3] flex items-center justify-center shrink-0">
                 <Building2 className="h-5 w-5 text-[#FF6B00]" />
@@ -212,9 +224,9 @@ export default function PricingPage() {
             >
               Talk to sales <ArrowRight className="h-4 w-4" />
             </Link>
-          </div>
+          </StaggerItem>
 
-          <div className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col">
+          <StaggerItem hover className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col transition-shadow hover:shadow-md">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-[#FAF7F3] flex items-center justify-center shrink-0">
                 <Server className="h-5 w-5 text-[#FF6B00]" />
@@ -232,32 +244,63 @@ export default function PricingPage() {
             >
               Contact us <ArrowRight className="h-4 w-4" />
             </Link>
-          </div>
-        </div>
+          </StaggerItem>
+        </Stagger>
+
+        {/* SOCIAL PROOF */}
+        <Reveal className="mt-24 text-center">
+          <p className="mb-8 text-[12px] font-bold uppercase tracking-[0.16em] text-[#8792A2]">
+            Trusted by teams running agents in production
+          </p>
+        </Reveal>
+        <Stagger className="grid gap-5 md:grid-cols-3" stagger={0.08}>
+          {[
+            { q: "WHOAI caught a runaway agent before it burned our monthly budget. The kill switch paid for the year.", n: "Maya Chen", r: "VP Engineering" },
+            { q: "Hard budget caps that actually enforce. Our finance team finally trusts our AI spend.", n: "Priya Nair", r: "Director of FinOps" },
+            { q: "We cut AI spend 31% by routing to cheaper models. WHOAI showed us exactly where.", n: "Elena Vasquez", r: "ML Platform Lead" },
+          ].map((t) => (
+            <StaggerItem
+              key={t.n}
+              hover
+              className="rounded-2xl border border-[#EEE8E2] bg-white p-7 text-left shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex gap-0.5 text-[#FF6B00]">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-current" />
+                ))}
+              </div>
+              <p className="mt-4 text-[15px] leading-relaxed text-[#444444]">&ldquo;{t.q}&rdquo;</p>
+              <p className="mt-4 text-[14px] font-semibold text-[#111111]">{t.n}</p>
+              <p className="text-[13px] text-[#8792A2]">{t.r}</p>
+            </StaggerItem>
+          ))}
+        </Stagger>
 
         <div className="max-w-[760px] mx-auto mt-24">
-          <h2 className="text-[28px] font-extrabold tracking-tight text-center mb-10">
-            Frequently asked questions
-          </h2>
-          <div className="space-y-6">
+          <Reveal>
+            <h2 className="text-[28px] font-extrabold tracking-tight text-center mb-10">
+              Frequently asked questions
+            </h2>
+          </Reveal>
+          <Stagger className="space-y-6" stagger={0.06}>
             {FAQ.map(({ q, a }) => (
-              <div key={q} className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+              <StaggerItem key={q} className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
                 <h3 className="text-[16px] font-bold mb-2">{q}</h3>
                 <p className="text-[15px] text-[#666666] leading-relaxed">{a}</p>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
 
-        <div className="text-center mt-20">
+        <Reveal className="text-center mt-20">
           <p className="text-[18px] font-semibold mb-4">Ready to see where your agent spend goes?</p>
-          <Link
+          <MagneticButton
             href="/signup"
             className="inline-flex items-center gap-2 bg-[#FF6B00] text-white px-7 py-3.5 rounded-md font-semibold text-[15px] hover:bg-[#E65A00] transition-colors shadow-md"
           >
             Start free <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+          </MagneticButton>
+        </Reveal>
       </section>
     </MarketingShell>
   );

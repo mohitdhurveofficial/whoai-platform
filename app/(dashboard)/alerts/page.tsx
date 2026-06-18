@@ -36,7 +36,7 @@ export default async function AlertsPage() {
       </header>
 
       {/* TABLE */}
-      <div className="bg-white border border-[#EEE8E2] rounded-xl shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white border border-[#EEE8E2] rounded-2xl shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[13px]">
             <thead className="bg-[#FAF7F3] border-b border-[#EEE8E2]">

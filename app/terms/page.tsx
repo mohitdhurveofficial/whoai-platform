@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/marketing/LegalLayout";
+import { Reveal } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -10,13 +11,15 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <LegalLayout title="Terms of Service" effectiveDate="June 9, 2026">
-      <p>
-        These Terms of Service (&quot;Terms&quot;) govern your access to and use of the WHOAI website and
-        platform (the &quot;Services&quot;) provided by WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;,
-        &quot;us&quot;). By creating an account or using the Services, you agree to these Terms. If you are
-        using the Services on behalf of an organization, you represent that you are authorized to bind that
-        organization.
-      </p>
+      <Reveal>
+        <p>
+          These Terms of Service (&quot;Terms&quot;) govern your access to and use of the WHOAI website and
+          platform (the &quot;Services&quot;) provided by WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;,
+          &quot;us&quot;). By creating an account or using the Services, you agree to these Terms. If you are
+          using the Services on behalf of an organization, you represent that you are authorized to bind that
+          organization.
+        </p>
+      </Reveal>
 
       <h2>1. The Services</h2>
       <p>

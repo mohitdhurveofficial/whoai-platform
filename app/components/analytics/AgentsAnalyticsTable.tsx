@@ -39,7 +39,7 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 rounded-xl border border-[#EEE8E2] bg-white p-3 shadow-sm md:grid-cols-[1fr_180px_220px]">
+      <div className="grid gap-3 rounded-2xl border border-[#EEE8E2] bg-white p-3 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.16)] md:grid-cols-[1fr_180px_220px]">
         <label className="flex items-center gap-2 rounded-md border border-[#EEE8E2] bg-[#FAF7F3] px-3 py-2 transition-colors focus-within:border-[#555]">
           <Search className="h-4 w-4 text-[#888888]" />
           <input
@@ -66,7 +66,7 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#EEE8E2] bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1180px] text-left text-[13px]">
             <thead className="border-b border-[#EEE8E2] bg-[#FAF7F3] text-[#888888]">

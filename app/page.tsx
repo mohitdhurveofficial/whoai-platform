@@ -1,578 +1,438 @@
-"use client";
-
-import React, { useSyncExternalStore } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Activity,
-  AlertTriangle,
   ArrowRight,
+  Activity,
   BarChart3,
   Bot,
-  Box,
+  Check,
   ChevronRight,
   Fingerprint,
-  LineChart as LineChartIcon,
+  FileCheck,
+  Gauge,
+  KeyRound,
+  Lock,
+  Minus,
   ShieldAlert,
+  ShieldCheck,
   TrendingUp,
   Zap,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
-import SiteNav from "@/app/components/marketing/SiteNav";
-import SiteFooter from "@/app/components/marketing/SiteFooter";
+  Reveal,
+  Stagger,
+  StaggerItem,
+  CountUp,
+  MagneticButton,
+} from "./components/marketing/Motion";
+import { PixelHero } from "@/components/ui/pixel-perfect-hero";
+import { WhoaiTestimonials } from "@/components/ui/testimonials-columns";
+import { ShaderAnimation } from "@/components/ui/shader-animation";
 
-// --- MOCK DATA FOR CHARTS ---
+export const metadata: Metadata = {
+  title: "WHOAI — The Control Plane for AI Spend",
+  description:
+    "WHOAI is the financial control plane for AI agents. Real-time per-token cost, hard budget enforcement, and an instant kill switch for runaway agents — across OpenAI, Anthropic, Gemini, and every major model. BYOK. OpenAI-compatible.",
+  alternates: { canonical: "/" },
+};
 
-const mockSpendData = [
-  { name: "1", spend: 420 },
-  { name: "2", spend: 480 },
-  { name: "3", spend: 450 },
-  { name: "4", spend: 580 },
-  { name: "5", spend: 610 },
-  { name: "6", spend: 590 },
-  { name: "7", spend: 780 },
-  { name: "8", spend: 810 },
-  { name: "9", spend: 850 },
-  { name: "10", spend: 920 },
-  { name: "11", spend: 1100 },
-  { name: "12", spend: 1050 },
-  { name: "13", spend: 1250 },
-  { name: "14", spend: 1400 },
+const PROVIDERS = [
+  { name: "OpenAI", models: "GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o" },
+  { name: "Anthropic", models: "Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet" },
+  { name: "Google", models: "Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro" },
+  { name: "xAI", models: "Grok 3, Grok 2, Grok 2 Latest" },
+  { name: "DeepSeek", models: "DeepSeek V4, DeepSeek Chat, DeepSeek Reasoner" },
+  { name: "Meta", models: "Llama 4 Maverick, Llama 4 Scout, Llama 3.3 70B" },
+  { name: "Alibaba", models: "Qwen 3.7 Max" },
+  { name: "Mistral", models: "Mistral Large 2" },
 ];
 
-function useMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
+const COMPARISON = [
+  { label: "Real-time per-token, per-agent cost", whoai: "yes", obs: "partial", gw: "yes" },
+  { label: "Hard budget caps that auto-pause", whoai: "yes", obs: "no", gw: "partial" },
+  { label: "Instant runaway kill switch", whoai: "yes", obs: "no", gw: "no" },
+  { label: "BYOK — no vendor lock-in", whoai: "yes", obs: "partial", gw: "partial" },
+  { label: "Incentive-aligned (we profit when you spend less)", whoai: "yes", obs: "no", gw: "no" },
+  { label: "Built for autonomous agents, not just chat", whoai: "yes", obs: "partial", gw: "partial" },
+];
+
+const FEATURES = [
+  { icon: BarChart3, title: "Real-time cost monitoring", body: "Every dollar across every provider in one dashboard — daily, weekly, monthly, live." },
+  { icon: Fingerprint, title: "Per-token attribution", body: "Exact prompt + completion tokens per request, per user, per agent. No averages." },
+  { icon: ShieldAlert, title: "Budget enforcement", body: "Hard daily and monthly caps. The kill switch pauses any agent that exceeds its budget." },
+  { icon: Activity, title: "Anomaly detection", body: "Catch a 400% spike against an agent's own baseline the moment it happens." },
+  { icon: Zap, title: "Cost optimization", body: "Find duplicate prompts, cache hot queries, route to cheaper models — cut spend up to 30%." },
+  { icon: ShieldCheck, title: "BYOK & secure", body: "Your keys, encrypted at rest, never ours. OpenAI-compatible — point your base URL and go." },
+];
+
+const FAQS = [
+  { q: "What is an AI FinOps platform and why do I need one?", a: "An AI FinOps platform like WHOAI gives you real-time visibility into every dollar your AI agents spend on LLM APIs like OpenAI GPT-4o, Anthropic Claude, Gemini, Grok, and DeepSeek. Without it, autonomous agents can burn through budgets silently—costs spike 400% overnight and teams only find out when the monthly bill arrives." },
+  { q: "How does WHOAI track AI cost per request?", a: "WHOAI intercepts every API call through a high-performance gateway, logging exact token counts (prompt + completion), model used, provider, latency, and precise cost in Decimal cents. You see real spend per agent, per request, per model—no averages, no estimates." },
+  { q: "Which LLM providers does WHOAI support?", a: "WHOAI supports OpenAI (GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o), Anthropic (Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet), Google (Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro), xAI Grok 3, DeepSeek V4, Meta Llama 4, Alibaba Qwen 3.7, and Mistral Large 2. New models are added within 48 hours of release." },
+  { q: "What is BYOK and why does it matter for security?", a: "BYOK means Bring Your Own Key. Your organization keeps its own API credentials for every provider. WHOAI never stores or pays with its own keys—you control access, rotation, and revocation. This prevents vendor lock-in and keeps your data within your security perimeter." },
+  { q: "How do budget controls and kill switches prevent runaway AI costs?", a: "Set hard daily and monthly spend limits per agent and per organization. WHOAI uses atomic budget pre-reservation: every request reserves its projected cost before execution. If a limit would be exceeded, the request is blocked instantly. The kill switch pauses the agent immediately—no runaway loops, no surprise bills." },
+  { q: "Can WHOAI detect AI cost anomalies automatically?", a: "Yes. WHOAI monitors spend velocity, token burn rate, and request patterns in real time. If an agent suddenly spikes by 400% or behaves outside its historical baseline, you get an instant alert in Slack, Teams, or email—before the damage compounds." },
+  { q: "How long does setup take?", a: "Most teams are live in under 5 minutes. Point your existing AI API calls at the WHOAI gateway, add your provider keys in Settings, and budgets start enforcing immediately. No code changes to your LLM prompts or agent logic." },
+];
+
+function Cell({ v }: { v: string }) {
+  if (v === "yes") return <Check className="mx-auto h-5 w-5 text-[#0A8A5F]" />;
+  if (v === "partial") return <Minus className="mx-auto h-5 w-5 text-[#B7791F]" />;
+  return <span className="mx-auto block text-[#B0BAC9]">—</span>;
 }
 
 export default function LandingPage() {
-  const mounted = useMounted();
-
   return (
-    <div className="min-h-screen bg-[#FAF7F3] text-[#111111] font-sans selection:bg-[#FF6B00] selection:text-white relative overflow-hidden">
-      {/* Background Texture Overlay */}
-      <div className="absolute inset-0 pointer-events-none dot-field opacity-60 z-0"></div>
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/60 via-[#FAF7F3]/40 to-[#FAF7F3] z-0"></div>
-
-
-      {/* NAVIGATION */}
-      <SiteNav />
+    <div className="min-h-screen bg-white font-sans text-[#0A2540] antialiased selection:bg-[#FF6B00] selection:text-white">
+      {/* NAV */}
+      <nav className="sticky top-0 z-50 border-b border-[#EEF1F6] bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#0A2540] text-[12px] font-black text-white">W</span>
+            <span className="text-[16px] font-bold tracking-tight">WHOAI</span>
+          </Link>
+          <div className="hidden items-center gap-8 text-[14px] font-medium text-[#425466] md:flex">
+            <Link href="/#features" className="transition-colors hover:text-[#0A2540]">Product</Link>
+            <Link href="/pricing" className="transition-colors hover:text-[#0A2540]">Pricing</Link>
+            <Link href="/docs" className="transition-colors hover:text-[#0A2540]">Docs</Link>
+            <Link href="/security" className="transition-colors hover:text-[#0A2540]">Security</Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/auth/login" className="hidden text-[14px] font-medium text-[#425466] transition-colors hover:text-[#0A2540] sm:block">Sign in</Link>
+            <Link href="/auth/signup" className="rounded-lg bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white transition-colors hover:bg-[#E85F00]">Start free</Link>
+          </div>
+        </div>
+      </nav>
 
       <main>
-      {/* HERO SECTION */}
-      <section className="relative z-10 pt-32 pb-24 px-6 text-center max-w-[900px] mx-auto" aria-label="Hero">
-        <h1 className="text-[56px] leading-[1.05] md:text-[72px] font-extrabold tracking-tight text-[#111111] mb-8">
-          AI FinOps Platform — Track &amp; Control <br className="hidden md:block" />
-          OpenAI, Anthropic &amp; Gemini Costs
-        </h1>
-        <p className="text-[18px] md:text-[21px] text-[#666666] mb-12 max-w-[700px] mx-auto leading-relaxed">
-          Real-time LLM cost tracking, token usage monitoring, and AI agent budget enforcement for GPT-5.5, Claude Opus 4.8, Gemini 3.5 Flash, Grok 3, DeepSeek V4, and every major model. Stop runaway API bills before they hit your business.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-          <Link href="/signup" className="w-full sm:w-auto bg-[#FF6B00] text-white px-8 py-4 rounded-md font-semibold text-[16px] hover:bg-[#E65A00] transition-colors shadow-md flex items-center justify-center gap-2">
-            Start Free Trial <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link href="/demo" className="w-full sm:w-auto bg-[#FFFFFF] border border-[#EEE8E2] text-[#111111] px-8 py-4 rounded-md font-semibold text-[16px] shadow-sm hover:border-[#DCD5CD] transition-colors flex items-center justify-center">
-            Book Demo
-          </Link>
-        </div>
+        {/* HERO — WHOAI pixel-canvas hero (replaces the old hero + logos strip;
+            the hero carries its own provider marquee) */}
+        <PixelHero />
 
-        {/* TRUST BADGES */}
-        <p className="text-[12px] font-semibold tracking-widest text-[#888888] uppercase mb-6">Built for teams spending $500+/mo on AI APIs</p>
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> OpenAI & Anthropic Compatible</span>
-          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> BYOK — You Keep Your Keys</span>
-          <span className="flex items-center gap-2"><ShieldAlert className="h-5 w-5" /> Kill Switch Instantly Pauses Agents</span>
-          <span className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-[#FF6B00]" /> Pilot Program Now Open</span>
-        </div>
-      </section>
-
-      {/* HERO VISUAL: DASHBOARD MOCKUP */}
-      <section className="relative z-10 max-w-[1200px] mx-auto px-6 mb-40">
-        <div className="rounded-xl border border-[#EEE8E2] bg-[#FFFFFF] shadow-2xl shadow-black/5 overflow-hidden">
-          {/* Browser Chrome */}
-          <div className="h-12 border-b border-[#EEE8E2] bg-[#FAFAFA] flex items-center px-4 gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#E5E5E5]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#E5E5E5]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#E5E5E5]"></div>
-            <div className="mx-auto bg-[#FFFFFF] border border-[#EEE8E2] rounded flex items-center justify-center h-6 px-32 text-[11px] text-[#A3A3A3] font-medium font-mono">
-              whoai-platform.vercel.app/dashboard
-            </div>
-          </div>
-          
-          {/* Dashboard Inside */}
-          <div className="p-8 bg-[#FAF7F3]">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-3">
-                <h3 className="text-[20px] font-bold">Executive Overview</h3>
-                <span className="bg-[#FFF3E8] text-[#FF6B00] border border-[#FFD9B8] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded">Sample data</span>
-              </div>
-              <div className="flex gap-2">
-                <span className="bg-[#FFFFFF] border border-[#EEE8E2] px-3 py-1.5 text-[12px] font-medium rounded shadow-sm">30 Days</span>
-                <span className="bg-[#111111] text-[#FFFFFF] px-3 py-1.5 text-[12px] font-medium rounded shadow-sm">Export</span>
-              </div>
-            </div>
-
-            {/* KPI Row */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="bg-[#FFFFFF] border border-[#EEE8E2] p-4 rounded-lg shadow-sm">
-                <p className="text-[12px] font-semibold text-[#888888] uppercase mb-2">Total AI Spend</p>
-                <p className="text-[24px] font-bold text-[#111111]">$42,842.10</p>
-                <p className="text-[12px] text-[#047857] font-medium mt-1 flex items-center gap-1"><TrendingUp className="h-3 w-3"/> +14.2%</p>
-              </div>
-              <div className="bg-[#FFFFFF] border border-[#EEE8E2] p-4 rounded-lg shadow-sm">
-                <p className="text-[12px] font-semibold text-[#888888] uppercase mb-2">Active Agents</p>
-                <p className="text-[24px] font-bold text-[#111111]">124</p>
-                <p className="text-[12px] text-[#047857] font-medium mt-1 flex items-center gap-1"><TrendingUp className="h-3 w-3"/> +12</p>
-              </div>
-              <div className="bg-[#FFFFFF] border border-[#EEE8E2] p-4 rounded-lg shadow-sm">
-                <p className="text-[12px] font-semibold text-[#888888] uppercase mb-2">Tokens Processed</p>
-                <p className="text-[24px] font-bold text-[#111111]">1.2B</p>
-                <p className="text-[12px] text-[#047857] font-medium mt-1 flex items-center gap-1"><TrendingUp className="h-3 w-3"/> +8.4%</p>
-              </div>
-              <div className="bg-[#FFFFFF] border border-[#EEE8E2] p-4 rounded-lg shadow-sm border-l-2 border-l-[#DC2626]">
-                <p className="text-[12px] font-semibold text-[#888888] uppercase mb-2">Cost Alerts</p>
-                <p className="text-[24px] font-bold text-[#DC2626]">3</p>
-                <p className="text-[12px] text-[#DC2626] font-medium mt-1">Require attention</p>
-              </div>
-            </div>
-
-            {/* Chart Row */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="col-span-2 bg-[#FFFFFF] border border-[#EEE8E2] p-5 rounded-lg shadow-sm">
-                <h4 className="text-[14px] font-bold mb-4">Spend Velocity (Last 14 Days)</h4>
-                <div className="h-[200px] w-full">
-                  {mounted && (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={mockSpendData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EBE6" />
-                        <XAxis dataKey="name" hide />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#A3A3A3" }} tickFormatter={(val) => `$${val}`} />
-                        <Line type="monotone" dataKey="spend" stroke="#FF6B00" strokeWidth={3} dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  )}
+        {/* PRODUCT PREVIEW — the console */}
+        <section className="bg-white pt-10 pb-24">
+          <div className="mx-auto max-w-[1180px] px-6">
+            <Reveal className="mx-auto mb-12 max-w-[680px] text-center">
+              <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.14em] text-[#FF6B00]">The console</p>
+              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">Watch every dollar, in real time</h2>
+              <p className="mt-4 text-[18px] leading-relaxed text-[#425466]">Real-time spend, per-token attribution, and live budget enforcement — one control plane for every agent.</p>
+            </Reveal>
+            <Reveal delay={0.1} y={40} className="relative mx-auto max-w-[1000px]">
+              {/* soft gradient glow beneath the product */}
+              <div className="pointer-events-none absolute -inset-x-10 -bottom-8 top-12 rounded-[40px] bg-[linear-gradient(100deg,rgba(99,91,255,0.18),rgba(79,140,255,0.14)_45%,rgba(255,107,0,0.14))] blur-3xl" />
+              <div className="relative overflow-hidden rounded-2xl border border-[#E6EBF1] bg-white text-left shadow-[0_50px_100px_-20px_rgba(10,37,64,0.25)]">
+                <div className="flex items-center gap-2 border-b border-[#EEF1F6] bg-[#FBFCFE] px-5 py-3">
+                  <span className="h-3 w-3 rounded-full bg-[#E6EBF1]" />
+                  <span className="h-3 w-3 rounded-full bg-[#E6EBF1]" />
+                  <span className="h-3 w-3 rounded-full bg-[#E6EBF1]" />
+                  <span className="ml-3 font-mono text-[11px] text-[#8792A2]">whoai.ai/dashboard</span>
+                  <span className="ml-auto rounded-full bg-[#F1F5F9] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8792A2]">Sample data</span>
                 </div>
-              </div>
-              <div className="col-span-1 bg-[#FFFFFF] border border-[#EEE8E2] p-5 rounded-lg shadow-sm">
-                <h4 className="text-[14px] font-bold mb-4">Top Spending Agents</h4>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-[13px] font-bold">Support Escalation Bot</p>
-                      <p className="text-[11px] text-[#888888]">GPT-4o</p>
+                <div className="grid gap-6 p-6 md:grid-cols-3">
+                  <div className="space-y-6 md:col-span-2">
+                    <div className="grid grid-cols-3 gap-4">
+                      {[
+                        { k: "AI spend (30d)", value: 42842, prefix: "$", suffix: "", decimals: 0 },
+                        { k: "Active agents", value: 124, prefix: "", suffix: "", decimals: 0 },
+                        { k: "Tokens", value: 1.2, prefix: "", suffix: "B", decimals: 1 },
+                      ].map((m) => (
+                        <div key={m.k} className="rounded-xl border border-[#EEF1F6] bg-white p-4">
+                          <p className="text-[11px] uppercase tracking-wide text-[#8792A2]">{m.k}</p>
+                          <p className="mt-1.5 text-[22px] font-bold tabular-nums">
+                            <CountUp value={m.value} prefix={m.prefix} suffix={m.suffix} decimals={m.decimals} />
+                          </p>
+                          <p className="mt-1 flex items-center gap-1 text-[12px] font-medium text-[#0A8A5F]"><TrendingUp className="h-3 w-3" /> live</p>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-[13px] font-bold text-[#111111]">$14,240</p>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-[13px] font-bold">Research Summarizer</p>
-                      <p className="text-[11px] text-[#888888]">Claude 3.5 Sonnet</p>
+                    <div className="rounded-xl border border-[#EEF1F6] bg-white p-5">
+                      <p className="mb-4 text-[13px] font-bold text-[#0A2540]">Spend velocity · last 14 days</p>
+                      <svg viewBox="0 0 600 150" className="h-[150px] w-full" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FF6B00" stopOpacity="0.16" />
+                            <stop offset="100%" stopColor="#FF6B00" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        <path d="M0,124 L46,116 L92,118 L138,100 L184,96 L230,100 L276,74 L322,70 L368,62 L414,48 L460,30 L506,36 L552,18 L600,10 L600,150 L0,150 Z" fill="url(#area)" />
+                        <path className="wa-draw" d="M0,124 L46,116 L92,118 L138,100 L184,96 L230,100 L276,74 L322,70 L368,62 L414,48 L460,30 L506,36 L552,18 L600,10" fill="none" stroke="#FF6B00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
-                    <p className="text-[13px] font-bold text-[#111111]">$8,125</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-[13px] font-bold">Code Review Agent</p>
-                      <p className="text-[11px] text-[#888888]">Claude 3 Opus</p>
+                  <div className="rounded-xl border border-[#EEF1F6] bg-white p-5">
+                    <p className="mb-4 text-[13px] font-bold text-[#0A2540]">Live telemetry</p>
+                    <div className="space-y-2.5">
+                      {[
+                        { id: "req_7x9a", v: "+2,401 tok", block: false },
+                        { id: "req_8y2b", v: "+842 tok", block: false },
+                        { id: "req_9z1c", v: "BLOCKED · budget", block: true },
+                        { id: "req_a4d2", v: "+1,118 tok", block: false },
+                      ].map((r) => (
+                        <div key={r.id} className={`flex items-center justify-between rounded-lg border px-3 py-2.5 ${r.block ? "border-[#FBD5D5] bg-[#FEF2F2]" : "border-[#EEF1F6] bg-[#FBFCFE]"}`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`h-2 w-2 rounded-full ${r.block ? "bg-[#DC2626]" : "bg-[#0A8A5F]"}`} />
+                            <span className="font-mono text-[12px] text-[#697386]">{r.id}</span>
+                          </div>
+                          <span className={`font-mono text-[12px] font-medium ${r.block ? "text-[#DC2626]" : "text-[#0A2540]"}`}>{r.v}</span>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-[13px] font-bold text-[#111111]">$6,430</p>
                   </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           </div>
-        </div>
-      </section>
-      {/* HOW IT WORKS */}
-      <section className="relative z-10 py-16">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <h2 className="text-[24px] font-bold text-[#111111] mb-6">How It Works</h2>
-          <div className="grid gap-8 md:grid-cols-3 text-center">
-            <div className="flex flex-col items-center gap-3">
-              <Bot className="h-10 w-10 text-[#FF6B00]" />
-              <p className="text-[13px] font-bold">Your App</p>
-              <p className="text-[12px] text-[#666666]">Send AI calls as usual</p>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <ShieldAlert className="h-10 w-10 text-[#FF6B00]" />
-              <p className="text-[13px] font-bold">WHOAI Gateway</p>
-              <p className="text-[12px] text-[#666666]">Encrypts, logs, enforces budgets</p>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <Zap className="h-10 w-10 text-[#FF6B00]" />
-              <p className="text-[13px] font-bold">AI Provider</p>
-              <p className="text-[12px] text-[#666666]">OpenAI, Anthropic, etc.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* PROBLEM SECTION */}
-      <section className="relative z-10 py-32 bg-[#FFFFFF] border-y border-[#EEE8E2]">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="text-center max-w-[800px] mx-auto mb-20">
-            <h2 className="text-[40px] font-bold tracking-tight text-[#111111] mb-4">AI Costs Are Growing Faster<br/>Than Teams Can Track</h2>
-            <p className="text-[18px] text-[#666666]">Legacy billing dashboards don&apos;t work for autonomous AI. You need real-time, agent-level visibility before the bill arrives.</p>
+        {/* PROBLEM */}
+        <section className="py-28">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <Reveal className="mx-auto mb-16 max-w-[700px] text-center">
+              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">AI costs grow faster than teams can track</h2>
+              <p className="mt-4 text-[18px] leading-relaxed text-[#425466]">Legacy billing dashboards weren&apos;t built for autonomous agents. You need real-time, agent-level control — before the bill arrives.</p>
+            </Reveal>
+            <Stagger className="grid gap-6 md:grid-cols-3">
+              {[
+                { icon: Bot, t: "Runaway agents", b: "Autonomous agents get stuck in loops, burning thousands of tokens a minute with zero human oversight." },
+                { icon: TrendingUp, t: "Silent token spikes", b: "One bloated context window spikes cost 400% in an hour. Finding the source takes days." },
+                { icon: ShieldAlert, t: "Budget overruns", b: "By the time the monthly bill lands, the damage is done. You can't manage what you can't enforce." },
+              ].map((c) => (
+                <StaggerItem key={c.t} hover className="rounded-2xl border border-[#E6EBF1] bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00]"><c.icon className="h-5 w-5" /></div>
+                  <h3 className="text-[19px] font-bold">{c.t}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#425466]">{c.b}</p>
+                </StaggerItem>
+              ))}
+            </Stagger>
           </div>
+        </section>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-[#FAF7F3] p-8 rounded-xl border border-[#EEE8E2]">
-              <div className="w-12 h-12 bg-[#FFFFFF] rounded-lg shadow-sm border border-[#EEE8E2] flex items-center justify-center text-[#FF6B00] mb-6">
-                <Bot className="h-6 w-6" />
+        {/* COMPARISON */}
+        <section className="border-y border-[#EEF1F6] bg-[#FBFCFE] py-28">
+          <div className="mx-auto max-w-[980px] px-6">
+            <Reveal className="mx-auto mb-12 max-w-[680px] text-center">
+              <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.14em] text-[#FF6B00]">Why WHOAI wins</p>
+              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">Observability shows you the bill. We enforce it.</h2>
+            </Reveal>
+            <Reveal delay={0.1} className="overflow-hidden rounded-2xl border border-[#E6EBF1] bg-white shadow-sm">
+              <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] items-center border-b border-[#EEF1F6] bg-[#FBFCFE] px-5 py-4 text-[13px] font-semibold">
+                <span className="text-[#697386]">Capability</span>
+                <span className="text-center text-[#0A2540]">WHOAI</span>
+                <span className="text-center text-[#8792A2]">Observability</span>
+                <span className="text-center text-[#8792A2]">Gateways</span>
               </div>
-              <h3 className="text-[20px] font-bold mb-3">Runaway Agents</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">
-                Autonomous agents can get stuck in loops, burning thousands of tokens per minute without any human oversight or control.
-              </p>
-            </div>
-            <div className="bg-[#FAF7F3] p-8 rounded-xl border border-[#EEE8E2]">
-              <div className="w-12 h-12 bg-[#FFFFFF] rounded-lg shadow-sm border border-[#EEE8E2] flex items-center justify-center text-[#FF6B00] mb-6">
-                <TrendingUp className="h-6 w-6" />
-              </div>
-              <h3 className="text-[20px] font-bold mb-3">Unexpected Token Spikes</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">
-                A single complex prompt or bloated context window can spike costs by 400% in an hour. Finding the source takes days.
-              </p>
-            </div>
-            <div className="bg-[#FAF7F3] p-8 rounded-xl border border-[#EEE8E2]">
-              <div className="w-12 h-12 bg-[#FFFFFF] rounded-lg shadow-sm border border-[#EEE8E2] flex items-center justify-center text-[#FF6B00] mb-6">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-              <h3 className="text-[20px] font-bold mb-3">Budget Overruns</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">
-                By the time the cloud bill arrives at the end of the month, the damage is done. You can&apos;t manage what you can&apos;t measure in real time.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES SECTION */}
-      <section id="features" className="relative z-10 py-32 bg-[#FAF7F3] scroll-mt-24">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="mb-20">
-            <h2 className="text-[40px] font-bold tracking-tight text-[#111111] mb-4">Everything You Need To Control AI Spend</h2>
-            <p className="text-[18px] text-[#666666] max-w-[600px]">A complete FinOps operating system built from the ground up for the autonomous AI era.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-x-8 gap-y-12">
-            <div>
-              <div className="mb-4 text-[#FF6B00]"><BarChart3 className="h-8 w-8" strokeWidth={1.5} /></div>
-              <h3 className="text-[18px] font-bold mb-2">AI Cost Monitoring</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">Instantly visualize your daily, weekly, and monthly AI API spend across all providers in one unified dashboard.</p>
-            </div>
-            <div>
-              <div className="mb-4 text-[#FF6B00]"><Fingerprint className="h-8 w-8" strokeWidth={1.5} /></div>
-              <h3 className="text-[18px] font-bold mb-2">Token Tracking</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">Meter exactly how many prompt and completion tokens are being burned per request, per user, and per agent.</p>
-            </div>
-            <div>
-              <div className="mb-4 text-[#FF6B00]"><Activity className="h-8 w-8" strokeWidth={1.5} /></div>
-              <h3 className="text-[18px] font-bold mb-2">Agent Analytics</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">See which autonomous workflows are driving the most value and which are wasting expensive compute cycles.</p>
-            </div>
-            <div>
-              <div className="mb-4 text-[#FF6B00]"><ShieldAlert className="h-8 w-8" strokeWidth={1.5} /></div>
-              <h3 className="text-[18px] font-bold mb-2">Budget Controls</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">Set hard daily and monthly spend limits. Automatically engage the kill switch if an agent exceeds its allowed budget.</p>
-            </div>
-            <div>
-              <div className="mb-4 text-[#FF6B00]"><Zap className="h-8 w-8" strokeWidth={1.5} /></div>
-              <h3 className="text-[18px] font-bold mb-2">Real-Time Alerts</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">Get instantly notified in Slack or Teams when an anomaly is detected, like a 400% spike in token burn rate.</p>
-            </div>
-            <div>
-              <div className="mb-4 text-[#FF6B00]"><LineChartIcon className="h-8 w-8" strokeWidth={1.5} /></div>
-              <h3 className="text-[18px] font-bold mb-2">Cost Optimization</h3>
-              <p className="text-[15px] text-[#666666] leading-relaxed">Identify duplicate prompts, cache frequent queries, and route requests to cheaper models to reduce spend by up to 30%.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SUPPORTED PROVIDERS — SEO-rich section for model-specific searches */}
-      <section className="relative z-10 py-24 bg-[#FFFFFF] border-y border-[#EEE8E2]" aria-label="Supported LLM Providers">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <h2 className="text-[28px] font-bold text-[#111111] mb-4 text-center">
-            Supported AI Models &amp; Providers
-          </h2>
-          <p className="text-[16px] text-[#666666] text-center mb-10 max-w-[600px] mx-auto">
-            WHOAI tracks costs for every major LLM provider and model. New releases are added automatically.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {[
-              { name: "OpenAI", models: "GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o" },
-              { name: "Anthropic", models: "Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet" },
-              { name: "Google", models: "Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro" },
-              { name: "xAI", models: "Grok 3, Grok 2, Grok 2 Latest" },
-              { name: "DeepSeek", models: "DeepSeek V4, DeepSeek Chat, DeepSeek Reasoner" },
-              { name: "Meta", models: "Llama 4 Maverick, Llama 4 Scout, Llama 3.3 70B" },
-              { name: "Alibaba", models: "Qwen 3.7 Max" },
-              { name: "Mistral", models: "Mistral Large 2" },
-            ].map((p) => (
-              <div key={p.name} className="bg-[#FAF7F3] border border-[#EEE8E2] rounded-lg p-5">
-                <h3 className="text-[15px] font-bold text-[#111111] mb-1">{p.name}</h3>
-                <p className="text-[12px] text-[#888888]">{p.models}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DASHBOARD SHOWCASE 2 */}
-      <section className="relative z-10 py-24 bg-[#111111] text-[#FFFFFF] overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-6 flex flex-col lg:flex-row items-center gap-16">
-          <div className="lg:w-1/2">
-            <h2 className="text-[36px] font-bold tracking-tight mb-6">Stop shadow AI in its tracks.</h2>
-            <p className="text-[18px] text-[#A3A3A3] mb-8 leading-relaxed">
-              WHOAI acts as a high-performance gateway between your agents and LLM providers. We intercept, track, and evaluate every request before it costs you money.
-            </p>
-            <ul className="space-y-5">
-              <li className="flex items-start gap-3 text-[16px] text-[#D4D4D4]">
-                <div className="mt-1 bg-[#FF6B00]/20 text-[#FF6B00] rounded-full p-1"><ChevronRight className="h-3 w-3" /></div>
-                Zero-latency AI Gateway proxy
-              </li>
-              <li className="flex items-start gap-3 text-[16px] text-[#D4D4D4]">
-                <div className="mt-1 bg-[#FF6B00]/20 text-[#FF6B00] rounded-full p-1"><ChevronRight className="h-3 w-3" /></div>
-                Multi-tenant organization RBAC
-              </li>
-              <li className="flex items-start gap-3 text-[16px] text-[#D4D4D4]">
-                <div className="mt-1 bg-[#FF6B00]/20 text-[#FF6B00] rounded-full p-1"><ChevronRight className="h-3 w-3" /></div>
-                VPC self-hosting available
-              </li>
-            </ul>
-          </div>
-          <div className="lg:w-1/2 relative w-full">
-            {/* Minimal Dark Mockup */}
-            <div className="w-full bg-[#1A1A1A] border border-[#333333] rounded-xl shadow-2xl p-6">
-              <h4 className="text-[14px] font-bold text-[#FFFFFF] mb-4">Live Token Telemetry</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center bg-[#222222] p-3 rounded border border-[#333333]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-[#047857]"></div>
-                    <span className="text-[13px] font-mono text-[#D4D4D4]">req_7x9a...</span>
-                  </div>
-                  <span className="text-[13px] font-mono text-[#FF6B00]">+2,401 tokens</span>
+              {COMPARISON.map((row, i) => (
+                <div key={row.label} className={`grid grid-cols-[1.6fr_1fr_1fr_1fr] items-center px-5 py-4 text-[14px] ${i % 2 ? "bg-[#FBFCFE]" : ""}`}>
+                  <span className="pr-3 text-[#425466]">{row.label}</span>
+                  <span className="text-center"><Cell v={row.whoai} /></span>
+                  <span className="text-center"><Cell v={row.obs} /></span>
+                  <span className="text-center"><Cell v={row.gw} /></span>
                 </div>
-                <div className="flex justify-between items-center bg-[#222222] p-3 rounded border border-[#333333]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-[#047857]"></div>
-                    <span className="text-[13px] font-mono text-[#D4D4D4]">req_8y2b...</span>
+              ))}
+            </Reveal>
+            <p className="mt-4 text-center text-[12px] text-[#8792A2]">Based on each category&apos;s public positioning as of 2026.</p>
+          </div>
+        </section>
+
+        {/* FEATURES */}
+        <section id="features" className="scroll-mt-20 py-28">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <Reveal className="mb-14 max-w-[640px]">
+              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">Everything you need to control AI spend</h2>
+              <p className="mt-4 text-[18px] leading-relaxed text-[#425466]">One control plane, built from the ground up for the autonomous AI era.</p>
+            </Reveal>
+            <Stagger className="grid gap-6 md:grid-cols-3">
+              {FEATURES.map((f) => (
+                <StaggerItem key={f.title} hover className="rounded-2xl border border-[#E6EBF1] bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00]"><f.icon className="h-5 w-5" /></div>
+                  <h3 className="text-[18px] font-bold">{f.title}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#425466]">{f.body}</p>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </section>
+
+        {/* STATS / OUTCOMES BAND */}
+        <section className="border-y border-[#EEF1F6] bg-[#FBFCFE] py-16">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <Stagger className="grid grid-cols-2 gap-8 md:grid-cols-4" stagger={0.08}>
+              {[
+                { value: 0, prefix: "$", suffix: "", decimals: 0, label: "Markup on tokens, ever — BYOK" },
+                { value: 30, prefix: "", suffix: "%", decimals: 0, label: "Up to 30% lower AI spend" },
+                { value: 5, prefix: "", suffix: " min", decimals: 0, label: "From signup to live" },
+                { value: 8, prefix: "", suffix: "+", decimals: 0, label: "Major providers, one gateway" },
+              ].map((s) => (
+                <StaggerItem key={s.label} className="text-center">
+                  <p className="text-[40px] font-bold tracking-tight tabular-nums text-[#0A2540] sm:text-[48px]">
+                    <CountUp value={s.value} prefix={s.prefix} suffix={s.suffix} decimals={s.decimals} />
+                  </p>
+                  <p className="mx-auto mt-2 max-w-[200px] text-[14px] font-medium leading-snug text-[#425466]">{s.label}</p>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section className="border-y border-[#EEF1F6] bg-[#FBFCFE] py-28">
+          <div className="mx-auto max-w-[1000px] px-6">
+            <Reveal className="mb-14 text-center">
+              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">Live in three steps</h2>
+            </Reveal>
+            <Stagger className="grid gap-6 md:grid-cols-3" stagger={0.12}>
+              {[
+                { icon: Bot, t: "Point your agents", b: "Change one base URL to the WHOAI gateway. No prompt or logic changes." },
+                { icon: ShieldCheck, t: "We enforce", b: "Every request is metered, logged, budget-checked, and policy-enforced in real time." },
+                { icon: Gauge, t: "You stay in control", b: "Watch live spend, get anomaly alerts, and auto-pause any agent that runs away." },
+              ].map((s, i) => (
+                <StaggerItem key={s.t} hover className="relative rounded-2xl border border-[#E6EBF1] bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
+                  <span className="absolute right-6 top-5 text-[40px] font-black text-[#F1F5F9]">{i + 1}</span>
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00]"><s.icon className="h-5 w-5" /></div>
+                  <h3 className="text-[18px] font-bold">{s.t}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#425466]">{s.b}</p>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS */}
+        <WhoaiTestimonials />
+
+        {/* PROVIDERS — SEO */}
+        <section className="py-24" aria-label="Supported LLM Providers">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <Reveal>
+              <h2 className="text-center text-[28px] font-bold tracking-[-0.02em]">Supported AI models &amp; providers</h2>
+              <p className="mx-auto mt-3 mb-10 max-w-[600px] text-center text-[15px] text-[#425466]">WHOAI tracks costs for every major LLM provider and model. New releases are added automatically.</p>
+            </Reveal>
+            <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-4" stagger={0.05}>
+              {PROVIDERS.map((p) => (
+                <StaggerItem key={p.name} hover className="rounded-xl border border-[#E6EBF1] bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                  <h3 className="text-[15px] font-bold">{p.name}</h3>
+                  <p className="mt-1 text-[12px] text-[#8792A2]">{p.models}</p>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </section>
+
+        {/* SECURITY & TRUST */}
+        <section className="border-t border-[#EEF1F6] bg-white py-20">
+          <div className="mx-auto max-w-[1100px] px-6">
+            <Reveal className="text-center">
+              <p className="mb-10 text-[12px] font-bold uppercase tracking-[0.16em] text-[#8792A2]">Security &amp; trust</p>
+            </Reveal>
+            <Stagger className="grid grid-cols-2 gap-6 md:grid-cols-4">
+              {[
+                { icon: Lock, t: "Encryption everywhere", b: "TLS 1.2+ · secrets encrypted at rest" },
+                { icon: KeyRound, t: "BYOK", b: "Your keys, your perimeter — never ours" },
+                { icon: ShieldCheck, t: "Zero-retention option", b: "Gateway never persists prompts" },
+                { icon: FileCheck, t: "SOC 2 in progress", b: "Enterprise & self-hosted VPC ready" },
+              ].map((c) => (
+                <StaggerItem key={c.t} hover className="flex flex-col items-center gap-3 rounded-2xl border border-[#E6EBF1] bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00]"><c.icon className="h-5 w-5" /></div>
+                  <div>
+                    <p className="text-[14px] font-bold text-[#0A2540]">{c.t}</p>
+                    <p className="mt-1 text-[12px] leading-snug text-[#8792A2]">{c.b}</p>
                   </div>
-                  <span className="text-[13px] font-mono text-[#FF6B00]">+842 tokens</span>
-                </div>
-                <div className="flex justify-between items-center bg-[#331111] p-3 rounded border border-[#FF0000]/30">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-[#DC2626]"></div>
-                    <span className="text-[13px] font-mono text-[#D4D4D4]">req_9z1c...</span>
-                  </div>
-                  <span className="text-[13px] font-mono text-[#DC2626]">BLOCKED (BUDGET)</span>
-                </div>
-              </div>
-            </div>
+                </StaggerItem>
+              ))}
+            </Stagger>
+            <Reveal delay={0.1} className="mt-9 text-center">
+              <Link href="/security" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00]">
+                Read about our security <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Reveal>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* BENEFITS */}
-      <section className="relative z-10 py-32 bg-[#FFFFFF]">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-12 text-center">
-            <div>
-              <h3 className="text-[48px] font-extrabold text-[#111111] mb-2">15-30%</h3>
-              <p className="text-[18px] font-bold mb-4">Reduce AI Spend</p>
-              <p className="text-[15px] text-[#666666]">Instantly cut wasted compute by identifying duplicate prompts and inefficient agent loops.</p>
-            </div>
-            <div>
-              <h3 className="text-[48px] font-extrabold text-[#111111] mb-2">$0</h3>
-              <p className="text-[18px] font-bold mb-4">Prevent Cost Surprises</p>
-              <p className="text-[15px] text-[#666666]">Hard budget limits ensure you never wake up to an unexpected six-figure OpenAI bill.</p>
-            </div>
-            <div>
-              <h3 className="text-[48px] font-extrabold text-[#111111] mb-2">10x</h3>
-              <p className="text-[18px] font-bold mb-4">Scale AI Safely</p>
-              <p className="text-[15px] text-[#666666]">Deploy autonomous agents across your enterprise with absolute financial confidence.</p>
-            </div>
+        {/* FAQ */}
+        <section className="border-t border-[#EEF1F6] bg-[#FBFCFE] py-24">
+          <div className="mx-auto max-w-[800px] px-6">
+            <Reveal>
+              <h2 className="text-center text-[32px] font-bold tracking-[-0.02em]">Frequently asked questions</h2>
+              <p className="mx-auto mt-3 mb-12 text-center text-[15px] text-[#425466]">Everything you need to know about tracking and controlling AI costs with WHOAI.</p>
+            </Reveal>
+            <Stagger className="space-y-4" stagger={0.06}>
+              {FAQS.map((faq, i) => (
+                <StaggerItem key={i}>
+                  <details className="group rounded-xl border border-[#E6EBF1] bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+                    <summary className="flex cursor-pointer list-none items-center justify-between text-[16px] font-semibold group-open:mb-3">
+                      {faq.q}
+                      <ChevronRight className="h-4 w-4 text-[#8792A2] transition-transform group-open:rotate-90" />
+                    </summary>
+                    <p className="text-[15px] leading-relaxed text-[#425466]">{faq.a}</p>
+                  </details>
+                </StaggerItem>
+              ))}
+            </Stagger>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+                }),
+              }}
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* SOCIAL PROOF */}
-      <section className="relative z-10 py-24 bg-[#FAF7F3] border-y border-[#EEE8E2]">
-        <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <p className="text-[14px] font-bold tracking-widest text-[#FF6B00] uppercase mb-8">Built For Cost Control</p>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-8">
-              <p className="text-[28px] font-bold text-[#111111] tracking-tight">$500+/mo AI Spend</p>
-              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Purpose-Built For Teams Scaling AI</p>
+        {/* FINAL CTA — futuristic shader band */}
+        <section className="relative overflow-hidden bg-[#070B14] py-36">
+          {/* WebGL shader field (pauses off-screen) */}
+          <ShaderAnimation className="absolute inset-0 h-full w-full opacity-60" />
+          {/* legibility + vignette overlays */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(7,11,20,0.82)_68%,#070B14_100%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070B14] via-transparent to-[#070B14]" />
+          <Reveal className="relative z-10 mx-auto max-w-[760px] px-6 text-center">
+            <span className="inline-block rounded-full border border-white/15 bg-white/5 px-4 py-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-white/70 backdrop-blur-sm">
+              The control plane for the autonomous AI era
+            </span>
+            <h2 className="mt-6 text-[40px] font-bold leading-[1.1] tracking-[-0.02em] text-white sm:text-[54px]">Take control of your AI spend today.</h2>
+            <p className="mx-auto mt-6 max-w-[520px] text-[18px] leading-relaxed text-white/70">Real-time cost, hard budget enforcement, and a kill switch for runaway agents. Set up in 5 minutes.</p>
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <MagneticButton href="/auth/signup" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white shadow-[0_12px_30px_rgba(255,107,0,0.35)] transition-colors hover:bg-[#E85F00] sm:w-auto">
+                Start free <ArrowRight className="h-4 w-4" />
+              </MagneticButton>
+              <MagneticButton href="/teardown" className="inline-flex w-full items-center justify-center rounded-lg border border-white/20 bg-white/5 px-8 py-4 text-[16px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/10 sm:w-auto">
+                Get a free spend teardown
+              </MagneticButton>
             </div>
-            <div className="p-8 border-x border-[#EEE8E2]">
-              <p className="text-[28px] font-bold text-[#111111] tracking-tight">Real-Time Tracking</p>
-              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Per-Token &amp; Per-Cost Visibility</p>
-            </div>
-            <div className="p-8">
-              <p className="text-[28px] font-bold text-[#111111] tracking-tight">Hard Budget Caps</p>
-              <p className="text-[14px] font-semibold text-[#888888] uppercase mt-2">Plus An Instant Kill Switch</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ SECTION — Rich Snippets for Google */}
-      <section className="relative z-10 py-24 bg-[#FAF7F3] border-y border-[#EEE8E2]">
-        <div className="max-w-[800px] mx-auto px-6">
-          <h2 className="text-[36px] font-bold tracking-tight text-[#111111] mb-4 text-center">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-[16px] text-[#666666] text-center mb-12">
-            Everything you need to know about tracking and controlling AI costs with WHOAI.
-          </p>
-          <div className="space-y-6">
-            {[
-              {
-                q: "What is an AI FinOps platform and why do I need one?",
-                a: "An AI FinOps platform like WHOAI gives you real-time visibility into every dollar your AI agents spend on LLM APIs like OpenAI GPT-4o, Anthropic Claude, Gemini, Grok, and DeepSeek. Without it, autonomous agents can burn through budgets silently—costs spike 400% overnight and teams only find out when the monthly bill arrives.",
-              },
-              {
-                q: "How does WHOAI track AI cost per request?",
-                a: "WHOAI intercepts every API call through a high-performance gateway, logging exact token counts (prompt + completion), model used, provider, latency, and precise cost in Decimal cents. You see real spend per agent, per request, per model—no averages, no estimates.",
-              },
-              {
-                q: "Which LLM providers does WHOAI support?",
-                a: "WHOAI supports OpenAI (GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o), Anthropic (Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet), Google (Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro), xAI Grok 3, DeepSeek V4, Meta Llama 4, Alibaba Qwen 3.7, and Mistral Large 2. New models are added within 48 hours of release.",
-              },
-              {
-                q: "What is BYOK and why does it matter for security?",
-                a: "BYOK means Bring Your Own Key. Your organization keeps its own API credentials for every provider. WHOAI never stores or pays with its own keys—you control access, rotation, and revocation. This prevents vendor lock-in and keeps your data within your security perimeter.",
-              },
-              {
-                q: "How do budget controls and kill switches prevent runaway AI costs?",
-                a: "Set hard daily and monthly spend limits per agent and per organization. WHOAI uses atomic budget pre-reservation: every request reserves its projected cost before execution. If a limit would be exceeded, the request is blocked instantly. The kill switch pauses the agent immediately—no runaway loops, no surprise bills.",
-              },
-              {
-                q: "Can WHOAI detect AI cost anomalies automatically?",
-                a: "Yes. WHOAI monitors spend velocity, token burn rate, and request patterns in real time. If an agent suddenly spikes by 400% or behaves outside its historical baseline, you get an instant alert in Slack, Teams, or email—before the damage compounds.",
-              },
-              {
-                q: "How long does setup take?",
-                a: "Most teams are live in under 5 minutes. Point your existing AI API calls at the WHOAI gateway, add your provider keys in Settings, and budgets start enforcing immediately. No code changes to your LLM prompts or agent logic.",
-              },
-            ].map((faq, i) => (
-              <details key={i} className="group bg-[#FFFFFF] border border-[#EEE8E2] rounded-lg p-6 open:shadow-sm transition-all">
-                <summary className="flex justify-between items-center cursor-pointer list-none font-semibold text-[16px] text-[#111111] group-open:mb-3">
-                  {faq.q}
-                  <ChevronRight className="h-4 w-4 text-[#888888] group-open:rotate-90 transition-transform" />
-                </summary>
-                <p className="text-[15px] text-[#666666] leading-relaxed">{faq.a}</p>
-              </details>
-            ))}
-          </div>
-
-          {/* FAQPage JSON-LD for rich snippets */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: [
-                  {
-                    "@type": "Question",
-                    name: "What is an AI FinOps platform and why do I need one?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "An AI FinOps platform like WHOAI gives you real-time visibility into every dollar your AI agents spend on LLM APIs. Without it, autonomous agents can burn through budgets silently.",
-                    },
-                  },
-                  {
-                    "@type": "Question",
-                    name: "How does WHOAI track AI cost per request?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "WHOAI intercepts every API call through a high-performance gateway, logging exact token counts, model used, provider, latency, and precise cost. You see real spend per agent, per request, per model.",
-                    },
-                  },
-                  {
-                    "@type": "Question",
-                    name: "Which LLM providers does WHOAI support?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "WHOAI supports OpenAI (GPT-5.5, o3), Anthropic (Claude Opus 4.8, Claude 4), Google (Gemini 3.5 Flash, Gemini Spark), xAI Grok 3, DeepSeek V4, Meta Llama 4, Alibaba Qwen 3.7, and Mistral Large 2. New models are added within 48 hours of release.",
-                    },
-                  },
-                  {
-                    "@type": "Question",
-                    name: "What is BYOK and why does it matter for security?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "BYOK means Bring Your Own Key. Your organization keeps its own API credentials for every provider. WHOAI never stores or pays with its own keys.",
-                    },
-                  },
-                  {
-                    "@type": "Question",
-                    name: "How do budget controls and kill switches prevent runaway AI costs?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "Set hard daily and monthly spend limits. WHOAI uses atomic budget pre-reservation so every request reserves projected cost before execution. If a limit would be exceeded, the request is blocked instantly.",
-                    },
-                  },
-                  {
-                    "@type": "Question",
-                    name: "Can WHOAI detect AI cost anomalies automatically?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "Yes. WHOAI monitors spend velocity, token burn rate, and request patterns. If an agent spikes by 400%, you get an instant alert before the damage compounds.",
-                    },
-                  },
-                  {
-                    "@type": "Question",
-                    name: "How long does setup take?",
-                    acceptedAnswer: {
-                      "@type": "Answer",
-                      text: "Most teams are live in under 5 minutes. Point your AI API calls at the WHOAI gateway and budgets start enforcing immediately.",
-                    },
-                  },
-                ],
-              }),
-            }}
-          />
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="relative z-10 py-32 bg-[#FFFFFF]">
-        <div className="max-w-[800px] mx-auto px-6 text-center">
-          <h2 className="text-[48px] font-extrabold tracking-tight text-[#111111] mb-6">
-            Stop Guessing Where Your <br /> AI Budget Goes
-          </h2>
-          <p className="text-[20px] text-[#666666] mb-12">
-            Get complete visibility into every AI request, token, and dollar spent. Set up WHOAI in 5 minutes.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/signup" className="w-full sm:w-auto bg-[#FF6B00] text-white px-8 py-4 rounded-md font-semibold text-[16px] hover:bg-[#E65A00] transition-colors shadow-md">
-              Start Free Trial
-            </Link>
-            <Link href="/demo" className="w-full sm:w-auto bg-[#FFFFFF] border border-[#EEE8E2] text-[#111111] px-8 py-4 rounded-md font-semibold text-[16px] shadow-sm hover:border-[#DCD5CD] transition-colors">
-              Book Demo
-            </Link>
-          </div>
-        </div>
-      </section>
-
+          </Reveal>
+        </section>
       </main>
 
       {/* FOOTER */}
-      <SiteFooter />
+      <footer className="border-t border-[#EEF1F6] bg-white py-16">
+        <div className="mx-auto grid max-w-[1100px] grid-cols-2 gap-10 px-6 md:grid-cols-5">
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-[#0A2540] text-[10px] font-black text-white">W</span>
+              <span className="text-[15px] font-bold">WHOAI</span>
+            </Link>
+            <p className="mt-4 max-w-[260px] text-[14px] text-[#697386]">The financial control plane for the autonomous AI era. Track tokens, enforce budgets, stop runaway spend.</p>
+          </div>
+          {[
+            { h: "Product", links: [["Features", "/#features"], ["Pricing", "/pricing"], ["Docs", "/docs"], ["Free teardown", "/teardown"]] },
+            { h: "Company", links: [["About", "/about"], ["Security", "/security"], ["Trust", "/trust"], ["Contact", "/contact"]] },
+            { h: "Legal", links: [["Privacy", "/privacy"], ["Terms", "/terms"], ["DPA", "/legal/dpa"], ["Status", "/status"]] },
+          ].map((col) => (
+            <div key={col.h}>
+              <h4 className="mb-4 text-[13px] font-bold uppercase tracking-wider text-[#0A2540]">{col.h}</h4>
+              <ul className="space-y-3">
+                {col.links.map(([label, href]) => (
+                  <li key={href}><Link href={href} className="text-[14px] text-[#697386] transition-colors hover:text-[#0A2540]">{label}</Link></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mx-auto mt-12 max-w-[1100px] border-t border-[#EEF1F6] px-6 pt-6 text-[13px] text-[#8792A2]">© 2026 WHOAI Inc. All rights reserved.</div>
+      </footer>
     </div>
   );
 }

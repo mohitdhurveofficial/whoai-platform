@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Reveal, MagneticButton } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Preventing Runaway Claude 3.5 Sonnet Costs | WHOAI Blog",
@@ -48,17 +49,19 @@ export default function BlogPost() {
           </Link>
         </nav>
 
-        <header className="mb-10">
-          <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider mb-4">
-            Anthropic · Budget Controls
-          </span>
-          <h1 className="text-[36px] md:text-[44px] font-bold tracking-tight leading-[1.15] mb-4">
-            Preventing Runaway Claude 3.5 Sonnet Costs
-          </h1>
-          <p className="text-[16px] text-[#666666]">
-            <time dateTime="2026-06-16">June 16, 2026</time> · 7 min read
-          </p>
-        </header>
+        <Reveal>
+          <header className="mb-10">
+            <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider mb-4">
+              Anthropic · Budget Controls
+            </span>
+            <h1 className="text-[36px] md:text-[44px] font-bold tracking-tight leading-[1.15] mb-4">
+              Preventing Runaway Claude 3.5 Sonnet Costs
+            </h1>
+            <p className="text-[16px] text-[#666666]">
+              <time dateTime="2026-06-16">June 16, 2026</time> · 7 min read
+            </p>
+          </header>
+        </Reveal>
 
         <div className="prose-custom">
           <p className="text-[17px] text-[#666666] leading-relaxed mb-6">
@@ -154,26 +157,28 @@ export default function BlogPost() {
             Runaway Claude 3.5 Sonnet costs are preventable. Layer hard budget caps, kill switches, anomaly detection, and token-aware routing. The key is real-time enforcement — not monthly retrospectives. Every dollar saved is a dollar that can be reinvested in AI that actually works.
           </p>
 
-          <div className="bg-[#FF6B00]/5 border border-[#FF6B00]/20 rounded-lg p-5 mt-8">
+          <Reveal className="bg-[#FF6B00]/5 border border-[#FF6B00]/20 rounded-lg p-5 mt-8">
             <p className="text-[15px] font-semibold text-[#111111] mb-1">Protect your Claude API budget today.</p>
             <p className="text-[14px] text-[#666666] mb-3">
               WHOAI provides atomic budget pre-reservation, real-time anomaly detection, and instant kill switches for Anthropic, OpenAI, Gemini, and more.
             </p>
-            <Link href="/signup" className="inline-block bg-[#FF6B00] text-white px-5 py-2.5 rounded-md font-semibold text-[14px] hover:bg-[#E65A00] transition-colors">
+            <MagneticButton href="/signup" className="inline-block bg-[#FF6B00] text-white px-5 py-2.5 rounded-md font-semibold text-[14px] hover:bg-[#E65A00] transition-colors">
               Start Free Trial
-            </Link>
-          </div>
+            </MagneticButton>
+          </Reveal>
         </div>
 
-        <hr className="border-[#EEE8E2] my-10" />
-        <div className="flex gap-4">
-          <Link href="/blog/gpt-4o-cost-tracking" className="text-[14px] font-semibold text-[#FF6B00] hover:underline">
-            ← Previous: How to Track GPT-4o API Costs
-          </Link>
-          <Link href="/blog/ai-finops-guide" className="text-[14px] font-semibold text-[#FF6B00] hover:underline ml-auto">
-            Next: AI FinOps Complete Guide →
-          </Link>
-        </div>
+        <Reveal>
+          <hr className="border-[#EEE8E2] my-10" />
+          <div className="flex gap-4">
+            <Link href="/blog/gpt-4o-cost-tracking" className="text-[14px] font-semibold text-[#FF6B00] hover:underline">
+              ← Previous: How to Track GPT-4o API Costs
+            </Link>
+            <Link href="/blog/ai-finops-guide" className="text-[14px] font-semibold text-[#FF6B00] hover:underline ml-auto">
+              Next: AI FinOps Complete Guide →
+            </Link>
+          </div>
+        </Reveal>
       </article>
     </main>
   );

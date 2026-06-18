@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Lock, Server, ShieldCheck, KeyRound, Eye, FileCheck, ArrowRight } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Security",
@@ -47,7 +48,7 @@ export default function SecurityPage() {
   return (
     <MarketingShell>
       <section className="max-w-[960px] mx-auto px-6 py-20">
-        <div className="max-w-[720px] mb-14">
+        <Reveal className="max-w-[720px] mb-14">
           <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
             Security
           </span>
@@ -58,21 +59,25 @@ export default function SecurityPage() {
             WHOAI sits on the critical path of your AI traffic, so we treat the security of your data and
             credentials as our first responsibility. Here&apos;s how we protect it.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="grid sm:grid-cols-2 gap-6">
+        <Stagger className="grid sm:grid-cols-2 gap-6" stagger={0.06}>
           {CONTROLS.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border border-[#EEE8E2] bg-white p-6">
+            <StaggerItem
+              key={title}
+              hover
+              className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md"
+            >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00] mb-4">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="text-[16px] font-bold mb-2">{title}</h3>
               <p className="text-[14px] text-[#666666] leading-relaxed">{body}</p>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
 
-        <div className="mt-14 rounded-xl border border-[#EEE8E2] bg-white p-8">
+        <Reveal className="mt-14 rounded-xl border border-[#EEE8E2] bg-white p-8">
           <h2 className="text-[20px] font-bold mb-3">Responsible disclosure</h2>
           <p className="text-[15px] text-[#666666] leading-relaxed">
             If you believe you&apos;ve found a security vulnerability, please email{" "}
@@ -82,24 +87,24 @@ export default function SecurityPage() {
             . We investigate every report promptly and will keep you updated through resolution. Please
             give us a reasonable window to remediate before any public disclosure.
           </p>
-        </div>
+        </Reveal>
 
         <p className="text-[13px] text-[#999999] mt-8 leading-relaxed">
           We are actively pursuing SOC 2 Type II. Enterprise and VPC customers can request our current
           security documentation and roadmap during evaluation.
         </p>
 
-        <div className="mt-12 flex items-center gap-4">
-          <Link
+        <Reveal className="mt-12 flex items-center gap-4">
+          <MagneticButton
             href="/contact"
             className="inline-flex items-center gap-2 bg-[#FF6B00] text-white px-6 py-3.5 rounded-md font-semibold text-[15px] hover:bg-[#E65A00] transition-colors shadow-md"
           >
             Request security details <ArrowRight className="h-4 w-4" />
-          </Link>
+          </MagneticButton>
           <Link href="/privacy" className="text-[15px] text-[#666666] font-medium hover:text-[#111111]">
             Read our Privacy Policy
           </Link>
-        </div>
+        </Reveal>
       </section>
     </MarketingShell>
   );

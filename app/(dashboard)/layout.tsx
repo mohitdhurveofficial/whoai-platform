@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Sidebar from "../components/Sidebar";
+
+// The authenticated app should never be indexed by search engines.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function DashboardLayout({
   children,

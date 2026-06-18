@@ -2,6 +2,30 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ============================================================
+ * shadcn/ui token bridge for Tailwind v4.
+ * Maps the existing brand CSS variables to the `--color-*` names
+ * Tailwind v4 needs in order to generate `bg-background`,
+ * `text-primary`, `bg-card`, `text-muted-foreground`, etc.
+ * `inline` so the utilities read the live var() and respond to the
+ * `.dark` overrides below at runtime.
+ * ========================================================== */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  /* extra breakpoint used by the pixel hero (text-[..] xs:text-[..]) */
+  --breakpoint-xs: 480px;
+}
+
 @font-face {
   font-family: "Axiforma";
   src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/7554ea643bf147df-s.p.woff2")
@@ -72,6 +96,15 @@
   --critical: #be123c;
   --disabled: #64748b;
   --navy: #0b1220;
+
+  /* shadcn/ui token aliases (light) — reuse the brand palette above */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --primary: var(--orange);
+  --primary-foreground: #ffffff;
+  --muted-foreground: var(--muted);
+  --ring: var(--orange);
+
   --font-axiforma: "Axiforma", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --shadow-sm: 0 1px 2px rgba(17, 17, 17, 0.05);
   --shadow-md: 0 10px 28px rgba(17, 17, 17, 0.08);
@@ -79,6 +112,23 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+}
+
+/* Opt-in dark palette — only applies inside a `.dark` subtree, so it does
+ * NOT reintroduce app-wide dark mode. Used to display dark-designed
+ * components like the pixel hero (white "glass" headline needs a dark bg). */
+.dark {
+  --background: #0b1220;
+  --foreground: #f4f6fb;
+  --surface: #11192c;
+  --card: #11192c;
+  --card-foreground: #f4f6fb;
+  --primary: #ff6b00;
+  --primary-foreground: #0b1220;
+  --muted: #9aa4b2;
+  --muted-foreground: #9aa4b2;
+  --border: rgba(255, 255, 255, 0.12);
+  --ring: #ff6b00;
 }
 
 * {
@@ -327,4 +377,170 @@ a {
     outline: none;
     box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.18);
   }
+}
+
+/* ============================================================
+ * Premium motion + depth layer (dark marketing surface).
+ * Ambient, CSS-only so pages stay server-rendered. Respects
+ * prefers-reduced-motion.
+ * ========================================================== */
+
+@keyframes wa-aurora {
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  50%  { transform: translate3d(40px,-30px,0) scale(1.12); }
+  100% { transform: translate3d(0,0,0) scale(1); }
+}
+@keyframes wa-float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-10px); }
+}
+@keyframes wa-shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes wa-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes wa-blink {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.35; }
+}
+@keyframes wa-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes wa-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.wa-aurora { animation: wa-aurora 18s ease-in-out infinite; will-change: transform; }
+.wa-aurora-2 { animation: wa-aurora 22s ease-in-out infinite reverse; will-change: transform; }
+.wa-aurora-3 { animation: wa-aurora 26s ease-in-out infinite; will-change: transform; }
+.wa-float { animation: wa-float 7s ease-in-out infinite; }
+.wa-blink { animation: wa-blink 1.6s ease-in-out infinite; }
+.wa-rise { animation: wa-rise 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+.wa-rise-2 { animation: wa-rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.08s both; }
+.wa-rise-3 { animation: wa-rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.16s both; }
+.wa-rise-4 { animation: wa-rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.24s both; }
+
+/* Animated gradient text shimmer */
+.wa-shimmer {
+  background-size: 200% auto;
+  animation: wa-shimmer 6s linear infinite;
+}
+
+/* Chart line that draws itself in */
+.wa-draw {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: wa-draw 2.2s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+}
+
+/* Glowing ring on the hero console */
+.wa-glow {
+  box-shadow:
+    0 40px 120px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 0 80px -20px rgba(109,93,251,0.45);
+}
+
+/* Soft lift on hover for cards */
+.wa-lift { transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease; }
+.wa-lift:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 24px 60px -24px rgba(43,212,255,0.35);
+}
+
+/* Marquee strip */
+.wa-marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: wa-marquee 28s linear infinite;
+}
+
+/* pause the marquee while the user hovers the strip */
+.wa-marquee-pause:hover .wa-marquee-track {
+  animation-play-state: paused;
+}
+
+/* Film-grain overlay for depth */
+.wa-grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-aurora, .wa-aurora-2, .wa-aurora-3, .wa-float, .wa-blink,
+  .wa-shimmer, .wa-draw, .wa-rise, .wa-rise-2, .wa-rise-3, .wa-rise-4,
+  .wa-marquee-track {
+    animation: none !important;
+  }
+  .wa-draw { stroke-dashoffset: 0; }
+}
+
+/* ============================================================
+ * 3D / graphic depth layer — tilted product surface, perspective
+ * grid floor, gradient orb. Pure CSS.
+ * ========================================================== */
+
+@keyframes wa-grid-move { from { background-position: 0 0; } to { background-position: 0 48px; } }
+@keyframes wa-spin { to { transform: rotate(360deg); } }
+
+.wa-perspective { perspective: 1800px; perspective-origin: 50% 26%; }
+.wa-tilt3d {
+  transform: rotateX(15deg) rotateY(-13deg);
+  transform-style: preserve-3d;
+  transition: transform 750ms cubic-bezier(0.22,1,0.36,1);
+}
+.wa-perspective:hover .wa-tilt3d { transform: rotateX(4deg) rotateY(-2deg); }
+
+/* receding perspective grid floor */
+.wa-grid3d {
+  background-image:
+    linear-gradient(to right, rgba(124,168,255,0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124,168,255,0.15) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(420px) rotateX(62deg);
+  transform-origin: bottom center;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 78%);
+  mask-image: linear-gradient(to top, #000 0%, transparent 78%);
+  animation: wa-grid-move 4s linear infinite;
+}
+
+/* glossy 3D gradient sphere */
+.wa-orb {
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 34% 30%,
+      #ffffff 0%, #d6e8ff 7%, #7CA8FF 26%, #6D5DFB 50%, #34307e 80%, #161334 100%);
+  box-shadow:
+    0 40px 90px -10px rgba(109,93,251,0.55),
+    inset -14px -20px 48px rgba(6,5,24,0.7),
+    inset 12px 14px 40px rgba(255,255,255,0.22);
+}
+.wa-orb-ring {
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, transparent 0 42%, rgba(43,212,255,0.7) 56%, rgba(109,93,251,0.7) 72%, transparent 88%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  animation: wa-spin 16s linear infinite;
+}
+
+/* inner glass highlight for premium depth */
+.wa-glass-hi {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 42%),
+    radial-gradient(120% 80% at 50% -20%, rgba(124,168,255,0.13), transparent 60%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-grid3d, .wa-orb-ring { animation: none !important; }
+  .wa-tilt3d { transform: none !important; }
 }

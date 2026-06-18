@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -50,7 +51,7 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="space-y-6 text-center">
+      <Reveal className="space-y-6 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 mx-auto">
           <svg className="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -69,17 +70,19 @@ export default function ForgotPasswordPage() {
         <Link href="/auth/login" className="inline-block font-bold text-orange-600 hover:text-orange-700">
           Back to login
         </Link>
-      </div>
+      </Reveal>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div>
+    <Stagger className="space-y-5" stagger={0.1}>
+      <StaggerItem>
         <h2 className="text-xl font-bold text-[#071126] mb-2">Forgot your password?</h2>
         <p className="text-sm text-[#071126]/70">Enter your email address and we&apos;ll send you a link to reset your password.</p>
-      </div>
+      </StaggerItem>
 
+      <StaggerItem>
+      <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label htmlFor="email" className="mb-2 block text-[13px] font-bold text-[#071126]">
           Email address
@@ -114,6 +117,8 @@ export default function ForgotPasswordPage() {
           Back to login
         </Link>
       </div>
-    </form>
+      </form>
+      </StaggerItem>
+    </Stagger>
   );
 }

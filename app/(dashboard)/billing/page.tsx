@@ -124,7 +124,7 @@ export default function BillingPage() {
       )}
 
       {/* Current plan */}
-      <div className="rounded-lg border border-[#EEE8E2] bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <span className="text-[12px] font-semibold uppercase tracking-wide text-[#666666]">
@@ -172,7 +172,7 @@ export default function BillingPage() {
           return (
             <div
               key={plan.tier}
-              className={`rounded-lg border bg-white p-5 shadow-sm ${
+              className={`rounded-2xl border bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_20px_44px_-20px_rgba(17,17,17,0.22)] ${
                 isCurrent ? "border-[#FF6B00]" : "border-[#EEE8E2]"
               }`}
             >

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Activity, BarChart3, ShieldAlert, CheckCircle2 } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 import LeadForm from "@/app/components/marketing/LeadForm";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Request a Demo",
@@ -33,20 +34,22 @@ export default function DemoPage() {
     <MarketingShell>
       <section className="max-w-[1100px] mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-start">
         <div>
-          <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
-            Request a demo
-          </span>
-          <h1 className="text-[40px] md:text-[48px] leading-[1.1] font-extrabold tracking-tight mb-6">
-            See exactly where your AI budget goes
-          </h1>
-          <p className="text-[18px] text-[#666666] mb-10 leading-relaxed">
-            Tell us about your setup and we&apos;ll reach out within one business day to schedule a
-            30-minute walkthrough. No slides — we&apos;ll show WHOAI running against a real agent
-            workload and answer your questions.
-          </p>
-          <div className="space-y-6">
+          <Reveal>
+            <span className="inline-block text-[12px] font-semibold tracking-widest text-[#FF6B00] uppercase mb-4">
+              Request a demo
+            </span>
+            <h1 className="text-[40px] md:text-[48px] leading-[1.1] font-extrabold tracking-tight mb-6">
+              See exactly where your AI budget goes
+            </h1>
+            <p className="text-[18px] text-[#666666] mb-10 leading-relaxed">
+              Tell us about your setup and we&apos;ll reach out within one business day to schedule a
+              30-minute walkthrough. No slides — we&apos;ll show WHOAI running against a real agent
+              workload and answer your questions.
+            </p>
+          </Reveal>
+          <Stagger className="space-y-6" stagger={0.1}>
             {POINTS.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="flex gap-4">
+              <StaggerItem key={title} className="flex gap-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00]">
                   <Icon className="h-5 w-5" />
                 </div>
@@ -54,17 +57,17 @@ export default function DemoPage() {
                   <h3 className="text-[16px] font-bold mb-1">{title}</h3>
                   <p className="text-[14px] text-[#666666] leading-relaxed">{body}</p>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
-          <div className="mt-10 flex items-center gap-2 text-[14px] text-[#666666]">
+          </Stagger>
+          <Reveal delay={0.1} className="mt-10 flex items-center gap-2 text-[14px] text-[#666666]">
             <CheckCircle2 className="h-4 w-4 text-[#047857]" />
             Response within one business day.
-          </div>
+          </Reveal>
         </div>
-        <div className="lg:pt-12">
+        <Reveal x={30} delay={0.15} className="lg:pt-12">
           <LeadForm kind="DEMO" />
-        </div>
+        </Reveal>
       </section>
     </MarketingShell>
   );

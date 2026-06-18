@@ -16,7 +16,7 @@ export default async function SettingsPage() {
       <div className="space-y-6">
         
         {/* Organization Settings */}
-        <section className="bg-[#FAF7F3] border border-[#EEE8E2] rounded-xl shadow-sm overflow-hidden">
+        <section className="bg-[#FAF7F3] border border-[#EEE8E2] rounded-2xl shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.16)] overflow-hidden">
           <div className="p-6 border-b border-[#EEE8E2]">
             <h2 className="text-[16px] font-bold text-[#111111]">Organization Profile</h2>
             <p className="text-[13px] text-[#666666] mt-1">Update your workspace details and branding.</p>
@@ -42,7 +42,7 @@ export default async function SettingsPage() {
         </section>
 
         {/* Danger Zone */}
-        <section className="bg-[#FAF7F3] border border-red-200 rounded-xl shadow-sm overflow-hidden">
+        <section className="bg-[#FAF7F3] border border-red-200 rounded-2xl shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(190,18,60,0.12)] overflow-hidden">
           <div className="p-6">
             <h2 className="text-[16px] font-bold text-red-600">Danger Zone</h2>
             <p className="text-[13px] text-[#666666] mt-1">Irreversible and destructive actions.</p>

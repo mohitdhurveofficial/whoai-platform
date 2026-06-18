@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Blog — AI FinOps, LLM Cost Tracking & Budget Management",
@@ -57,33 +58,37 @@ export default function BlogIndexPage() {
   return (
     <main className="min-h-screen bg-[#FAF7F3] text-[#111111] font-sans">
       <div className="max-w-[900px] mx-auto px-6 py-24">
-        <h1 className="text-[40px] font-bold tracking-tight mb-4">WHOAI Blog</h1>
-        <p className="text-[18px] text-[#666666] mb-12 max-w-[600px]">
-          Practical guides on AI FinOps, LLM cost tracking, and stopping runaway AI spending before it impacts your business.
-        </p>
+        <Reveal>
+          <h1 className="text-[40px] font-bold tracking-tight mb-4">WHOAI Blog</h1>
+          <p className="text-[18px] text-[#666666] mb-12 max-w-[600px]">
+            Practical guides on AI FinOps, LLM cost tracking, and stopping runaway AI spending before it impacts your business.
+          </p>
+        </Reveal>
 
-        <div className="space-y-6">
+        <Stagger className="space-y-6">
           {posts.map((post) => (
-            <article key={post.slug} className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-lg p-6 hover:border-[#FF6B00] transition-colors">
-              <Link href={`/blog/${post.slug}`} className="block">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {post.tags.map((tag) => (
-                    <span key={tag} className="bg-[#FAF7F3] border border-[#EEE8E2] px-2 py-0.5 rounded text-[11px] font-semibold text-[#666666] uppercase tracking-wider">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <h2 className="text-[22px] font-bold text-[#111111] mb-2">{post.title}</h2>
-                <p className="text-[15px] text-[#666666] leading-relaxed mb-3">{post.excerpt}</p>
-                <div className="flex items-center gap-3 text-[13px] text-[#888888]">
-                  <time dateTime={post.date}>{post.date}</time>
-                  <span>·</span>
-                  <span>{post.readTime}</span>
-                </div>
-              </Link>
-            </article>
+            <StaggerItem hover key={post.slug}>
+              <article className="bg-[#FFFFFF] border border-[#EEE8E2] rounded-lg p-6 hover:border-[#FF6B00] transition-colors transition-shadow hover:shadow-md">
+                <Link href={`/blog/${post.slug}`} className="block">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {post.tags.map((tag) => (
+                      <span key={tag} className="bg-[#FAF7F3] border border-[#EEE8E2] px-2 py-0.5 rounded text-[11px] font-semibold text-[#666666] uppercase tracking-wider">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h2 className="text-[22px] font-bold text-[#111111] mb-2">{post.title}</h2>
+                  <p className="text-[15px] text-[#666666] leading-relaxed mb-3">{post.excerpt}</p>
+                  <div className="flex items-center gap-3 text-[13px] text-[#888888]">
+                    <time dateTime={post.date}>{post.date}</time>
+                    <span>·</span>
+                    <span>{post.readTime}</span>
+                  </div>
+                </Link>
+              </article>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </div>
     </main>
   );

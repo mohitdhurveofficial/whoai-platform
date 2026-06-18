@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LegalLayout from "@/app/components/marketing/LegalLayout";
+import { Reveal } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Data Processing Agreement (DPA)",
@@ -11,12 +12,14 @@ export const metadata: Metadata = {
 export default function DPAPage() {
   return (
     <LegalLayout title="Data Processing Agreement (DPA)" effectiveDate="June 9, 2026">
-      <p>
-        WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;, &quot;us&quot;, &quot;our&quot;) provides a cost
-        observability and FinOps control plane for AI systems. This Data Processing Agreement
-        (&quot;DPA&quot;) explains how we process personal data on behalf of our customers
-        (&quot;Customer&quot;) and is incorporated into our Terms of Service.
-      </p>
+      <Reveal>
+        <p>
+          WHOAI Inc. (&quot;WHOAI&quot;, &quot;we&quot;, &quot;us&quot;, &quot;our&quot;) provides a cost
+          observability and FinOps control plane for AI systems. This Data Processing Agreement
+          (&quot;DPA&quot;) explains how we process personal data on behalf of our customers
+          (&quot;Customer&quot;) and is incorporated into our Terms of Service.
+        </p>
+      </Reveal>
 
       <h2>1. Definitions</h2>
       <ul>

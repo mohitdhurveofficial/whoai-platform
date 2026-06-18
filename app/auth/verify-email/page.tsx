@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -43,8 +44,9 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center">
+    <form onSubmit={handleSubmit}>
+    <Stagger className="space-y-6" stagger={0.1}>
+      <StaggerItem className="text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 mx-auto mb-4">
           <svg className="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -52,8 +54,9 @@ export default function VerifyEmailPage() {
         </div>
         <h2 className="text-xl font-bold text-[#071126]">Confirm your email</h2>
         <p className="text-[#071126]/70 mt-2">Enter the 6-digit code from your email to continue to your dashboard</p>
-      </div>
+      </StaggerItem>
 
+      <StaggerItem className="space-y-6">
       <div>
         <label className="mb-4 block text-[13px] font-bold text-[#071126]">Verification code</label>
         <div className="flex gap-2 justify-center">
@@ -92,6 +95,8 @@ export default function VerifyEmailPage() {
           Back to login
         </Link>
       </div>
+      </StaggerItem>
+    </Stagger>
     </form>
   );
 }

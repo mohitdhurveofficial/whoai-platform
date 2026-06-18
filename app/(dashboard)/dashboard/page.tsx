@@ -63,7 +63,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/usage"
-          className="inline-flex items-center justify-center rounded-md border border-[#111111] bg-[#111111] px-4 py-2 text-[13px] font-semibold text-white shadow-sm"
+          className="inline-flex items-center justify-center rounded-lg bg-[#FF6B00] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(255,107,0,0.5)] transition-colors hover:bg-[#E85F00]"
         >
           Usage Explorer
         </Link>
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
 
       {/* AI-POWERED FORECAST */}
       {forecast && (
-        <section className="rounded-xl border border-[#FF6B00]/20 bg-[#FFF8F3] p-5 shadow-sm">
+        <section className="rounded-2xl border border-[#FF6B00]/20 bg-[#FFF8F3] p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(255,107,0,0.12)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-[15px] font-bold text-[#111111]">Predictive Budget AI</h2>
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
 
       {/* AGENT EFFICIENCY LEADERBOARD */}
       {leaderboard.length > 0 && (
-        <section className="rounded-xl border border-[#EEE8E2] bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-[16px] font-bold text-[#111111]">Agent Efficiency Leaderboard</h2>
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
       )}
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 shadow-sm xl:col-span-2">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] xl:col-span-2">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Day</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Last 30 days of organization spend.</p>
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] transition-shadow hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_18px_40px_-20px_rgba(17,17,17,0.22)]">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Agent</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Highest spending agents across all time.</p>
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] transition-shadow hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_18px_40px_-20px_rgba(17,17,17,0.22)]">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Model</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Distribution of spend across model families.</p>
@@ -182,7 +182,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[#EEE8E2] bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
         <div className="flex items-center justify-between border-b border-[#EEE8E2] p-5 bg-white">
           <div className="flex items-center gap-3">
             <div className="rounded-md bg-[#F5F5F5] p-2 text-[#111111]">

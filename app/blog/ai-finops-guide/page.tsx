@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Reveal, MagneticButton } from "@/app/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "AI FinOps: A Complete Guide to LLM Budget Management | WHOAI Blog",
@@ -46,11 +47,13 @@ export default function BlogPost() {
           <Link href="/blog" className="text-[13px] font-semibold text-[#FF6B00] hover:underline">← Back to Blog</Link>
         </nav>
 
-        <header className="mb-10">
-          <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider mb-4">AI FinOps · Strategy</span>
-          <h1 className="text-[36px] md:text-[44px] font-bold tracking-tight leading-[1.15] mb-4">AI FinOps: A Complete Guide to LLM Budget Management</h1>
-          <p className="text-[16px] text-[#666666]"><time dateTime="2026-06-16">June 16, 2026</time> · 10 min read</p>
-        </header>
+        <Reveal>
+          <header className="mb-10">
+            <span className="inline-block bg-[#FF6B00]/10 text-[#FF6B00] px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider mb-4">AI FinOps · Strategy</span>
+            <h1 className="text-[36px] md:text-[44px] font-bold tracking-tight leading-[1.15] mb-4">AI FinOps: A Complete Guide to LLM Budget Management</h1>
+            <p className="text-[16px] text-[#666666]"><time dateTime="2026-06-16">June 16, 2026</time> · 10 min read</p>
+          </header>
+        </Reveal>
 
         <div className="prose-custom">
           <p className="text-[17px] text-[#666666] leading-relaxed mb-6">
@@ -171,15 +174,17 @@ export default function BlogPost() {
             AI FinOps is not a dashboard — it is a discipline. It requires per-request cost tracking, atomic budget enforcement, real-time anomaly detection, and continuous optimization. Organizations that implement these four pillars gain a sustainable competitive advantage: they deploy more AI, spend less on it, and never wake up to a surprise bill.
           </p>
 
-          <div className="bg-[#FF6B00]/5 border border-[#FF6B00]/20 rounded-lg p-5 mt-8">
+          <Reveal className="bg-[#FF6B00]/5 border border-[#FF6B00]/20 rounded-lg p-5 mt-8">
             <p className="text-[15px] font-semibold text-[#111111] mb-1">Build AI FinOps in 5 minutes.</p>
             <p className="text-[14px] text-[#666666] mb-3">WHOAI provides all four pillars out of the box: observability, enforcement, detection, and optimization.</p>
-            <Link href="/signup" className="inline-block bg-[#FF6B00] text-white px-5 py-2.5 rounded-md font-semibold text-[14px] hover:bg-[#E65A00] transition-colors">Start Free Trial</Link>
-          </div>
+            <MagneticButton href="/signup" className="inline-block bg-[#FF6B00] text-white px-5 py-2.5 rounded-md font-semibold text-[14px] hover:bg-[#E65A00] transition-colors">Start Free Trial</MagneticButton>
+          </Reveal>
         </div>
 
-        <hr className="border-[#EEE8E2] my-10" />
-        <Link href="/blog/preventing-claude-costs" className="text-[14px] font-semibold text-[#FF6B00] hover:underline">← Previous: Preventing Runaway Claude 3.5 Sonnet Costs</Link>
+        <Reveal>
+          <hr className="border-[#EEE8E2] my-10" />
+          <Link href="/blog/preventing-claude-costs" className="text-[14px] font-semibold text-[#FF6B00] hover:underline">← Previous: Preventing Runaway Claude 3.5 Sonnet Costs</Link>
+        </Reveal>
       </article>
     </main>
   );
