@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Check, ArrowRight, Server, Building2, KeyRound, ShieldCheck, Zap } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 import { ROICalculator } from "./roi-calculator";
+import { TrustBadges } from "@/components/ui/trust-badges";
 import {
   Reveal,
   Stagger,
@@ -24,6 +25,7 @@ const TIERS = [
     price: "$0",
     cadence: "/ month",
     blurb: "Try WHOAI with no risk",
+    continuity: "See your provider concentration — which agents lean on a single model.",
     cta: "Start free",
     highlighted: false,
     features: [
@@ -40,6 +42,7 @@ const TIERS = [
     price: "$99",
     cadence: "/ month",
     blurb: "Stop runaway agents before they burn your budget.",
+    continuity: "Multi-provider routing — set a fallback so one model going dark can't take your agents down.",
     cta: "Start free trial",
     highlighted: true,
     features: [
@@ -56,12 +59,13 @@ const TIERS = [
     price: "$299",
     cadence: "/ month",
     blurb: "Governance and analytics for a fleet of agents in production.",
+    continuity: "Provider failover routing across every provider you've connected.",
     cta: "Start free trial",
     highlighted: false,
     features: [
       "Everything in Starter",
-      "Org RBAC & policy enforcement",
-      "Cost anomaly detection",
+      "Team roles & policy controls (rolling out)",
+      "Cost anomaly alerts",
       "Provider failover routing",
       "50 agents · 5M requests / mo",
       "90-day retention · priority support",
@@ -72,12 +76,13 @@ const TIERS = [
     price: "$799",
     cadence: "/ month",
     blurb: "Mission-critical control once AI spend runs into five figures a month.",
+    continuity: "Continuity at fleet scale — failover plus governance for mission-critical agents.",
     cta: "Start free trial",
     highlighted: false,
     features: [
       "Everything in Growth",
-      "SSO (Google / Okta) & audit-log export",
-      "Advanced governance policies",
+      "SSO & audit-log export (set up in onboarding)",
+      "Advanced governance policies (rolling out)",
       "Onboarding & solution support",
       "200 agents · 20M requests / mo",
       "180-day retention",
@@ -129,9 +134,9 @@ export default function PricingPage() {
           </p>
         </Reveal>
 
-        {/* ROI Calculator */}
-        <Reveal>
-          <ROICalculator />
+        {/* TRUST STRIP — launch trust cues near the top-of-page CTA */}
+        <Reveal className="mb-16">
+          <TrustBadges />
         </Reveal>
 
         <Stagger className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-start" stagger={0.1}>
@@ -172,6 +177,12 @@ export default function PricingPage() {
                 >
                   {tier.cta} <ArrowRight className="h-4 w-4" />
                 </Link>
+                {tier.continuity && (
+                  <div className="mb-6 -mt-2 flex items-start gap-2 rounded-lg bg-[#FFF1E8] px-3 py-2 text-[12px] leading-snug text-[#9A4A00]">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#FF6B00]" />
+                    <span>{tier.continuity}</span>
+                  </div>
+                )}
                 <ul className="space-y-3">
                   {tier.features.map((f) => (
                     <li key={f} className="flex items-start gap-3 text-[14px] text-[#444444]">
@@ -214,9 +225,10 @@ export default function PricingPage() {
               <h3 className="text-[18px] font-bold">Enterprise</h3>
             </div>
             <p className="text-[14px] text-[#666666] mb-4 flex-1">
-              For organizations running AI agents at scale. SAML SSO, unlimited agents, custom
-              volume and retention, audit exports, dedicated support, and an SLA. Priced on AI
-              spend under management — typically from $2,000/mo on an annual plan.
+              For organizations running AI agents at scale. SAML SSO and audit exports
+              (provisioned during onboarding), unlimited agents, custom volume and retention,
+              dedicated support, and an SLA. Priced on AI spend under management — typically from
+              $2,000/mo on an annual plan.
             </p>
             <Link
               href="/demo"
@@ -246,6 +258,12 @@ export default function PricingPage() {
             </Link>
           </StaggerItem>
         </Stagger>
+
+        {/* ROI Calculator — moved below the plans so price-seekers see tiers
+            first; this justifies the spend for those who want the math. */}
+        <Reveal className="mt-20">
+          <ROICalculator />
+        </Reveal>
 
         {/* WHY WHOAI — honest, non-attributed proof points (no fabricated quotes) */}
         <Reveal className="mt-24 text-center">

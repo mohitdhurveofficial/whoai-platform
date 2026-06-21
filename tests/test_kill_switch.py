@@ -181,12 +181,15 @@ def test_gateway_blocks_paused_agent(monkeypatch):
     assert _added(fake_db, ActivityLog)[-1].action == "REQUEST_BLOCKED"
 
 
-def test_budget_triggered_pause(monkeypatch):
+def test_budget_blocks_agent_request(monkeypatch):
+    """When the agent's atomic budget pre-reservation fails, the request is
+    blocked with HTTP 402, the provider is never called, and the rejection is
+    audit-logged as BUDGET_EXCEEDED. (Budget exhaustion blocks the request; it
+    does not flip the agent to PAUSED — that auto-recovers on the next reset.)"""
     token = jwt.encode({"sub": "agent-1", "org": "org-1"}, gateway.GATEWAY_SECRET, algorithm="HS256")
-    agent = _agent()
     fake_db = MagicMock()
     fake_db.execute = AsyncMock(side_effect=[
-        MagicMock(scalar_one_or_none=MagicMock(return_value=agent)),
+        MagicMock(scalar_one_or_none=MagicMock(return_value=_agent())),
         MagicMock(scalar_one_or_none=MagicMock(return_value=_organization())),
     ])
     fake_db.add = MagicMock()
@@ -195,23 +198,18 @@ def test_budget_triggered_pause(monkeypatch):
     async def override_db():
         yield fake_db
 
-    async def blocked_agent_budget(_db, _agent_obj):
-        return {
-            "allowed": False,
-            "reason": "AGENT_DAILY_LIMIT_EXCEEDED",
-            "budgetLimit": 10.0,
-            "currentSpend": 15.0,
-        }
+    async def blocked_agent_reserve(_db, _agent_id, _cost):
+        return False
 
-    async def allowed_org_budget(_db, _org_obj, agent_id=None):
-        return {"allowed": True, "reason": None}
+    async def allowed_org_reserve(_db, _org_id, _cost):
+        return True
 
     async def provider_called(*_args, **_kwargs):
-        raise AssertionError("Provider must not be called when budget auto-pauses an agent")
+        raise AssertionError("Provider must not be called when the budget blocks a request")
 
     app.dependency_overrides[get_db] = override_db
-    monkeypatch.setattr(gateway, "check_agent_budget", blocked_agent_budget)
-    monkeypatch.setattr(gateway, "check_org_budget", allowed_org_budget)
+    monkeypatch.setattr(gateway, "pre_reserve_agent_budget", blocked_agent_reserve)
+    monkeypatch.setattr(gateway, "pre_reserve_org_budget", allowed_org_reserve)
     monkeypatch.setattr(httpx.AsyncClient, "post", provider_called)
 
     try:
@@ -226,10 +224,8 @@ def test_budget_triggered_pause(monkeypatch):
 
     assert response.status_code == 402
     assert response.json()["error"] == "Budget exceeded"
-    assert agent.status == "PAUSED"
-    assert agent.pauseReason == DAILY_BUDGET_EXCEEDED
-    assert any(alert.type == "AGENT_PAUSED" for alert in _added(fake_db, Alert))
-    assert any(log.action == "AGENT_PAUSED" for log in _added(fake_db, ActivityLog))
+    assert response.json()["reason"] == "AGENT_DAILY_LIMIT_EXCEEDED"
+    assert any(log.action == "BUDGET_EXCEEDED" for log in _added(fake_db, ActivityLog))
 
 
 def test_gateway_blocks_paused_organization(monkeypatch):
@@ -269,13 +265,16 @@ def test_gateway_blocks_paused_organization(monkeypatch):
     assert _added(fake_db, ActivityLog)[-1].action == "REQUEST_BLOCKED"
 
 
-def test_budget_triggered_organization_pause(monkeypatch):
+def test_budget_blocks_organization_request(monkeypatch):
+    """When the org's atomic budget pre-reservation fails, the agent's earlier
+    reservation is rolled back, the request is blocked with HTTP 402, the
+    provider is never called, and the rejection is audit-logged as
+    BUDGET_EXCEEDED. (Blocks the request; does not flip the org to PAUSED.)"""
     token = jwt.encode({"sub": "agent-1", "org": "org-1"}, gateway.GATEWAY_SECRET, algorithm="HS256")
-    organization = _organization()
     fake_db = MagicMock()
     fake_db.execute = AsyncMock(side_effect=[
         MagicMock(scalar_one_or_none=MagicMock(return_value=_agent())),
-        MagicMock(scalar_one_or_none=MagicMock(return_value=organization)),
+        MagicMock(scalar_one_or_none=MagicMock(return_value=_organization())),
     ])
     fake_db.add = MagicMock()
     fake_db.commit = AsyncMock()
@@ -283,23 +282,22 @@ def test_budget_triggered_organization_pause(monkeypatch):
     async def override_db():
         yield fake_db
 
-    async def allowed_agent_budget(_db, _agent_obj):
-        return {"allowed": True, "reason": None}
+    async def allowed_agent_reserve(_db, _agent_id, _cost):
+        return True
 
-    async def blocked_org_budget(_db, _org_obj, agent_id=None):
-        return {
-            "allowed": False,
-            "reason": "ORG_MONTHLY_LIMIT_EXCEEDED",
-            "budgetLimit": 500.0,
-            "currentSpend": 650.0,
-        }
+    async def blocked_org_reserve(_db, _org_id, _cost):
+        return False
+
+    async def noop_release(_db, _agent_id, _cost):
+        return None
 
     async def provider_called(*_args, **_kwargs):
-        raise AssertionError("Provider must not be called when budget auto-pauses an organization")
+        raise AssertionError("Provider must not be called when the budget blocks a request")
 
     app.dependency_overrides[get_db] = override_db
-    monkeypatch.setattr(gateway, "check_agent_budget", allowed_agent_budget)
-    monkeypatch.setattr(gateway, "check_org_budget", blocked_org_budget)
+    monkeypatch.setattr(gateway, "pre_reserve_agent_budget", allowed_agent_reserve)
+    monkeypatch.setattr(gateway, "pre_reserve_org_budget", blocked_org_reserve)
+    monkeypatch.setattr(gateway, "release_agent_budget", noop_release)
     monkeypatch.setattr(httpx.AsyncClient, "post", provider_called)
 
     try:
@@ -314,7 +312,5 @@ def test_budget_triggered_organization_pause(monkeypatch):
 
     assert response.status_code == 402
     assert response.json()["error"] == "Budget exceeded"
-    assert organization.status == "PAUSED"
-    assert organization.pauseReason == MONTHLY_BUDGET_EXCEEDED
-    assert any(alert.type == "ORG_PAUSED" for alert in _added(fake_db, Alert))
-    assert any(log.action == "ORG_PAUSED" for log in _added(fake_db, ActivityLog))
+    assert response.json()["reason"] == "ORG_DAILY_LIMIT_EXCEEDED"
+    assert any(log.action == "BUDGET_EXCEEDED" for log in _added(fake_db, ActivityLog))

@@ -3,6 +3,7 @@ from sqlalchemy import (
     Column,
     String,
     Integer,
+    BigInteger,
     Numeric,
     DateTime,
     Boolean,
@@ -107,6 +108,46 @@ class RequestLog(Base):
     ipAddress = Column(String, nullable=True)
 
     createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+
+class LedgerEntry(Base):
+    """Append-only, tamper-evident enforcement ledger (LEDGER-6).
+
+    Mirrors prisma ``model LedgerEntry``. Monetary + timestamp fields are stored
+    as the EXACT canonical strings used to compute recordHash (see
+    runtime/ledger), so the hash is reproducible directly from a row by the
+    cross-language verifier. ``agentId`` is a plain string (no FK) so agent
+    lifecycle changes never mutate the ledger. WORM enforcement (REVOKE +
+    trigger) is added in LEDGER-9; this is the schema only.
+    """
+
+    __tablename__ = "LedgerEntry"
+
+    id = Column(String, primary_key=True)
+    organizationId = Column(String, ForeignKey("Organization.id"), nullable=False)
+    sequence = Column(BigInteger, nullable=False)
+    prevHash = Column(String, nullable=False)
+    recordHash = Column(String, nullable=False, unique=True)
+    signature = Column(String, nullable=False)
+    signingKeyId = Column(String, nullable=False)
+    schemaVersion = Column(Integer, nullable=False, default=1)
+    agentId = Column(String, nullable=True)  # no FK: decoupled from Agent lifecycle
+    actorAuthorizer = Column(String, nullable=True)
+    policyId = Column(String, nullable=False)
+    verdict = Column(String, nullable=False)  # LedgerVerdict enum on the Prisma side
+    provider = Column(String, nullable=False)
+    model = Column(String, nullable=False)
+    currency = Column(String, nullable=False, default="USD")
+    estimatedCost = Column(String, nullable=False)
+    cost = Column(String, nullable=True)
+    recordTimestamp = Column(String, nullable=False)
+    enforcedBeforeCall = Column(Boolean, nullable=False)
+    enforcementProof = Column(JSON, nullable=False)
+    createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+
+    __table_args__ = (
+        UniqueConstraint("organizationId", "sequence", name="LedgerEntry_organizationId_sequence_key"),
+    )
+
 
 class UsageMetrics(Base):
     __tablename__ = "UsageMetrics"

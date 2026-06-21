@@ -19,7 +19,7 @@ function Metric({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.20)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#FFD9C2] hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_20px_44px_-20px_rgba(17,17,17,0.24)]">
+    <div className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-all duration-200 hover:border-[#FFD9C2] hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
       <div className="flex items-center justify-between">
         <span className="text-[12px] font-semibold uppercase tracking-wider text-[#888888]">{label}</span>
         <div className="rounded-lg bg-[#FFF1E8] p-2 text-[#FF6B00]">{icon}</div>
@@ -70,7 +70,7 @@ export default async function UsagePage({
         </p>
       </header>
 
-      <form className="grid gap-3 rounded-2xl border border-[#EEE8E2] bg-white p-4 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.16)] md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]">
+      <form className="grid gap-3 rounded-2xl border border-[#EEE8E2] bg-white p-4 shadow-[0_1px_2px_rgba(17,17,17,0.05)] md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]">
         <input name="from" type="date" defaultValue={urlParams.get("from") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors" />
         <input name="to" type="date" defaultValue={urlParams.get("to") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors" />
         <select name="agentId" defaultValue={urlParams.get("agentId") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors">
@@ -108,7 +108,7 @@ export default async function UsagePage({
         </section>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
         <div className="border-b border-[#EEE8E2] p-5 bg-[#FAF7F3]">
           <h2 className="text-[16px] font-bold text-[#111111]">Requests</h2>
         </div>

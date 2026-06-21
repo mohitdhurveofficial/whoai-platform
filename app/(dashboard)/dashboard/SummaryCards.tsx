@@ -20,7 +20,7 @@ function KpiCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="group rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.20)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#FFD9C2] hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_20px_44px_-20px_rgba(17,17,17,0.24)]">
+    <div className="group rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-all duration-200 hover:border-[#FFD9C2] hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
       <div className="flex items-center justify-between gap-4">
         <span className="text-[12px] font-semibold uppercase tracking-wide text-[#666666]">
           {label}

@@ -75,7 +75,7 @@ export default async function DashboardPage() {
 
       {/* AI-POWERED FORECAST */}
       {forecast && (
-        <section className="rounded-2xl border border-[#FF6B00]/20 bg-[#FFF8F3] p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(255,107,0,0.12)]">
+        <section className="rounded-2xl border border-[#FF6B00]/20 bg-[#FFF8F3] p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-[15px] font-bold text-[#111111]">Predictive Budget AI</h2>
@@ -118,7 +118,7 @@ export default async function DashboardPage() {
 
       {/* AGENT EFFICIENCY LEADERBOARD */}
       {leaderboard.length > 0 && (
-        <section className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+        <section className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-[16px] font-bold text-[#111111]">Agent Efficiency Leaderboard</h2>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
       )}
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] xl:col-span-2">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.05)] xl:col-span-2">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Day</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Last 30 days of organization spend.</p>
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] transition-shadow hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_18px_40px_-20px_rgba(17,17,17,0.22)]">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-shadow hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Agent</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Highest spending agents across all time.</p>
@@ -185,7 +185,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)] transition-shadow hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_18px_40px_-20px_rgba(17,17,17,0.22)]">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-shadow hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Model</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Distribution of spend across model families.</p>
@@ -196,7 +196,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
         <div className="flex items-center justify-between border-b border-[#EEE8E2] p-5 bg-white">
           <div className="flex items-center gap-3">
             <div className="rounded-md bg-[#F5F5F5] p-2 text-[#111111]">

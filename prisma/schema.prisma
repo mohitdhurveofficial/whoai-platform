@@ -31,6 +31,7 @@ model Organization {
   status               String               @default("ACTIVE")
   activityLogs         ActivityLog[]
   agents               Agent[]
+  ledgerEntries        LedgerEntry[]
   alerts               Alert[]
   ApiKey               ApiKey[]
   budgetViolations     BudgetViolation[]
@@ -128,6 +129,48 @@ model ActivityLog {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId, timestamp])
+}
+
+/// Append-only, tamper-evident enforcement ledger (LEDGER-6).
+/// Each row chains to its predecessor via (sequence, prevHash, recordHash) and
+/// is Ed25519-signed (runtime/ledger, lib/ledger). Monetary + timestamp fields
+/// are stored as the EXACT canonical strings used to compute recordHash, so the
+/// hash is reproducible from a row by the cross-language verifier. DB-level WORM
+/// (REVOKE + trigger) and Merkle/anchor are added in LEDGER-9..11. agentId is a
+/// plain string (no FK) so agent lifecycle changes never mutate the ledger.
+enum LedgerVerdict {
+  ALLOWED
+  CAPPED
+  BLOCKED
+  REROUTED
+}
+
+model LedgerEntry {
+  id                 String        @id @default(uuid())
+  organizationId     String
+  sequence           BigInt
+  prevHash           String
+  recordHash         String        @unique
+  signature          String
+  signingKeyId       String
+  schemaVersion      Int           @default(1)
+  agentId            String?
+  actorAuthorizer    String?
+  policyId           String
+  verdict            LedgerVerdict
+  provider           String
+  model              String
+  currency           String        @default("USD")
+  estimatedCost      String
+  cost               String?
+  recordTimestamp    String
+  enforcedBeforeCall Boolean
+  enforcementProof   Json
+  createdAt          DateTime      @default(now())
+  organization       Organization  @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, sequence])
+  @@index([organizationId, createdAt])
 }
 
 model Subscription {

@@ -142,18 +142,20 @@ def test_gateway_blocking(monkeypatch):
     async def override_db():
         yield fake_db
 
-    async def blocked_agent_budget(_db, _agent_obj):
-        return {"allowed": False, "reason": AGENT_DAILY_LIMIT_EXCEEDED}
+    # The gateway request path enforces budgets via atomic pre-reservation, not
+    # the check_*_budget helpers. Simulate the agent's daily reservation failing.
+    async def blocked_agent_reserve(_db, _agent_id, _cost):
+        return False
 
-    async def allowed_org_budget(_db, _org_obj, agent_id=None):
-        return {"allowed": True, "reason": None}
+    async def allowed_org_reserve(_db, _org_id, _cost):
+        return True
 
     async def provider_called(*_args, **_kwargs):
         raise AssertionError("Provider must not be called when budget is exceeded")
 
     app.dependency_overrides[get_db] = override_db
-    monkeypatch.setattr(gateway, "check_agent_budget", blocked_agent_budget)
-    monkeypatch.setattr(gateway, "check_org_budget", allowed_org_budget)
+    monkeypatch.setattr(gateway, "pre_reserve_agent_budget", blocked_agent_reserve)
+    monkeypatch.setattr(gateway, "pre_reserve_org_budget", allowed_org_reserve)
     monkeypatch.setattr(httpx.AsyncClient, "post", provider_called)
 
     try:

@@ -30,6 +30,7 @@ CRON_SECRET=...
 
 # App URLs
 NEXT_PUBLIC_APP_URL=https://whoai-dashboard.vercel.app
+NEXT_PUBLIC_GATEWAY_URL=https://whoai-api.onrender.com/api/v1/chat/completions
 CORS_ALLOW_ORIGINS=https://whoai-dashboard.vercel.app
 
 # Supabase Auth
@@ -44,6 +45,10 @@ STRIPE_GROWTH_PRICE_ID=price_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_ENTERPRISE_PRICE_ID=price_...
 
+# Crypto / Teardown checkout (used in app/checkout/page.tsx)
+NEXT_PUBLIC_RECEIVING_ADDRESS=0x0000000000000000000000000000000000000000
+NEXT_PUBLIC_STRIPE_PAYMENT_LINK=https://buy.stripe.com/...
+
 # Email
 RESEND_API_KEY=re_...
 SALES_EMAIL=founders@whoai.ai
@@ -54,6 +59,19 @@ Vercel auto-detects, but set this explicitly:
 ```
 prisma generate && node node_modules/next/dist/bin/next build
 ```
+
+### Stripe Webhook Setup
+1. In the Stripe Dashboard, go to Developers → Webhooks → Add endpoint.
+2. Endpoint URL: `https://whoai-platform.vercel.app/api/webhooks/stripe`
+3. Select events:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `invoice.payment_failed`
+   - `invoice.payment_succeeded`
+4. Copy the Webhook signing secret (`whsec_...`) into Vercel as `STRIPE_WEBHOOK_SECRET`.
+5. The handler is already implemented at `app/api/webhooks/stripe/route.ts` and uses `STRIPE_SECRET_KEY` plus `STRIPE_WEBHOOK_SECRET` for signature verification.
 
 ### Deploy
 ```bash
@@ -87,12 +105,13 @@ Render auto-deploys on git push.
 
 ## 3. Post-Deploy Checklist
 
-- [ ] Signup works at `https://your-vercel-url.com/signup`
+- [ ] Signup works at `https://your-vercel-url.com/auth/signup`
 - [ ] Dashboard loads with data
 - [ ] Create agent + get API key
 - [ ] Exchange key for JWT at `/api/v1/auth/token`
 - [ ] Send test request through gateway
 - [ ] Stripe checkout works
+- [ ] Stripe webhook events are received and update the subscription tier
 - [ ] Budget reset cron runs (Vercel Cron via `vercel.json`)
 
 ---
@@ -106,6 +125,9 @@ The dashboard and analytics services now run Prisma queries **sequentially** (no
 - `app/(dashboard)/usage/page.tsx`
 - `app/api/dashboard/summary/route.ts`
 - `lib/services/PolicyEngine.ts`
+
+### CORS for Preview Deployments
+If you use Vercel preview branches, add `*.vercel.app` (or the specific preview URL) to `CORS_ALLOW_ORIGINS` on the Render backend so preview deployments can call the FastAPI gateway. For production, keep it locked to the production frontend URL only.
 
 ### Shared Secrets
 `GATEWAY_SECRET` and `ENCRYPTION_KEY` must be identical on Vercel and Render, or:

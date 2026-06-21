@@ -11,9 +11,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs" },
 };
 
-const curlExample = `curl https://whoai-platform.vercel.app/api/v1/chat/completions \\
-  -H "Authorization: Bearer $WHOAI_API_KEY" \\
-  -H "x-agent-id: $AGENT_ID" \\
+const GATEWAY_URL =
+  process.env.NEXT_PUBLIC_GATEWAY_URL ||
+  "https://your-render-api-url.com/api/v1/chat/completions";
+
+const curlExample = `curl ${GATEWAY_URL} \\
+  -H "Authorization: Bearer $WHOAI_AGENT_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
     "provider": "openai",
@@ -32,7 +35,7 @@ const STEPS = [
   {
     icon: Terminal,
     title: "2. Point your traffic at the gateway",
-    body: "Swap your provider's base URL for the WHOAI gateway and pass your key as a Bearer token plus the x-agent-id header. WHOAI forwards the call, logs spend, and enforces budgets.",
+    body: "Swap your provider's base URL for the WHOAI FastAPI gateway and pass your agent JWT as a Bearer token. The provider and model are sent in the request body. WHOAI forwards the call, logs spend, and enforces budgets.",
   },
   {
     icon: BookOpen,
@@ -87,7 +90,7 @@ export default function DocsPage() {
         <Reveal>
           <h2 className="text-[22px] font-extrabold tracking-tight mb-4">Example request</h2>
           <p className="text-[15px] text-[#666666] mb-4 leading-relaxed">
-            Send an OpenAI-style chat completion through the gateway. The <code className="text-[#FF6B00]">provider</code>{" "}
+            Send an OpenAI-style chat completion through the FastAPI gateway. Use the agent JWT you generated in the dashboard as the Bearer token. The <code className="text-[#FF6B00]">provider</code>{" "}
             field selects the upstream LLM; supported values include <code className="text-[#FF6B00]">openai</code>,{" "}
             <code className="text-[#FF6B00]">anthropic</code>, and <code className="text-[#FF6B00]">gemini</code>.
           </p>

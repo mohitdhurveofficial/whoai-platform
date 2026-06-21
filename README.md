@@ -24,7 +24,7 @@
 - 📊 **Executive Dashboard:** Visualize daily and monthly token burn rates, active agents, and top cost offenders.
 - 📈 **Analytics & Insights:** Real-time data visualization of agent spending trends and model distribution.
 - 🔀 **High-Performance AI Gateway:** Scalable ingestion layer that intercepts LLM traffic, meters API usage, and enforces budgets. Available for VPC self-hosting.
-- 🏢 **Enterprise Multi-Tenancy:** Secure data isolation via strict Organization-level constraints and Role-Based Access Control (RBAC).
+- 🏢 **Enterprise Multi-Tenancy:** Secure data isolation via strict Organization-level constraints. Role-based access control (admin/user roles) is rolling out.
 
 ## Architecture
 

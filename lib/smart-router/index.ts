@@ -54,7 +54,6 @@ export function classifyPrompt(prompt: string): { complexity: Complexity; confid
   else if (/chat|conversation|dialogue/i.test(lower)) task = "chat";
 
   // Complexity scoring
-  let score = 0;
   const indicators = {
     simple: [
       tokens < 50,

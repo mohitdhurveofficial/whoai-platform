@@ -31,8 +31,8 @@ export default function TrustPage() {
           Built for trust, designed for transparency
         </h1>
         <p className="text-[18px] text-[#666666] leading-relaxed">
-          Your AI spend and data deserve enterprise-grade protection. We never see your keys,
-          never mark up tokens, and give you full control over your AI gateway.
+          Your AI spend and data deserve enterprise-grade protection. Your keys are encrypted,
+          we never mark up tokens, and you keep full control over your AI gateway.
         </p>
       </Reveal>
 
@@ -96,11 +96,12 @@ export default function TrustPage() {
           {/* Log Storage */}
           <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
             <h3 className="text-[20px] font-bold mb-4 flex items-center gap-2">
-              <Database className="h-5 w-5 text-[#FF6B00]" /> Tamper-Evident Logging
+              <Database className="h-5 w-5 text-[#FF6B00]" /> Decision Logging
             </h3>
             <p className="text-[15px] text-[#666666] mb-4">
-              All gateway decisions are append-only logged with hash chaining.
-              Export audit logs as JSON or CSV for compliance and forensics.
+              Every gateway decision — budget checks, blocks, and kill-switch events — is logged with
+              full context. Tamper-evident hash-chained audit records and JSON/CSV export are on the
+              roadmap for Enterprise compliance and forensics.
             </p>
           </StaggerItem>
         </Stagger>
@@ -116,11 +117,11 @@ export default function TrustPage() {
           {/* Access Controls */}
           <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
             <h3 className="text-[20px] font-bold mb-4 flex items-center gap-2">
-              <Users className="h-5 w-5 text-[#FF6B00]" /> Role-Based Access Control
+              <Users className="h-5 w-5 text-[#FF6B00]" /> Access Control
             </h3>
             <p className="text-[15px] text-[#666666] mb-4">
-              Assign Admin or User roles to team members. Admins manage keys,
-              budgets, and alerts. Users view spend and agent activity.
+              Organization-level data isolation keeps every tenant&apos;s data strictly separate.
+              Granular admin/user role enforcement (RBAC) is rolling out for team access management.
             </p>
           </StaggerItem>
 

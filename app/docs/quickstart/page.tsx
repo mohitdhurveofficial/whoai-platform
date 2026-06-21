@@ -34,7 +34,7 @@ export default function QuickstartPage() {
           <div className="flex-1">
             <h2 className="text-[20px] font-bold text-[#111111] mb-2">Sign up for WHOAI</h2>
             <p className="text-[15px] text-[#666666]">
-              Create your account at <Link href="/signup" className="text-[#FF6B00] font-medium hover:underline">whoai.ai/signup</Link>.
+              Create your account at <Link href="/auth/signup" className="text-[#FF6B00] font-medium hover:underline">whoai.ai/auth/signup</Link>.
               No credit card required for the Free plan.
             </p>
           </div>
@@ -73,11 +73,11 @@ export default function QuickstartPage() {
           <div className="flex-1">
             <h2 className="text-[20px] font-bold text-[#111111] mb-2">Point your agents to WHOAI</h2>
             <p className="text-[15px] text-[#666666]">
-              Update your AI agent configuration to route requests through WHOAI&apos;s gateway:
+              Update your AI agent configuration to route requests through the WHOAI FastAPI gateway:
               <br />
-              <code className="bg-[#FAF7F3] px-1 py-0.5 rounded text-[13px]">https://whoai-platform.vercel.app/api/v1/chat/completions</code>
+              <code className="bg-[#FAF7F3] px-1 py-0.5 rounded text-[13px]">https://your-render-api-url.com/api/v1/chat/completions</code>
               <br />
-              Keep your existing API key names; WHOAI will inject your provider keys securely.
+              Pass your agent JWT as the Bearer token. The provider and model go in the request body; WHOAI injects your BYOK provider keys securely.
             </p>
           </div>
         </StaggerItem>

@@ -271,6 +271,7 @@ export function PixelHero({
     document.body.removeChild(div);
 
     // Mostly muted gray with a subtle orange accent.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- brand colors must be read from the DOM after mount
     setThemeColors([muted, muted, muted, muted, primary]);
 
     const loadTimer = setTimeout(() => setIsLoaded(true), 50);

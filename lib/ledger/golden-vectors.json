@@ -1,0 +1,120 @@
+{
+  "_comment": "Cross-language ledger golden vectors. Regenerate with .venv/bin/python scripts/gen_ledger_golden.py — do not hand-edit.",
+  "canonical": [
+    {
+      "name": "genesis_allowed",
+      "record": {
+        "schemaVersion": 1,
+        "sequence": 0,
+        "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "organizationId": "org_genesis",
+        "agentId": "agent_001",
+        "actorAuthorizer": null,
+        "policyId": "IMPLICIT_BUDGET_KILLSWITCH_v1",
+        "verdict": "ALLOWED",
+        "provider": "openai",
+        "model": "gpt-5.5",
+        "currency": "USD",
+        "estimatedCost": "0.00042100",
+        "cost": "0.00041850",
+        "timestamp": "2026-06-19T12:34:56.789Z",
+        "enforcedBeforeCall": true,
+        "enforcementProof": {
+          "killSwitch": "INACTIVE",
+          "preReserveRows": 1,
+          "budgetRemaining": "12.50000000"
+        }
+      },
+      "canonical": "{\"actorAuthorizer\":null,\"agentId\":\"agent_001\",\"cost\":\"0.00041850\",\"currency\":\"USD\",\"enforcedBeforeCall\":true,\"enforcementProof\":{\"budgetRemaining\":\"12.50000000\",\"killSwitch\":\"INACTIVE\",\"preReserveRows\":1},\"estimatedCost\":\"0.00042100\",\"model\":\"gpt-5.5\",\"organizationId\":\"org_genesis\",\"policyId\":\"IMPLICIT_BUDGET_KILLSWITCH_v1\",\"prevHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"provider\":\"openai\",\"schemaVersion\":1,\"sequence\":0,\"timestamp\":\"2026-06-19T12:34:56.789Z\",\"verdict\":\"ALLOWED\"}",
+      "recordHash": "de30790b123b24d611afdd1a540b752e9fb66f24269d7b6745013323c298b2b1"
+    },
+    {
+      "name": "blocked_no_cost",
+      "record": {
+        "schemaVersion": 1,
+        "sequence": 1,
+        "prevHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "organizationId": "org_genesis",
+        "agentId": "agent_001",
+        "actorAuthorizer": "user_admin_7",
+        "policyId": "IMPLICIT_BUDGET_KILLSWITCH_v1",
+        "verdict": "BLOCKED",
+        "provider": "anthropic",
+        "model": "claude-opus-4-8",
+        "currency": "USD",
+        "estimatedCost": "0.01250000",
+        "cost": null,
+        "timestamp": "2026-06-19T12:35:01.000Z",
+        "enforcedBeforeCall": true,
+        "enforcementProof": {
+          "killSwitch": "ACTIVE",
+          "preReserveRows": 0,
+          "budgetRemaining": "0.00000000"
+        }
+      },
+      "canonical": "{\"actorAuthorizer\":\"user_admin_7\",\"agentId\":\"agent_001\",\"cost\":null,\"currency\":\"USD\",\"enforcedBeforeCall\":true,\"enforcementProof\":{\"budgetRemaining\":\"0.00000000\",\"killSwitch\":\"ACTIVE\",\"preReserveRows\":0},\"estimatedCost\":\"0.01250000\",\"model\":\"claude-opus-4-8\",\"organizationId\":\"org_genesis\",\"policyId\":\"IMPLICIT_BUDGET_KILLSWITCH_v1\",\"prevHash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"provider\":\"anthropic\",\"schemaVersion\":1,\"sequence\":1,\"timestamp\":\"2026-06-19T12:35:01.000Z\",\"verdict\":\"BLOCKED\"}",
+      "recordHash": "b1d2a099414b55ad56bdd92ce682a80c039e01c2ea510f24619a643beb94eb8d"
+    },
+    {
+      "name": "rerouted_caller_fallback",
+      "record": {
+        "schemaVersion": 1,
+        "sequence": 2,
+        "prevHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "organizationId": "org_genesis",
+        "agentId": "agent_002",
+        "actorAuthorizer": null,
+        "policyId": "IMPLICIT_BUDGET_KILLSWITCH_v1",
+        "verdict": "REROUTED",
+        "provider": "gemini",
+        "model": "gemini-3.5-flash",
+        "currency": "USD",
+        "estimatedCost": "0.00010000",
+        "cost": "0.00009500",
+        "timestamp": "2026-06-19T12:35:09.250Z",
+        "enforcedBeforeCall": true,
+        "enforcementProof": {
+          "killSwitch": "INACTIVE",
+          "preReserveRows": 1,
+          "callerInfluencedReroute": true,
+          "fallbackProvider": "gemini"
+        }
+      },
+      "canonical": "{\"actorAuthorizer\":null,\"agentId\":\"agent_002\",\"cost\":\"0.00009500\",\"currency\":\"USD\",\"enforcedBeforeCall\":true,\"enforcementProof\":{\"callerInfluencedReroute\":true,\"fallbackProvider\":\"gemini\",\"killSwitch\":\"INACTIVE\",\"preReserveRows\":1},\"estimatedCost\":\"0.00010000\",\"model\":\"gemini-3.5-flash\",\"organizationId\":\"org_genesis\",\"policyId\":\"IMPLICIT_BUDGET_KILLSWITCH_v1\",\"prevHash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"provider\":\"gemini\",\"schemaVersion\":1,\"sequence\":2,\"timestamp\":\"2026-06-19T12:35:09.250Z\",\"verdict\":\"REROUTED\"}",
+      "recordHash": "409c857202c9a84edddc714fa73a355b9a3e718f03cfe6a1f0cd1384cd8af3ed"
+    },
+    {
+      "name": "escaping_unicode",
+      "record": {
+        "schemaVersion": 1,
+        "sequence": 3,
+        "prevHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "organizationId": "org_\"quote\"_\\slash",
+        "agentId": "agent_\tTAB_\nNL",
+        "actorAuthorizer": "café_漢字_😀",
+        "policyId": "IMPLICIT_BUDGET_KILLSWITCH_v1",
+        "verdict": "CAPPED",
+        "provider": "deepseek",
+        "model": "deepseek-v4",
+        "currency": "USD",
+        "estimatedCost": "1.00000000",
+        "cost": "0.99999999",
+        "timestamp": "2026-06-19T12:35:30.001Z",
+        "enforcedBeforeCall": true,
+        "enforcementProof": {
+          "note": "unit\u0001separator",
+          "ok": false
+        }
+      },
+      "canonical": "{\"actorAuthorizer\":\"café_漢字_😀\",\"agentId\":\"agent_\\tTAB_\\nNL\",\"cost\":\"0.99999999\",\"currency\":\"USD\",\"enforcedBeforeCall\":true,\"enforcementProof\":{\"note\":\"unit\\u0001separator\",\"ok\":false},\"estimatedCost\":\"1.00000000\",\"model\":\"deepseek-v4\",\"organizationId\":\"org_\\\"quote\\\"_\\\\slash\",\"policyId\":\"IMPLICIT_BUDGET_KILLSWITCH_v1\",\"prevHash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"provider\":\"deepseek\",\"schemaVersion\":1,\"sequence\":3,\"timestamp\":\"2026-06-19T12:35:30.001Z\",\"verdict\":\"CAPPED\"}",
+      "recordHash": "e2408e114ff3ea67a98f1692f2b123362085c90c0728c14e9721ee747c823f1b"
+    }
+  ],
+  "signing": {
+    "seedHex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "publicKeyRawHex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+    "keyId": "ed25519-56475aa75463474c",
+    "recordHashHex": "de30790b123b24d611afdd1a540b752e9fb66f24269d7b6745013323c298b2b1",
+    "signatureHex": "04c514e9304b70d87d4b7348aaeec3a548b3312dfce41d0761409daae39acb9d2215204846b6253a5dd0b9467c1207c6cf97b4df94a25d4f8aeb6c18d0476d0f"
+  }
+}
