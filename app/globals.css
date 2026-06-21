@@ -413,11 +413,16 @@ a {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+@keyframes wa-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 .wa-aurora { animation: wa-aurora 18s ease-in-out infinite; will-change: transform; }
 .wa-aurora-2 { animation: wa-aurora 22s ease-in-out infinite reverse; will-change: transform; }
 .wa-aurora-3 { animation: wa-aurora 26s ease-in-out infinite; will-change: transform; }
 .wa-float { animation: wa-float 7s ease-in-out infinite; }
+.wa-pop { animation: wa-pop 0.14s cubic-bezier(0.22,1,0.36,1) both; }
 .wa-blink { animation: wa-blink 1.6s ease-in-out infinite; }
 .wa-rise { animation: wa-rise 0.7s cubic-bezier(0.22,1,0.36,1) both; }
 .wa-rise-2 { animation: wa-rise 0.7s cubic-bezier(0.22,1,0.36,1) 0.08s both; }

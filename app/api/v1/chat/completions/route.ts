@@ -7,7 +7,7 @@ export function OPTIONS() {
 
 const FASTAPI_GATEWAY =
   process.env.NEXT_PUBLIC_GATEWAY_URL ||
-  "https://your-render-api-url.com/api/v1/chat/completions";
+  "https://whoai-api.onrender.com/api/v1/chat/completions";
 
 export async function POST() {
   return NextResponse.json(

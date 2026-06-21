@@ -28,7 +28,7 @@ export default async function AlertsPage() {
           <p className="mt-1.5 text-[15px] text-[#666666]">Monitor budget thresholds, token spikes, and runaway agents.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-[#FAF7F3] border border-[#EEE8E2] px-3 py-2.5 rounded-md shadow-sm text-[13px] font-medium text-[#111111] hover:bg-[#FAF7F3] transition-colors">
+          <button className="flex items-center gap-2 bg-[#FAF7F3] border border-[#EEE8E2] px-3 py-2.5 rounded-md shadow-sm text-[13px] font-medium text-[#111111] hover:bg-[#F0EBE5] hover:border-[#DCD5CD] transition-colors">
             <Filter className="h-4 w-4 text-[#888888]" />
             Filters
           </button>

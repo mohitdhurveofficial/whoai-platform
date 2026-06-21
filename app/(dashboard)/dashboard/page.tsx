@@ -28,9 +28,6 @@ function EmptyChart({ label }: { label: string }) {
   );
 }
 
-const money = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
-
 export default async function DashboardPage() {
   const auth = await getServerAuthContext();
   if (!auth) redirect("/login");
@@ -53,7 +50,7 @@ export default async function DashboardPage() {
   const hasSpend = summary.totalSpend > 0;
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 p-6 text-[#111111] md:p-10">
+    <div className="space-y-8 pb-10 text-[#111111]">
       <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight">Dashboard</h1>
@@ -63,7 +60,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/usage"
-          className="inline-flex items-center justify-center rounded-lg bg-[#FF6B00] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(255,107,0,0.5)] transition-colors hover:bg-[#E85F00]"
+          className="inline-flex items-center justify-center rounded-lg bg-[#FF6B00] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(255,107,0,0.5)] transition-colors hover:bg-[#E65A00]"
         >
           Usage Explorer
         </Link>
@@ -95,14 +92,14 @@ export default async function DashboardPage() {
               </div>
               <div className="text-right">
                 <p className="text-[11px] text-[#888888]">Confidence</p>
-                <p className="text-[18px] font-bold">{Math.round((1 - forecast.confidence) * 100)}%</p>
+                <p className="text-[18px] font-bold">{Math.round(Math.max(0, Math.min(1, 1 - forecast.confidence)) * 100)}%</p>
               </div>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#FF6B00]/15 pt-4">
             <Link
               href="/agents"
-              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00]"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E65A00]"
             >
               Review budget guardrails <ArrowRight className="h-3.5 w-3.5" />
             </Link>

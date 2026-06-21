@@ -82,7 +82,7 @@ export default function CreateAgentPage() {
               {error.code === "PLAN_LIMIT_REACHED" && (
                 <Link
                   href="/billing"
-                  className="inline-flex items-center gap-1.5 rounded-md bg-[#FF6B00] px-3 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#E85F00]"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[#FF6B00] px-3 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#E65A00]"
                 >
                   Upgrade plan <ArrowRight className="h-3.5 w-3.5" />
                 </Link>

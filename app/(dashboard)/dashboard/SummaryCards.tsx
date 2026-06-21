@@ -13,11 +13,13 @@ function KpiCard({
   value,
   detail,
   icon,
+  loading,
 }: {
   label: string;
   value: string;
   detail: string;
   icon: React.ReactNode;
+  loading?: boolean;
 }) {
   return (
     <div className="group rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-all duration-200 hover:border-[#FFD9C2] hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
@@ -27,7 +29,13 @@ function KpiCard({
         </span>
         <div className="rounded-lg bg-[#FFF1E8] p-2 text-[#FF6B00]">{icon}</div>
       </div>
-      <div className="mt-5 text-3xl font-bold tracking-tight tabular-nums text-[#111111]">{value}</div>
+      <div className="mt-5 text-3xl font-bold tracking-tight tabular-nums text-[#111111]">
+        {loading ? (
+          <div className="h-8 w-28 animate-pulse rounded-md bg-[#F0EBE5]" />
+        ) : (
+          value
+        )}
+      </div>
       <div className="mt-2 text-[13px] text-[#666666]">{detail}</div>
     </div>
   );
@@ -79,39 +87,45 @@ export function SummaryCards() {
     <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       <KpiCard
         label="Total Spend"
-        value={loading ? "..." : money(data.totalSpend)}
+        value={money(data.totalSpend)}
         detail="Lifetime organization spend"
         icon={<DollarSign className="h-4 w-4" />}
+        loading={loading}
       />
       <KpiCard
         label="Budget Remaining"
-        value={loading ? "..." : data.budgetRemaining === null ? "∞" : money(data.budgetRemaining)}
+        value={data.budgetRemaining === null ? "∞" : money(data.budgetRemaining)}
         detail="of organization budget"
         icon={<Wallet className="h-4 w-4" />}
+        loading={loading}
       />
       <KpiCard
         label="Total Requests"
-        value={loading ? "..." : numberFormat(data.totalRequests)}
+        value={numberFormat(data.totalRequests)}
         detail="Lifetime API requests"
         icon={<Activity className="h-4 w-4" />}
+        loading={loading}
       />
       <KpiCard
         label="Total Tokens"
-        value={loading ? "..." : numberFormat(data.totalTokens)}
+        value={numberFormat(data.totalTokens)}
         detail="Tokens processed"
         icon={<Database className="h-4 w-4" />}
+        loading={loading}
       />
       <KpiCard
         label="Active Agents"
-        value={loading ? "..." : numberFormat(data.activeAgents)}
+        value={numberFormat(data.activeAgents)}
         detail="Agents with ACTIVE status"
         icon={<Bot className="h-4 w-4" />}
+        loading={loading}
       />
       <KpiCard
         label="Active Alerts"
-        value={loading ? "..." : numberFormat(data.activeAlerts)}
+        value={numberFormat(data.activeAlerts)}
         detail="requiring attention"
         icon={<AlertTriangle className="h-4 w-4 text-[#FF6B00]" />}
+        loading={loading}
       />
     </section>
   );

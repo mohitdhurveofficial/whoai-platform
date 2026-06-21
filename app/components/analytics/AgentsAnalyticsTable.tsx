@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Edit2, Eye, MoreVertical, Pause, Play, Search, Trash2 } from "lucide-react";
 import type { AgentAnalyticsRow } from "@/lib/analytics/types";
@@ -14,6 +14,27 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
   const [model, setModel] = useState("ALL");
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const menuRef = useRef<HTMLTableCellElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(null);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(null);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   const models = useMemo(
     () => Array.from(new Set(agents.map((agent) => agent.model).filter(Boolean))).sort() as string[],
@@ -107,12 +128,12 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
                   <td className="px-5 py-4 text-right text-[#666666]">
                     {agent.lastActivity ? new Date(agent.lastActivity).toLocaleString() : "Never"}
                   </td>
-                  <td className="relative px-5 py-4 text-right">
-                    <button onClick={() => setOpen(open === agent.id ? null : agent.id)} className="rounded-md p-1.5 text-[#888888] hover:bg-[#FAF7F3] hover:text-[#111111] transition-colors" aria-label="Open actions">
+                  <td className="relative px-5 py-4 text-right" ref={open === agent.id ? menuRef : null}>
+                    <button onClick={() => setOpen(open === agent.id ? null : agent.id)} aria-haspopup="menu" aria-expanded={open === agent.id} className="rounded-md p-1.5 text-[#888888] hover:bg-[#FAF7F3] hover:text-[#111111] transition-colors" aria-label="Open actions">
                       <MoreVertical className="h-4 w-4" />
                     </button>
                     {open === agent.id && (
-                      <div className="absolute right-8 top-10 z-10 w-36 rounded-md border border-[#EEE8E2] bg-white py-1 text-left shadow-2xl">
+                      <div role="menu" className="wa-pop absolute right-8 top-10 z-10 w-36 origin-top-right rounded-md border border-[#EEE8E2] bg-white py-1 text-left shadow-2xl">
                         <Link href={`/agents/${agent.id}`} className="flex items-center gap-2 px-3 py-2 text-[#666666] hover:bg-[#FAF7F3] hover:text-[#111111] transition-colors">
                           <Eye className="h-3.5 w-3.5" /> View
                         </Link>
@@ -138,8 +159,17 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
               ))}
               {!visibleAgents.length && (
                 <tr>
-                  <td colSpan={11} className="px-5 py-12 text-center text-[#666666]">
-                    No agents match the selected filters.
+                  <td colSpan={11} className="px-5 py-14 text-center">
+                    {agents.length === 0 ? (
+                      <>
+                        <p className="text-[15px] font-semibold text-[#111111]">No agents yet</p>
+                        <p className="mt-1 text-[13px] text-[#666666]">
+                          Create your first agent to start tracking spend and activity.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-[13px] text-[#666666]">No agents match the selected filters.</p>
+                    )}
                   </td>
                 </tr>
               )}

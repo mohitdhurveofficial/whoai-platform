@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const GATEWAY_URL =
   process.env.NEXT_PUBLIC_GATEWAY_URL ||
-  "https://your-render-api-url.com/api/v1/chat/completions";
+  "https://whoai-api.onrender.com/api/v1/chat/completions";
 
 const curlExample = `curl ${GATEWAY_URL} \\
   -H "Authorization: Bearer $WHOAI_AGENT_TOKEN" \\

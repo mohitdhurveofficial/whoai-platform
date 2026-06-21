@@ -75,7 +75,7 @@ export default function QuickstartPage() {
             <p className="text-[15px] text-[#666666]">
               Update your AI agent configuration to route requests through the WHOAI FastAPI gateway:
               <br />
-              <code className="bg-[#FAF7F3] px-1 py-0.5 rounded text-[13px]">https://your-render-api-url.com/api/v1/chat/completions</code>
+              <code className="bg-[#FAF7F3] px-1 py-0.5 rounded text-[13px]">https://whoai-api.onrender.com/api/v1/chat/completions</code>
               <br />
               Pass your agent JWT as the Bearer token. The provider and model go in the request body; WHOAI injects your BYOK provider keys securely.
             </p>

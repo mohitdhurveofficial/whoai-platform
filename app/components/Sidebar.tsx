@@ -24,9 +24,16 @@ const navItems = [
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
-export default function Sidebar() {
+export type SidebarUser = {
+  name: string;
+  plan: string;
+  initials: string;
+};
+
+export default function Sidebar({ user }: { user?: SidebarUser }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const account = user ?? { name: "Account", plan: "Not signed in", initials: "—" };
 
   return (
     <>
@@ -80,12 +87,12 @@ export default function Sidebar() {
 
         <div className="border-t border-[#EEE8E2] p-4 bg-white">
           <div className="mb-4 flex items-center gap-3 px-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FAF7F3] border border-[#EEE8E2] text-[12px] text-[#111111] font-bold">
-              U
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FAF7F3] border border-[#EEE8E2] text-[12px] text-[#111111] font-bold uppercase">
+              {account.initials}
             </div>
-            <div className="flex flex-col">
-              <span className="text-[13px] font-semibold text-[#111111]">Current User</span>
-              <span className="text-[11px] text-[#666666]">Pro Plan</span>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-[13px] font-semibold text-[#111111]">{account.name}</span>
+              <span className="truncate text-[11px] text-[#666666]">{account.plan}</span>
             </div>
           </div>
 

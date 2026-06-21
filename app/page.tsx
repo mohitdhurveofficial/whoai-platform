@@ -103,7 +103,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="hidden text-[14px] font-medium text-[#425466] transition-colors hover:text-[#0A2540] sm:block">Sign in</Link>
-            <Link href="/auth/signup" className="rounded-lg bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white transition-colors hover:bg-[#E85F00]">Start free</Link>
+            <Link href="/auth/signup" className="rounded-lg bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white transition-colors hover:bg-[#E65A00]">Start free</Link>
           </div>
         </div>
       </nav>
@@ -365,7 +365,7 @@ export default function LandingPage() {
               ))}
             </Stagger>
             <Reveal delay={0.1} className="mt-9 text-center">
-              <Link href="/security" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00]">
+              <Link href="/security" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E65A00]">
                 Read about our security <ArrowRight className="h-4 w-4" />
               </Link>
             </Reveal>
@@ -419,7 +419,7 @@ export default function LandingPage() {
             <h2 className="mt-6 text-[40px] font-bold leading-[1.1] tracking-[-0.02em] text-white sm:text-[54px]">Take control of your AI spend today.</h2>
             <p className="mx-auto mt-6 max-w-[520px] text-[18px] leading-relaxed text-white/70">Real-time cost, hard budget enforcement, and a kill switch for runaway agents. Set up in 5 minutes.</p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <MagneticButton href="/auth/signup" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white shadow-[0_12px_30px_rgba(255,107,0,0.35)] transition-colors hover:bg-[#E85F00] sm:w-auto">
+              <MagneticButton href="/auth/signup" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white shadow-[0_12px_30px_rgba(255,107,0,0.35)] transition-colors hover:bg-[#E65A00] sm:w-auto">
                 Start free <ArrowRight className="h-4 w-4" />
               </MagneticButton>
               <MagneticButton href="/teardown" className="inline-flex w-full items-center justify-center rounded-lg border border-white/20 bg-white/5 px-8 py-4 text-[16px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/10 sm:w-auto">
