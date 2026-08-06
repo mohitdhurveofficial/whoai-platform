@@ -6,6 +6,7 @@ import jwt
 import pytest
 from fastapi.testclient import TestClient
 
+from conftest import FakeSession
 from database.models import ActivityLog, Agent, Alert, Organization
 from database.session import get_db
 from runtime.budget.budget_service import (
@@ -130,32 +131,22 @@ def test_dashboard_calculations():
 
 
 def test_gateway_blocking(monkeypatch):
+    """An agent whose daily budget is spent is rejected with 402 before any
+    provider is contacted."""
     token = jwt.encode({"sub": "agent-1", "org": "org-1"}, gateway.GATEWAY_SECRET, algorithm="HS256")
-    fake_db = MagicMock()
-    fake_db.execute = AsyncMock(side_effect=[
-        MagicMock(scalar_one_or_none=MagicMock(return_value=_agent())),
-        MagicMock(scalar_one_or_none=MagicMock(return_value=_organization())),
-    ])
-    fake_db.add = MagicMock()
-    fake_db.commit = AsyncMock()
+    fake_db = FakeSession(
+        agent=_agent(currentDailySpend=Decimal("10")),
+        organization=_organization(),
+        agent_reserved=False,
+    )
 
     async def override_db():
         yield fake_db
-
-    # The gateway request path enforces budgets via atomic pre-reservation, not
-    # the check_*_budget helpers. Simulate the agent's daily reservation failing.
-    async def blocked_agent_reserve(_db, _agent_id, _cost):
-        return False
-
-    async def allowed_org_reserve(_db, _org_id, _cost):
-        return True
 
     async def provider_called(*_args, **_kwargs):
         raise AssertionError("Provider must not be called when budget is exceeded")
 
     app.dependency_overrides[get_db] = override_db
-    monkeypatch.setattr(gateway, "pre_reserve_agent_budget", blocked_agent_reserve)
-    monkeypatch.setattr(gateway, "pre_reserve_org_budget", allowed_org_reserve)
     monkeypatch.setattr(httpx.AsyncClient, "post", provider_called)
 
     try:

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Sidebar, { type SidebarUser } from "../components/Sidebar";
-import { getServerAuthContext } from "@/lib/server/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerAuthContext } from "@/lib/server/auth";
+import { normalizeTier, planConfig } from "@/lib/subscription";
 
 // The authenticated app should never be indexed by search engines.
 export const metadata: Metadata = {
@@ -15,6 +16,15 @@ function initialsFrom(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+/**
+ * Resolve who is actually signed in and what they are actually paying for.
+ *
+ * Done here rather than fetched from the client because getServerAuthContext
+ * handles both the JWT cookie and the Supabase session, whereas /api/auth/me
+ * reads only the JWT — a Supabase-authenticated user would get a blank sidebar.
+ * The sidebar previously hardcoded "Current User / Pro Plan", which contradicted
+ * the billing page and the quota the gateway actually enforces.
+ */
 async function getSidebarUser(): Promise<SidebarUser | undefined> {
   const auth = await getServerAuthContext().catch(() => null);
   if (!auth?.userId) return undefined;
@@ -32,10 +42,12 @@ async function getSidebarUser(): Promise<SidebarUser | undefined> {
   if (!user) return undefined;
 
   const name = user.fullName?.trim() || user.email.split("@")[0];
-  const tier = user.organization?.subscriptionTier ?? "FREE";
-  const plan = `${tier.charAt(0).toUpperCase()}${tier.slice(1).toLowerCase()} Plan`;
+  // Label comes from plans.json via planConfig rather than being re-cased from
+  // the enum here, so the sidebar cannot drift from the tier the gateway
+  // actually enforces quota against.
+  const plan = `${planConfig(normalizeTier(user.organization?.subscriptionTier)).label} Plan`;
 
-  return { name, plan, initials: initialsFrom(name) };
+  return { name, plan, initials: initialsFrom(name), email: user.email };
 }
 
 export default async function DashboardLayout({

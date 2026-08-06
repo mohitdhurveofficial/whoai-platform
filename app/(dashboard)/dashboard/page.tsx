@@ -49,6 +49,9 @@ export default async function DashboardPage() {
 
   const hasSpend = summary.totalSpend > 0;
 
+  // The dashboard layout already supplies the page container and padding;
+  // re-applying them here doubled the desktop padding versus every sibling page
+  // and made the max-width dead (it nests inside a narrower one).
   return (
     <div className="space-y-8 pb-10 text-[#111111]">
       <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -92,7 +95,7 @@ export default async function DashboardPage() {
               </div>
               <div className="text-right">
                 <p className="text-[11px] text-[#888888]">Confidence</p>
-                <p className="text-[18px] font-bold">{Math.round(Math.max(0, Math.min(1, 1 - forecast.confidence)) * 100)}%</p>
+                <p className="text-[18px] font-bold">{Math.round(forecast.confidence * 100)}%</p>
               </div>
             </div>
           </div>

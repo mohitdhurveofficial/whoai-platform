@@ -96,7 +96,7 @@ export default function EditAgentPage() {
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] outline-none focus:border-[#111111] transition-colors"
+            className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] transition-colors focus-visible:border-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30"
           />
         </div>
 
@@ -105,7 +105,7 @@ export default function EditAgentPage() {
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] outline-none focus:border-[#111111] transition-colors"
+            className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] transition-colors focus-visible:border-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30"
           >
             <option value="ACTIVE">ACTIVE</option>
             <option value="PAUSED">PAUSED</option>
@@ -123,7 +123,7 @@ export default function EditAgentPage() {
               min="0.01"
               value={formData.dailyBudget}
               onChange={(e) => setFormData({ ...formData, dailyBudget: e.target.value })}
-              className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] outline-none focus:border-[#111111] transition-colors"
+              className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] transition-colors focus-visible:border-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30"
             />
           </div>
 
@@ -136,7 +136,7 @@ export default function EditAgentPage() {
               min="0.01"
               value={formData.monthlyBudget}
               onChange={(e) => setFormData({ ...formData, monthlyBudget: e.target.value })}
-              className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] outline-none focus:border-[#111111] transition-colors"
+              className="w-full px-3 py-2 bg-white border border-[#DCD5CD] rounded-md text-[14px] transition-colors focus-visible:border-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30"
             />
           </div>
         </div>

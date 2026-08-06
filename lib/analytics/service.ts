@@ -55,40 +55,6 @@ function lastNDays(days: number): { start: Date; points: SpendByDayPoint[] } {
   return { start, points };
 }
 
-function buildSpendWhere(organizationId: string, filters: UsageFilters = {}) {
-  return {
-    organizationId,
-    ...(filters.from || filters.to
-      ? {
-          createdAt: {
-            ...(filters.from ? { gte: filters.from } : {}),
-            ...(filters.to ? { lte: filters.to } : {}),
-          },
-        }
-      : {}),
-    ...(filters.agentId ? { agentId: filters.agentId } : {}),
-    ...(filters.model ? { model: filters.model } : {}),
-    ...(filters.provider ? { provider: filters.provider } : {}),
-  };
-}
-
-function buildRequestWhere(organizationId: string, filters: UsageFilters = {}) {
-  return {
-    organizationId,
-    ...(filters.from || filters.to
-      ? {
-          timestamp: {
-            ...(filters.from ? { gte: filters.from } : {}),
-            ...(filters.to ? { lte: filters.to } : {}),
-          },
-        }
-      : {}),
-    ...(filters.agentId ? { agentId: filters.agentId } : {}),
-    ...(filters.model ? { model: filters.model } : {}),
-    ...(filters.provider ? { provider: filters.provider } : {}),
-  };
-}
-
 export async function getDashboardSummary(organizationId: string): Promise<DashboardSummary> {
   const today = startOfUtcDay(new Date());
 
@@ -288,33 +254,33 @@ export async function getUsageSummary(
   organizationId: string,
   filters: UsageFilters = {},
 ): Promise<UsageSummary> {
-  const reqWhere = buildRequestWhere(organizationId, filters);
-  const spendWhere = buildSpendWhere(organizationId, filters);
+  // WHERE clauses are assembled from Prisma.sql fragments, never from string
+  // concatenation: `model` / `provider` / `agentId` arrive straight off the
+  // query string, so interpolating them into SQL text would be injectable — and
+  // an unquoted id like `org_abc` isn't even valid SQL to begin with.
+  const reqConditions: Prisma.Sql[] = [Prisma.sql`"organizationId" = ${organizationId}`];
+  if (filters.from) reqConditions.push(Prisma.sql`"timestamp" >= ${filters.from}`);
+  if (filters.to) reqConditions.push(Prisma.sql`"timestamp" <= ${filters.to}`);
+  if (filters.agentId) reqConditions.push(Prisma.sql`"agentId" = ${filters.agentId}`);
+  if (filters.model) reqConditions.push(Prisma.sql`"model" = ${filters.model}`);
+  if (filters.provider) reqConditions.push(Prisma.sql`"provider" = ${filters.provider}`);
+  const reqWhereClause = Prisma.join(reqConditions, " AND ");
 
-  // Build raw WHERE clauses for the two tables
-  const reqConditions: string[] = [`"organizationId" = ${organizationId}`];
-  if (filters.from) reqConditions.push(`"timestamp" >= ${filters.from.toISOString()}::timestamp`);
-  if (filters.to) reqConditions.push(`"timestamp" <= ${filters.to.toISOString()}::timestamp`);
-  if (filters.agentId) reqConditions.push(`"agentId" = ${filters.agentId}`);
-  if (filters.model) reqConditions.push(`"model" = ${filters.model}`);
-  if (filters.provider) reqConditions.push(`"provider" = ${filters.provider}`);
-  const reqWhereClause = reqConditions.join(" AND ");
+  const spendConditions: Prisma.Sql[] = [Prisma.sql`"organizationId" = ${organizationId}`];
+  if (filters.from) spendConditions.push(Prisma.sql`"createdAt" >= ${filters.from}`);
+  if (filters.to) spendConditions.push(Prisma.sql`"createdAt" <= ${filters.to}`);
+  if (filters.agentId) spendConditions.push(Prisma.sql`"agentId" = ${filters.agentId}`);
+  if (filters.model) spendConditions.push(Prisma.sql`"model" = ${filters.model}`);
+  if (filters.provider) spendConditions.push(Prisma.sql`"provider" = ${filters.provider}`);
+  const spendWhereClause = Prisma.join(spendConditions, " AND ");
 
-  const spendConditions: string[] = [`"organizationId" = ${organizationId}`];
-  if (filters.from) spendConditions.push(`"createdAt" >= ${filters.from.toISOString()}::timestamp`);
-  if (filters.to) spendConditions.push(`"createdAt" <= ${filters.to.toISOString()}::timestamp`);
-  if (filters.agentId) spendConditions.push(`"agentId" = ${filters.agentId}`);
-  if (filters.model) spendConditions.push(`"model" = ${filters.model}`);
-  if (filters.provider) spendConditions.push(`"provider" = ${filters.provider}`);
-  const spendWhereClause = spendConditions.join(" AND ");
-
-  const metricsConditions: string[] = [`"organizationId" = ${organizationId}`];
+  const metricsConditions: Prisma.Sql[] = [Prisma.sql`"organizationId" = ${organizationId}`];
   if (filters.from || filters.to) {
-    metricsConditions.push(`"date" >= ${startOfUtcDay(filters.from ?? new Date(0)).toISOString()}::timestamp`);
-    if (filters.to) metricsConditions.push(`"date" <= ${startOfUtcDay(filters.to).toISOString()}::timestamp`);
+    metricsConditions.push(Prisma.sql`"date" >= ${startOfUtcDay(filters.from ?? new Date(0))}`);
+    if (filters.to) metricsConditions.push(Prisma.sql`"date" <= ${startOfUtcDay(filters.to)}`);
   }
-  if (filters.agentId) metricsConditions.push(`"agentId" = ${filters.agentId}`);
-  const metricsWhereClause = metricsConditions.join(" AND ");
+  if (filters.agentId) metricsConditions.push(Prisma.sql`"agentId" = ${filters.agentId}`);
+  const metricsWhereClause = Prisma.join(metricsConditions, " AND ");
 
   const [row] = await prisma.$queryRaw<
     Array<{
@@ -330,19 +296,19 @@ export async function getUsageSummary(
       reqs AS (
         SELECT COUNT(*) AS cnt, COALESCE(AVG("latencyMs"), 0) AS lat
         FROM "RequestLog"
-        WHERE ${Prisma.raw(reqWhereClause)}
+        WHERE ${reqWhereClause}
       ),
       spend AS (
         SELECT COALESCE(SUM("cost"), 0) AS val
         FROM "SpendLog"
-        WHERE ${Prisma.raw(spendWhereClause)}
+        WHERE ${spendWhereClause}
       ),
       metrics AS (
         SELECT COALESCE(SUM("totalTokens"), 0) AS tok,
                COALESCE(SUM("totalCost"), 0) AS cost,
                COALESCE(SUM("totalRequests"), 0) AS req
         FROM "UsageMetrics"
-        WHERE ${Prisma.raw(metricsWhereClause)}
+        WHERE ${metricsWhereClause}
       )
     SELECT
       reqs.cnt AS total_requests,

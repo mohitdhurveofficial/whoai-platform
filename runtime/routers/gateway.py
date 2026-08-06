@@ -22,6 +22,7 @@ from runtime.telemetry.activity_logger import log_activity, ActivityAction
 from runtime.telemetry.metrics_service import update_daily_metrics
 from runtime.telemetry.anomaly_detector import detect_anomalies
 from runtime.budget.budget_service import (
+    AGENT_DAILY_LIMIT_EXCEEDED, ORG_DAILY_LIMIT_EXCEEDED,
     check_agent_budget, check_org_budget,
     pre_reserve_agent_budget, pre_reserve_org_budget,
     adjust_agent_budget, adjust_org_budget,
@@ -34,6 +35,12 @@ from runtime.killswitch.kill_switch_service import (
     check_org_state,
     pause_agent,
     pause_organization,
+)
+from runtime.entitlements.plans import monthly_request_quota, normalize_tier
+from runtime.entitlements.quota_service import (
+    PLAN_REQUEST_QUOTA_EXCEEDED,
+    release_request_quota,
+    reserve_request_quota,
 )
 
 from runtime.providers.provider_factory import ProviderFactory
@@ -202,6 +209,9 @@ async def format_stream_response(
                 else:
                     await release_agent_budget(telemetry_db, agent_id, estimated_cost)
                     await release_org_budget(telemetry_db, org_id, estimated_cost)
+                    # A stream that broke or was cancelled shouldn't burn a
+                    # request from the customer's monthly plan allowance.
+                    await release_request_quota(telemetry_db, org_id)
 
                 await log_request(telemetry_db, agent_id, org_id, provider, model, payload_size, status_code, latency_ms, request_ip)
                 await log_spend(telemetry_db, org_id, agent_id, provider, model, tokens_in, tokens_out, total_tokens, cost)
@@ -295,6 +305,30 @@ async def unified_chat_completions(
             content={"error": org_state_decision["error"], "reason": org_state_decision["reason"]},
         )
 
+    # ── Plan Request Quota ──
+    # Checked before the budget reservation so an over-quota request costs one
+    # UPDATE and needs nothing rolled back. 402 (not 429) is deliberate: this is
+    # a plan entitlement the customer can lift by upgrading, not a rate limit
+    # they should back off and retry against.
+    tier = normalize_tier(getattr(organization, "subscriptionTier", None))
+    quota = monthly_request_quota(tier)
+    if not await reserve_request_quota(db, org_id, quota):
+        await log_activity(
+            db, org_id, ActivityAction.REQUEST_BLOCKED, agent_id, "FAILURE",
+            {"reason": PLAN_REQUEST_QUOTA_EXCEEDED, "plan": tier, "monthlyRequests": quota},
+        )
+        await db.commit()
+        return JSONResponse(
+            status_code=402,
+            content={
+                "error": "Plan request quota exceeded",
+                "reason": PLAN_REQUEST_QUOTA_EXCEEDED,
+                "plan": tier,
+                "monthlyRequests": quota,
+                "upgradeUrl": "/billing",
+            },
+        )
+
     # ── Atomic Budget Pre-Reservation ──
     # Compute conservative estimate BEFORE execution so concurrent requests
     # can't all read the same pre-increment spend and blow past the cap.
@@ -302,24 +336,52 @@ async def unified_chat_completions(
 
     agent_reserved = await pre_reserve_agent_budget(db, agent_id, estimated_cost)
     if not agent_reserved:
+        # The reservation UPDATE only reports that *some* limit blocked it, so
+        # re-derive which one — that also records the BudgetViolation alert —
+        # then trip the kill switch. Pausing matters: without it every
+        # subsequent request pays for a full auth + reservation round-trip
+        # before being rejected, and the operator gets no signal that an agent
+        # has burned through its budget.
+        # Hand back the plan request reserved just above — the request never ran.
+        await release_request_quota(db, org_id)
+        decision = await check_agent_budget(db, agent, estimated_cost)
+        reason = decision["reason"] or AGENT_DAILY_LIMIT_EXCEEDED
+        await pause_agent(
+            db,
+            agent,
+            reason=_pause_reason_from_budget(reason),
+            budget_limit=decision.get("budgetLimit"),
+            current_spend=decision.get("currentSpend"),
+        )
         await log_activity(db, org_id, ActivityAction.BUDGET_EXCEEDED, agent_id, "FAILURE",
-                           {"reason": "AGENT_DAILY_LIMIT_EXCEEDED", "estimatedCost": str(estimated_cost)})
+                           {"reason": reason, "estimatedCost": str(estimated_cost)})
         await db.commit()
         return JSONResponse(
             status_code=402,
-            content={"error": "Budget exceeded", "reason": "AGENT_DAILY_LIMIT_EXCEEDED"},
+            content={"error": "Budget exceeded", "reason": reason},
         )
 
     org_reserved = await pre_reserve_org_budget(db, org_id, estimated_cost)
     if not org_reserved:
-        # Roll back agent reservation before rejecting
+        # Roll back the agent reservation and the plan request before rejecting
         await release_agent_budget(db, agent_id, estimated_cost)
+        await release_request_quota(db, org_id)
+        decision = await check_org_budget(db, organization, agent_id, estimated_cost)
+        reason = decision["reason"] or ORG_DAILY_LIMIT_EXCEEDED
+        await pause_organization(
+            db,
+            organization,
+            reason=_pause_reason_from_budget(reason),
+            budget_limit=decision.get("budgetLimit"),
+            current_spend=decision.get("currentSpend"),
+            agent_id=agent_id,
+        )
         await log_activity(db, org_id, ActivityAction.BUDGET_EXCEEDED, agent_id, "FAILURE",
-                           {"reason": "ORG_DAILY_LIMIT_EXCEEDED", "estimatedCost": str(estimated_cost)})
+                           {"reason": reason, "estimatedCost": str(estimated_cost)})
         await db.commit()
         return JSONResponse(
             status_code=402,
-            content={"error": "Budget exceeded", "reason": "ORG_DAILY_LIMIT_EXCEEDED"},
+            content={"error": "Budget exceeded", "reason": reason},
         )
 
     # Routing
@@ -376,19 +438,22 @@ async def unified_chat_completions(
                 asyncio.create_task(_run_anomaly_detection(org_id, agent_id))
                 return response
         except Exception as e:
-            # Request failed before completion — release the pre-reserved budget.
-            await release_agent_budget(db, agent_id, estimated_cost)
-            await release_org_budget(db, org_id, estimated_cost)
-            await db.commit()
+            # A failed attempt is NOT terminal: a fallback provider may still
+            # succeed, and its success path reconciles the reservation with
+            # adjust_*_budget, which assumes the estimate is still held. So the
+            # reservation is kept across attempts and released exactly once
+            # below, only if every provider fails. Releasing here instead would
+            # leave a fallback-served request charged `cost - estimate`.
             last_error = e
             continue
 
     # No provider had a usable BYOK key, and none was actually called. Fail
     # closed with a clear, actionable error instead of paying with WHOAI's keys.
-    # Release the pre-reserved budget since no LLM call was made.
+    # Release the pre-reserved budget and plan request since no LLM call was made.
     if last_error is None and missing_key_providers:
         await release_agent_budget(db, agent_id, estimated_cost)
         await release_org_budget(db, org_id, estimated_cost)
+        await release_request_quota(db, org_id)
         await log_activity(
             db, org_id, ActivityAction.REQUEST_FAILED, agent_id, "FAILURE",
             {"reason": "BYOK_KEY_MISSING", "providers": missing_key_providers},
@@ -404,10 +469,17 @@ async def unified_chat_completions(
             },
         )
 
-    # If all failed
+    # Every provider failed — this is the terminal path, so give back everything
+    # reserved up front. The commit is required: get_db() only closes the
+    # session, so raising without it would roll back the release and the audit
+    # trail for a request the customer was never served.
     latency_ms = int((time.time() - start_time) * 1000)
+    await release_agent_budget(db, agent_id, estimated_cost)
+    await release_org_budget(db, org_id, estimated_cost)
+    await release_request_quota(db, org_id)
     await log_request(db, agent_id, org_id, provider_name, model, payload_size, 502, latency_ms, ip_address)
     await log_activity(db, org_id, ActivityAction.PROVIDER_ERROR, agent_id, "FAILURE", {"reason": str(last_error)})
+    await db.commit()
     raise HTTPException(status_code=502, detail=f"Provider connection error: {str(last_error)}")
 
 @router.get("/providers/status")

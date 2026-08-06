@@ -261,21 +261,29 @@ export function PixelHero({
   useEffect(() => {
     if (typeof document === "undefined") return;
 
-    // Read the resolved brand colors so the canvas matches the theme tokens.
-    const div = document.createElement("div");
-    document.body.appendChild(div);
-    div.className = "text-muted-foreground";
-    const muted = getComputedStyle(div).color;
-    div.className = "text-primary";
-    const primary = getComputedStyle(div).color;
-    document.body.removeChild(div);
+    // Probing the theme happens off the effect's synchronous path: it appends a
+    // node and reads resolved styles, which forces layout, and committing the
+    // result inline would queue a second render before the first paint. The
+    // canvas is gated on themeColors being non-empty, so a frame's delay just
+    // means it fades in with the rest of the hero.
+    const probe = requestAnimationFrame(() => {
+      const div = document.createElement("div");
+      document.body.appendChild(div);
+      div.className = "text-muted-foreground";
+      const muted = getComputedStyle(div).color;
+      div.className = "text-primary";
+      const primary = getComputedStyle(div).color;
+      document.body.removeChild(div);
 
-    // Mostly muted gray with a subtle orange accent.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- brand colors must be read from the DOM after mount
-    setThemeColors([muted, muted, muted, muted, primary]);
+      // Mostly muted gray with a subtle orange accent.
+      setThemeColors([muted, muted, muted, muted, primary]);
+    });
 
     const loadTimer = setTimeout(() => setIsLoaded(true), 50);
-    return () => clearTimeout(loadTimer);
+    return () => {
+      cancelAnimationFrame(probe);
+      clearTimeout(loadTimer);
+    };
   }, []);
 
   return (

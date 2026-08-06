@@ -199,14 +199,20 @@ async def test_persisted_spend_is_visible_to_budget_sum(db_factory, monkeypatch)
 
 @pytest.mark.asyncio
 async def test_budget_blocks_after_spend_accumulates(db_factory, monkeypatch):
-    """End-to-end proof of Step 17: with a tiny daily budget, the first request
+    """End-to-end proof of Step 17: with a tight daily budget, the first request
     succeeds and persists spend; the second request is then blocked with HTTP
     402 because the persisted spend now exceeds the limit. This can only pass if
-    telemetry from request #1 was actually committed."""
-    # One gpt-4o request: ~0.0007 pre-reservation estimate, ~0.0035 actual cost
-    # (100 in * 0.005/1k + 200 out * 0.015/1k). A 0.002 daily budget admits the
-    # first request, whose committed spend (0.0035) then blocks the second.
-    org_id, agent_id = await _seed(db_factory, daily_budget=Decimal("0.002"))
+    telemetry from request #1 was actually committed.
+
+    The budget has to clear two bars, because enforcement reserves a conservative
+    estimate up front and reconciles to the actual cost afterwards:
+      · pre-request estimate  ≈ 0.0007  (payload/4 tokens in, 2x that out)
+      · actual gpt-4o cost    =  0.0035  (100 in * 0.005/1k + 200 out * 0.015/1k)
+    So it must be >= 0.0007 for request #1 to reserve, and < 0.0042
+    (0.0035 persisted + 0.0007 reserved) for request #2 to be refused. 0.004
+    sits between the two with margin on both sides.
+    """
+    org_id, agent_id = await _seed(db_factory, daily_budget=Decimal("0.004"))
 
     first = await _post_completion(db_factory, monkeypatch, "openai", agent_id, org_id)
     assert first.status_code == 200, first.text

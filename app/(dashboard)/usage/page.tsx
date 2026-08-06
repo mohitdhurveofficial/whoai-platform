@@ -9,6 +9,13 @@ import { prisma } from "@/lib/prisma";
 const money = (value: number) =>
   `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const filterLabelClass = "text-[11px] font-semibold uppercase tracking-wider text-[#888888]";
+// focus-visible (not focus) so a visible ring appears for keyboard users without
+// firing on every mouse click. A 1px border tint alone is not a discernible
+// focus indicator.
+const filterFieldClass =
+  "rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] transition-colors focus-visible:border-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30";
+
 function Metric({
   label,
   value,
@@ -70,28 +77,48 @@ export default async function UsagePage({
         </p>
       </header>
 
-      <form className="grid gap-3 rounded-2xl border border-[#EEE8E2] bg-white p-4 shadow-[0_1px_2px_rgba(17,17,17,0.05)] md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]">
-        <input name="from" type="date" defaultValue={urlParams.get("from") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors" />
-        <input name="to" type="date" defaultValue={urlParams.get("to") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors" />
-        <select name="agentId" defaultValue={urlParams.get("agentId") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors">
-          <option value="">All agents</option>
-          {agents.map((agent) => (
-            <option key={agent.id} value={agent.id}>{agent.name}</option>
-          ))}
-        </select>
-        <select name="model" defaultValue={urlParams.get("model") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors">
-          <option value="">All models</option>
-          {models.map((model) => (
-            <option key={model.model} value={model.model}>{model.model}</option>
-          ))}
-        </select>
-        <select name="provider" defaultValue={urlParams.get("provider") ?? ""} className="rounded-md border border-[#EEE8E2] bg-white px-3 py-2 text-[13px] font-medium text-[#111111] outline-none focus:border-[#FF6B00] transition-colors">
-          <option value="">All providers</option>
-          {providers.map((provider) => (
-            <option key={provider.provider} value={provider.provider}>{provider.provider}</option>
-          ))}
-        </select>
-        <button className="rounded-md bg-[#FF6B00] hover:bg-[#E65A00] transition-colors px-4 py-2 text-[13px] font-semibold text-white">Apply</button>
+      {/* Every control is labelled: the two date inputs are visually identical,
+          so without labels there is no way to tell the start of the range from
+          the end. */}
+      <form className="grid items-end gap-3 rounded-2xl border border-[#EEE8E2] bg-white p-4 shadow-[0_1px_2px_rgba(17,17,17,0.05)] md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filter-from" className={filterLabelClass}>From</label>
+          <input id="filter-from" name="from" type="date" defaultValue={urlParams.get("from") ?? ""} className={filterFieldClass} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filter-to" className={filterLabelClass}>To</label>
+          <input id="filter-to" name="to" type="date" defaultValue={urlParams.get("to") ?? ""} className={filterFieldClass} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filter-agent" className={filterLabelClass}>Agent</label>
+          <select id="filter-agent" name="agentId" defaultValue={urlParams.get("agentId") ?? ""} className={filterFieldClass}>
+            <option value="">All agents</option>
+            {agents.map((agent) => (
+              <option key={agent.id} value={agent.id}>{agent.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filter-model" className={filterLabelClass}>Model</label>
+          <select id="filter-model" name="model" defaultValue={urlParams.get("model") ?? ""} className={filterFieldClass}>
+            <option value="">All models</option>
+            {models.map((model) => (
+              <option key={model.model} value={model.model}>{model.model}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filter-provider" className={filterLabelClass}>Provider</label>
+          <select id="filter-provider" name="provider" defaultValue={urlParams.get("provider") ?? ""} className={filterFieldClass}>
+            <option value="">All providers</option>
+            {providers.map((provider) => (
+              <option key={provider.provider} value={provider.provider}>{provider.provider}</option>
+            ))}
+          </select>
+        </div>
+        <button className="rounded-md bg-[#FF6B00] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#E65A00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2">
+          Apply
+        </button>
       </form>
 
       {error && (

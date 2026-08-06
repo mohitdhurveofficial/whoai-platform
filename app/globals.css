@@ -380,6 +380,22 @@ a {
 }
 
 /* ============================================================
+ * Keyboard focus safety net.
+ *
+ * Components style their own focus-visible ring. This is the fallback for
+ * anything that doesn't, so a control can never end up with no visible focus
+ * indicator at all — the failure mode this replaces was `outline-none` paired
+ * with only a 1px border tint, which is not discernible.
+ *
+ * :focus-visible (not :focus) so the ring appears for keyboard and
+ * assistive-tech users without flashing on every mouse click.
+ * ========================================================== */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid #ff6b00;
+  outline-offset: 2px;
+}
+
+/* ============================================================
  * Premium motion + depth layer (dark marketing surface).
  * Ambient, CSS-only so pages stay server-rendered. Respects
  * prefers-reduced-motion.

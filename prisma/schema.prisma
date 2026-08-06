@@ -19,6 +19,10 @@ model Organization {
   monthlyBudget        Decimal              @default(0) @db.Decimal(18, 4)
   currentDailySpend    Decimal              @default(0) @db.Decimal(18, 4)
   currentMonthlySpend  Decimal              @default(0) @db.Decimal(18, 4)
+  // Plan request quota (plans.json → monthlyRequests). Incremented atomically
+  // by the gateway on every accepted request and zeroed by the reset-budgets
+  // cron on the 1st, alongside the monthly spend window.
+  currentMonthlyRequests Int                @default(0)
   pauseReason          String?
   pausedAt             DateTime?
   createdAt            DateTime             @default(now())
