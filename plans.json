@@ -1,0 +1,40 @@
+{
+  "_comment": "Single source of truth for subscription plan entitlements. Read by the Next.js control plane (lib/subscription.ts) and the Python runtime (runtime/entitlements/plans.py) alike, following the same shared-file pattern as pricing.json. `null` means unlimited. Keep in sync with the Stripe products these tiers map to — the pricing page, the billing UI, and the gateway's quota enforcement all derive from this file, so a value changed here changes what customers are sold AND what they are actually allowed to do.",
+  "plans": {
+    "FREE": {
+      "label": "Free",
+      "priceMonthly": 0,
+      "maxAgents": 2,
+      "monthlyRequests": 50000,
+      "retentionDays": 7
+    },
+    "STARTER": {
+      "label": "Starter",
+      "priceMonthly": 99,
+      "maxAgents": 10,
+      "monthlyRequests": 1000000,
+      "retentionDays": 30
+    },
+    "GROWTH": {
+      "label": "Growth",
+      "priceMonthly": 299,
+      "maxAgents": 50,
+      "monthlyRequests": 5000000,
+      "retentionDays": 90
+    },
+    "PRO": {
+      "label": "Pro",
+      "priceMonthly": 799,
+      "maxAgents": 200,
+      "monthlyRequests": 20000000,
+      "retentionDays": 180
+    },
+    "ENTERPRISE": {
+      "label": "Enterprise",
+      "priceMonthly": null,
+      "maxAgents": null,
+      "monthlyRequests": null,
+      "retentionDays": 365
+    }
+  }
+}

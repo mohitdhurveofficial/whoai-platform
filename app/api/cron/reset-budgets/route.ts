@@ -69,7 +69,12 @@ async function run(req: Request) {
 
     if (resetMonthly) {
       const a = await tx.agent.updateMany({ data: { currentMonthlySpend: 0 } });
-      const o = await tx.organization.updateMany({ data: { currentMonthlySpend: 0 } });
+      // The plan request quota shares the monthly window: rolling the spend
+      // counter without the request counter would leave an org that hit its
+      // plan limit blocked for the rest of the subscription's life.
+      const o = await tx.organization.updateMany({
+        data: { currentMonthlySpend: 0, currentMonthlyRequests: 0 },
+      });
       const ar = await tx.agent.updateMany({
         where: { status: "PAUSED", pausedBy: "SYSTEM", pauseReason: MONTHLY_BUDGET_EXCEEDED },
         data: { status: "ACTIVE", pauseReason: null, pausedAt: null, pausedBy: null },
@@ -80,6 +85,7 @@ async function run(req: Request) {
       });
       result.agentsMonthlyReset = a.count;
       result.orgsMonthlyReset = o.count;
+      result.orgsRequestQuotaReset = o.count;
       result.agentsMonthlyResumed = ar.count;
       result.orgsMonthlyResumed = or.count;
     }

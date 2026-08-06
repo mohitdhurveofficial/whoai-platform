@@ -35,6 +35,12 @@ class Organization(Base):
     pauseReason = Column(String, nullable=True)
     pausedAt = Column(DateTime, nullable=True)
 
+    # Subscription entitlements. The gateway reads subscriptionTier to resolve
+    # the plan's monthly request quota (runtime/entitlements/plans.py) and
+    # reserves against currentMonthlyRequests on every accepted request.
+    subscriptionTier = Column(String, default="FREE")
+    currentMonthlyRequests = Column(Integer, default=0, nullable=False)
+
     createdAt = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     updatedAt = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 

@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   canCreateAgent,
+  monthlyRequestQuota,
   normalizeTier,
   planConfig,
   planForPriceId,
   priceIdForTier,
+  retentionDays,
 } from "@/lib/subscription";
+import plansData from "@/plans.json";
 
 describe("canCreateAgent", () => {
   it("enforces the Starter limit (10)", () => {
@@ -52,6 +55,30 @@ describe("planConfig", () => {
   it("returns label + limit", () => {
     expect(planConfig("GROWTH")).toMatchObject({ label: "Growth", maxAgents: 50 });
     expect(planConfig("PRO")).toMatchObject({ label: "Pro", maxAgents: 200 });
+  });
+});
+
+describe("plans.json is the single source of truth", () => {
+  // The Python runtime enforces the request quota by reading the same file
+  // (runtime/entitlements/plans.py). If these ever came from a hand-copied
+  // table, a customer could be blocked at a limit they were never sold.
+  const raw = (plansData as { plans: Record<string, { monthlyRequests: number | null; retentionDays: number; maxAgents: number | null }> }).plans;
+
+  it("derives every enforced limit from the file", () => {
+    for (const [tier, limits] of Object.entries(raw)) {
+      expect(monthlyRequestQuota(tier)).toBe(limits.monthlyRequests);
+      expect(retentionDays(tier)).toBe(limits.retentionDays);
+    }
+  });
+
+  it("reports unlimited as null, not as a number a UI would render", () => {
+    expect(monthlyRequestQuota("ENTERPRISE")).toBeNull();
+    expect(planConfig("ENTERPRISE").monthlyRequests).toBe(Infinity);
+  });
+
+  it("falls back to the most restrictive plan for unknown tiers", () => {
+    expect(monthlyRequestQuota("bogus")).toBe(raw.FREE.monthlyRequests);
+    expect(retentionDays(null)).toBe(raw.FREE.retentionDays);
   });
 });
 

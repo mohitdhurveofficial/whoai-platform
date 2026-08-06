@@ -3,10 +3,22 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from sqlalchemy import func, select, text
+from sqlalchemy import Numeric, bindparam, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import ActivityLog, Agent, Alert, Organization, SpendLog
+
+
+# Money bind type for the raw-SQL budget statements below. Declaring it is not
+# optional: an undeclared Decimal bind is handed straight to the driver, which
+# asyncpg accepts but sqlite3 rejects ("type 'decimal.Decimal' is not
+# supported"). Typing the param lets SQLAlchemy adapt it per-dialect, matching
+# the Numeric(18, 4) spend/budget columns in database/models.py.
+MONEY = Numeric(18, 4)
+
+
+def _money_param(name: str) -> bindparam:
+    return bindparam(name, type_=MONEY)
 
 
 AGENT_DAILY_LIMIT_EXCEEDED = "AGENT_DAILY_LIMIT_EXCEEDED"
@@ -39,7 +51,7 @@ async def pre_reserve_agent_budget(db: AsyncSession, agent_id: str, estimated_co
             WHERE id = :id
               AND ("dailyBudget"   <= 0 OR "currentDailySpend"   + :est <= "dailyBudget")
               AND ("monthlyBudget" <= 0 OR "currentMonthlySpend" + :est <= "monthlyBudget")
-        '''),
+        ''').bindparams(_money_param("est")),
         {"id": agent_id, "est": estimated_cost},
     )
     return result.rowcount > 0
@@ -60,7 +72,7 @@ async def pre_reserve_org_budget(db: AsyncSession, org_id: str, estimated_cost: 
             WHERE id = :id
               AND ("dailyBudget"   <= 0 OR "currentDailySpend"   + :est <= "dailyBudget")
               AND ("monthlyBudget" <= 0 OR "currentMonthlySpend" + :est <= "monthlyBudget")
-        '''),
+        ''').bindparams(_money_param("est")),
         {"id": org_id, "est": estimated_cost},
     )
     return result.rowcount > 0
@@ -80,7 +92,7 @@ async def adjust_agent_budget(db: AsyncSession, agent_id: str, actual_cost: Deci
             SET "currentDailySpend"   = "currentDailySpend"   + :delta,
                 "currentMonthlySpend" = "currentMonthlySpend" + :delta
             WHERE id = :id
-        '''),
+        ''').bindparams(_money_param("delta")),
         {"id": agent_id, "delta": delta},
     )
 
@@ -96,37 +108,47 @@ async def adjust_org_budget(db: AsyncSession, org_id: str, actual_cost: Decimal,
             SET "currentDailySpend"   = "currentDailySpend"   + :delta,
                 "currentMonthlySpend" = "currentMonthlySpend" + :delta
             WHERE id = :id
-        '''),
+        ''').bindparams(_money_param("delta")),
         {"id": org_id, "delta": delta},
     )
 
 
 async def release_agent_budget(db: AsyncSession, agent_id: str, estimated_cost: Decimal) -> None:
-    """Release pre-reserved budget when request fails before completion."""
+    """Release pre-reserved budget when request fails before completion.
+
+    Clamped at zero: a double-release (e.g. an error raised after the actual
+    cost was already adjusted in) must never drive a spend counter negative,
+    which would silently hand the agent budget it has not earned back.
+    """
     if estimated_cost <= 0:
         return
     await db.execute(
         text('''
             UPDATE "Agent"
-            SET "currentDailySpend"   = "currentDailySpend"   - :est,
-                "currentMonthlySpend" = "currentMonthlySpend" - :est
+            SET "currentDailySpend"   = CASE WHEN "currentDailySpend"   - :est < 0
+                                             THEN 0 ELSE "currentDailySpend"   - :est END,
+                "currentMonthlySpend" = CASE WHEN "currentMonthlySpend" - :est < 0
+                                             THEN 0 ELSE "currentMonthlySpend" - :est END
             WHERE id = :id
-        '''),
+        ''').bindparams(_money_param("est")),
         {"id": agent_id, "est": estimated_cost},
     )
 
 
 async def release_org_budget(db: AsyncSession, org_id: str, estimated_cost: Decimal) -> None:
-    """Release pre-reserved org budget when request fails."""
+    """Release pre-reserved org budget when request fails. Clamped at zero for
+    the same reason as release_agent_budget."""
     if estimated_cost <= 0:
         return
     await db.execute(
         text('''
             UPDATE "Organization"
-            SET "currentDailySpend"   = "currentDailySpend"   - :est,
-                "currentMonthlySpend" = "currentMonthlySpend" - :est
+            SET "currentDailySpend"   = CASE WHEN "currentDailySpend"   - :est < 0
+                                             THEN 0 ELSE "currentDailySpend"   - :est END,
+                "currentMonthlySpend" = CASE WHEN "currentMonthlySpend" - :est < 0
+                                             THEN 0 ELSE "currentMonthlySpend" - :est END
             WHERE id = :id
-        '''),
+        ''').bindparams(_money_param("est")),
         {"id": org_id, "est": estimated_cost},
     )
 
@@ -273,13 +295,29 @@ async def _record_budget_violation(
     )
 
 
-async def check_agent_budget(db: AsyncSession, agent: Agent) -> Dict[str, Optional[str] | bool]:
+def _breaches(spend: Decimal, limit: Decimal, estimated_cost: Decimal) -> bool:
+    """True if `limit` is already met, or would be exceeded by `estimated_cost`.
+
+    With estimated_cost == 0 this is the plain "spend has reached the limit"
+    test. With a non-zero estimate it mirrors the atomic pre-reservation
+    predicate (`spend + est <= limit` must hold to proceed) exactly, so the
+    reason reported to the caller always matches the budget that actually
+    blocked the reservation.
+    """
+    return spend >= limit or spend + estimated_cost > limit
+
+
+async def check_agent_budget(
+    db: AsyncSession,
+    agent: Agent,
+    estimated_cost: Decimal = Decimal("0"),
+) -> Dict[str, Optional[str] | bool]:
     daily_limit = _money(agent.dailyBudget)
     monthly_limit = _money(agent.monthlyBudget)
 
     if daily_limit > 0:
         daily_spend = _money(agent.currentDailySpend)
-        if daily_spend >= daily_limit:
+        if _breaches(daily_spend, daily_limit, estimated_cost):
             await _record_budget_violation(
                 db,
                 organization_id=agent.organizationId,
@@ -298,7 +336,7 @@ async def check_agent_budget(db: AsyncSession, agent: Agent) -> Dict[str, Option
 
     if monthly_limit > 0:
         monthly_spend = _money(agent.currentMonthlySpend)
-        if monthly_spend >= monthly_limit:
+        if _breaches(monthly_spend, monthly_limit, estimated_cost):
             await _record_budget_violation(
                 db,
                 organization_id=agent.organizationId,
@@ -318,13 +356,18 @@ async def check_agent_budget(db: AsyncSession, agent: Agent) -> Dict[str, Option
     return _decision()
 
 
-async def check_org_budget(db: AsyncSession, organization: Organization, agent_id: Optional[str] = None) -> Dict[str, Optional[str] | bool]:
+async def check_org_budget(
+    db: AsyncSession,
+    organization: Organization,
+    agent_id: Optional[str] = None,
+    estimated_cost: Decimal = Decimal("0"),
+) -> Dict[str, Optional[str] | bool]:
     daily_limit = _money(organization.dailyBudget)
     monthly_limit = _money(organization.monthlyBudget)
 
     if daily_limit > 0:
         daily_spend = _money(organization.currentDailySpend)
-        if daily_spend >= daily_limit:
+        if _breaches(daily_spend, daily_limit, estimated_cost):
             await _record_budget_violation(
                 db,
                 organization_id=organization.id,
@@ -343,7 +386,7 @@ async def check_org_budget(db: AsyncSession, organization: Organization, agent_i
 
     if monthly_limit > 0:
         monthly_spend = _money(organization.currentMonthlySpend)
-        if monthly_spend >= monthly_limit:
+        if _breaches(monthly_spend, monthly_limit, estimated_cost):
             await _record_budget_violation(
                 db,
                 organization_id=organization.id,
