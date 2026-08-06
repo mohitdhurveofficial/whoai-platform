@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle, AlertTriangle, Activity, ArrowRight } from "lucide-react";
+import { CheckCircle, AlertTriangle, Activity, ArrowRight, HelpCircle } from "lucide-react";
 import MarketingShell from "@/app/components/marketing/MarketingShell";
 import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
 
@@ -32,9 +32,41 @@ async function checkHealth(): Promise<HealthState> {
   }
 }
 
+// How each state presents. "manual" deliberately does NOT claim green: with no
+// health endpoint configured nothing has actually been checked, and a status
+// page that reports "Operational" on the strength of an unset env var is
+// exactly the kind of unearned assurance customers audit us for.
+const PRESENTATION = {
+  operational: {
+    Icon: CheckCircle,
+    heading: "Operational",
+    detail: "All systems are functioning normally.",
+    componentLabel: "Operational",
+    tone: "text-[#10B981]",
+    chip: "bg-[#10B981]/20 text-[#10B981]",
+  },
+  degraded: {
+    Icon: AlertTriangle,
+    heading: "Degraded",
+    detail: "We're investigating a possible disruption.",
+    componentLabel: "Degraded",
+    tone: "text-[#F59E00]",
+    chip: "bg-[#F59E00]/20 text-[#F59E00]",
+  },
+  manual: {
+    Icon: HelpCircle,
+    heading: "Not monitored",
+    detail: "Automated health checks are not configured for this deployment.",
+    componentLabel: "Not monitored",
+    tone: "text-[#666666]",
+    chip: "bg-[#666666]/15 text-[#666666]",
+  },
+} as const;
+
 export default async function StatusPage() {
   const state = await checkHealth();
-  const isDegraded = state === "degraded";
+  const view = PRESENTATION[state];
+  const { Icon } = view;
 
   return (
     <MarketingShell>
@@ -51,47 +83,25 @@ export default async function StatusPage() {
           </Reveal>
 
           <Reveal className="mb-12">
-            {isDegraded ? (
-              <div className="flex items-center gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F59E00]/20 text-[#F59E00]">
-                  <AlertTriangle className="h-4 w-4" />
-                </div>
-                <div>
-                  <h2 className="text-[24px] font-bold text-[#111111]">Degraded</h2>
-                  <p className="text-[14px] text-[#666666]">
-                    We&apos;re investigating a possible disruption.
-                  </p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${view.chip}`}>
+                <Icon className="h-4 w-4" />
               </div>
-            ) : (
-              <div className="flex items-center gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#10B981]/20 text-[#10B981]">
-                  <CheckCircle className="h-4 w-4" />
-                </div>
-                <div>
-                  <h2 className="text-[24px] font-bold text-[#111111]">Operational</h2>
-                  <p className="text-[14px] text-[#666666]">All systems are functioning normally.</p>
-                </div>
+              <div>
+                <h2 className="text-[24px] font-bold text-[#111111]">{view.heading}</h2>
+                <p className="text-[14px] text-[#666666]">{view.detail}</p>
               </div>
-            )}
+            </div>
           </Reveal>
 
           <Stagger className="grid gap-6 md:grid-cols-3 mb-12">
             <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
               <h3 className="text-[16px] font-semibold text-[#666666] mb-2">Gateway</h3>
-              {isDegraded ? (
-                <p className="text-[20px] font-bold text-[#F59E00]">Degraded</p>
-              ) : (
-                <p className="text-[20px] font-bold text-[#10B981]">Operational</p>
-              )}
+              <p className={`text-[20px] font-bold ${view.tone}`}>{view.componentLabel}</p>
             </StaggerItem>
             <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
               <h3 className="text-[16px] font-semibold text-[#666666] mb-2">Dashboard &amp; API</h3>
-              {isDegraded ? (
-                <p className="text-[20px] font-bold text-[#F59E00]">Degraded</p>
-              ) : (
-                <p className="text-[20px] font-bold text-[#10B981]">Operational</p>
-              )}
+              <p className={`text-[20px] font-bold ${view.tone}`}>{view.componentLabel}</p>
             </StaggerItem>
             <StaggerItem hover className="rounded-xl border border-[#EEE8E2] bg-white p-6 transition-shadow hover:shadow-md">
               <h3 className="text-[16px] font-semibold text-[#666666] mb-2">Reported incidents</h3>
@@ -102,7 +112,9 @@ export default async function StatusPage() {
           {state === "manual" && (
             <Reveal className="mb-12">
               <p className="text-[13px] text-[#666666]">
-                Status on this page is updated manually.
+                This page reports live gateway health once <code>GATEWAY_HEALTH_URL</code> is
+                configured. Until then, status here is maintained manually — contact us for a
+                current update.
               </p>
             </Reveal>
           )}
@@ -110,7 +122,7 @@ export default async function StatusPage() {
           <Reveal className="mb-12">
             <h2 className="text-[20px] font-bold text-[#111111] mb-4">Recent Incidents</h2>
             <div className="rounded-lg border border-[#EEE8E2] bg-white p-6 flex items-center gap-3">
-              <Activity className={`h-4 w-4 ${isDegraded ? "text-[#F59E00]" : "text-[#10B981]"}`} />
+              <Activity className={`h-4 w-4 ${view.tone}`} />
               <p className="text-[15px] text-[#666666]">
                 No incidents reported. We&apos;ll post any service disruptions here, with updates until resolved.
               </p>

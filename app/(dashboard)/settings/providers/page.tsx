@@ -210,7 +210,7 @@ export default function ProvidersPage() {
                   placeholder={isConnected ? "••••••••••••••••" : "Enter API Key"}
                   value={keys[provider.id] || ""}
                   onChange={(e) => setKeys({ ...keys, [provider.id]: e.target.value })}
-                  className="bg-[#FAF7F3] border border-[#EEE8E2] text-[#111111] text-[14px] rounded-md px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#FF6B00] placeholder-[#999]"
+                  className="bg-[#FAF7F3] border border-[#EEE8E2] text-[#111111] text-[14px] rounded-md px-3 py-2 w-full md:w-64 placeholder-[#999] focus-visible:border-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30"
                 />
 
                 <button

@@ -53,8 +53,8 @@ export function classifyPrompt(prompt: string): { complexity: Complexity; confid
   else if (/translate|convert to.*language/i.test(lower)) task = "translation";
   else if (/chat|conversation|dialogue/i.test(lower)) task = "chat";
 
-  // Complexity scoring
-  let score = 0;
+  // Complexity scoring: each bucket is a list of signals, and the winner is the
+  // first bucket with enough of them (checked below, strongest tier first).
   const indicators = {
     simple: [
       tokens < 50,

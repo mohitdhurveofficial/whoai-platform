@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
-import { normalizeTier, planConfig } from "@/lib/subscription";
+import { monthlyRequestQuota, normalizeTier, planConfig, retentionDays } from "@/lib/subscription";
 
 export async function GET() {
   const auth = await getServerAuthContext();
@@ -17,6 +17,7 @@ export async function GET() {
         subscriptionStatus: true,
         currentPeriodEnd: true,
         stripeCustomerId: true,
+        currentMonthlyRequests: true,
       },
     });
 
@@ -41,6 +42,11 @@ export async function GET() {
       usage: {
         agents: agentCount,
         maxAgents, // null = unlimited
+        // Counter the gateway actually reserves against, so what's shown here
+        // is exactly what a request will be blocked on.
+        requests: organization.currentMonthlyRequests,
+        monthlyRequests: monthlyRequestQuota(tier), // null = unlimited
+        retentionDays: retentionDays(tier),
       },
     });
   } catch (error) {

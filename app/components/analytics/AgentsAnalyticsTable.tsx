@@ -40,23 +40,27 @@ export function AgentsAnalyticsTable({ agents }: { agents: AgentAnalyticsRow[] }
   return (
     <div className="space-y-4">
       <div className="grid gap-3 rounded-2xl border border-[#EEE8E2] bg-white p-3 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.16)] md:grid-cols-[1fr_180px_220px]">
-        <label className="flex items-center gap-2 rounded-md border border-[#EEE8E2] bg-[#FAF7F3] px-3 py-2 transition-colors focus-within:border-[#555]">
+        {/* The ring lives on the wrapper, so the input keeps outline-none while
+            focus stays visible. The label has no visible text, hence aria-label
+            — a placeholder is not an accessible name. */}
+        <label className="flex items-center gap-2 rounded-md border border-[#EEE8E2] bg-[#FAF7F3] px-3 py-2 transition-colors focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/30">
           <Search className="h-4 w-4 text-[#888888]" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search agents"
+            aria-label="Search agents"
             className="w-full bg-transparent text-[13px] font-medium text-[#111111] outline-none placeholder:text-[#666]"
           />
         </label>
-        <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-md border border-[#EEE8E2] bg-[#FAF7F3] text-[#111111] px-3 py-2 text-[13px] font-medium outline-none hover:border-[#555] transition-colors">
+        <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-md border border-[#EEE8E2] bg-[#FAF7F3] text-[#111111] px-3 py-2 text-[13px] font-medium transition-colors hover:border-[#555] focus-visible:border-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30">
           <option value="ALL">All statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="PAUSED">Paused</option>
           <option value="QUARANTINED">Quarantined</option>
           <option value="TERMINATED">Terminated</option>
         </select>
-        <select value={model} onChange={(event) => setModel(event.target.value)} className="rounded-md border border-[#EEE8E2] bg-[#FAF7F3] text-[#111111] px-3 py-2 text-[13px] font-medium outline-none hover:border-[#555] transition-colors">
+        <select value={model} onChange={(event) => setModel(event.target.value)} className="rounded-md border border-[#EEE8E2] bg-[#FAF7F3] text-[#111111] px-3 py-2 text-[13px] font-medium transition-colors hover:border-[#555] focus-visible:border-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]/30">
           <option value="ALL">All models</option>
           {models.map((item) => (
             <option key={item} value={item}>

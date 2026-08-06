@@ -42,8 +42,24 @@ const PAYMENT = {
 };
 
 // ----- minimal EIP-1193 helpers (no web3 library needed) --------------------
-function getEthereum(): any {
-  return typeof window !== "undefined" ? (window as any).ethereum : undefined;
+
+/** The slice of the injected wallet surface this page actually uses. */
+type Eip1193Provider = {
+  request<T = unknown>(args: { method: string; params?: unknown[] }): Promise<T>;
+};
+
+/** Wallet RPC rejections carry a numeric `code` plus a human-readable message. */
+type ProviderRpcError = { code?: number; message?: string };
+
+/** Narrow an unknown rejection to the RPC error shape, tolerating anything else. */
+function asRpcError(err: unknown): ProviderRpcError {
+  return typeof err === "object" && err !== null ? (err as ProviderRpcError) : {};
+}
+
+function getEthereum(): Eip1193Provider | undefined {
+  return typeof window === "undefined"
+    ? undefined
+    : (window as Window & { ethereum?: Eip1193Provider }).ethereum;
 }
 
 function pad32(hexNo0x: string): string {
@@ -80,7 +96,7 @@ export default function CheckoutPage() {
     }
     try {
       setStatus({ kind: "working", msg: "Connecting wallet…" });
-      const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
+      const accounts = await eth.request<string[]>({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
       setStatus({ kind: "idle", msg: "" });
     } catch {
@@ -88,17 +104,17 @@ export default function CheckoutPage() {
     }
   }
 
-  async function ensureChain(eth: any) {
-    const current: string = await eth.request({ method: "eth_chainId" });
+  async function ensureChain(eth: Eip1193Provider) {
+    const current = await eth.request<string>({ method: "eth_chainId" });
     if (current?.toLowerCase() === PAYMENT.chain.hexId.toLowerCase()) return;
     try {
       await eth.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: PAYMENT.chain.hexId }],
       });
-    } catch (err: any) {
+    } catch (err) {
       // 4902 = chain not added to the wallet yet.
-      if (err?.code === 4902) {
+      if (asRpcError(err).code === 4902) {
         await eth.request({
           method: "wallet_addEthereumChain",
           params: [
@@ -131,15 +147,16 @@ export default function CheckoutPage() {
       const amount = BigInt(PAYMENT.amountUsd) * 10n ** BigInt(PAYMENT.token.decimals);
       const data = encodeErc20Transfer(PAYMENT.receivingAddress, amount);
 
-      const hash: string = await eth.request({
+      const hash = await eth.request<string>({
         method: "eth_sendTransaction",
         params: [{ from: account, to: PAYMENT.token.address, data }],
       });
 
       setTxHash(hash);
       setStatus({ kind: "success", msg: "Payment sent! We'll confirm and kick off your teardown." });
-    } catch (err: any) {
-      setStatus({ kind: "error", msg: err?.message?.slice(0, 140) || "Payment failed or was rejected." });
+    } catch (err) {
+      const message = asRpcError(err).message;
+      setStatus({ kind: "error", msg: message?.slice(0, 140) || "Payment failed or was rejected." });
     }
   }
 

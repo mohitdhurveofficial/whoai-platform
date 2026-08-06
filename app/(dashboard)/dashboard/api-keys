@@ -1,7 +1,0 @@
-const navigation = [
-  {
-    label: "API Keys",
-    href: "/settings/api-keys",
-    icon: Key,
-  },
-];

@@ -28,9 +28,6 @@ function EmptyChart({ label }: { label: string }) {
   );
 }
 
-const money = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
-
 export default async function DashboardPage() {
   const auth = await getServerAuthContext();
   if (!auth) redirect("/login");
@@ -52,8 +49,11 @@ export default async function DashboardPage() {
 
   const hasSpend = summary.totalSpend > 0;
 
+  // The dashboard layout already supplies the page container and padding;
+  // re-applying them here doubled the desktop padding versus every sibling page
+  // and made the max-width dead (it nests inside a narrower one).
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 p-6 text-[#111111] md:p-10">
+    <div className="space-y-8 pb-10 text-[#111111]">
       <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight">Dashboard</h1>
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
               </div>
               <div className="text-right">
                 <p className="text-[11px] text-[#888888]">Confidence</p>
-                <p className="text-[18px] font-bold">{Math.round((1 - forecast.confidence) * 100)}%</p>
+                <p className="text-[18px] font-bold">{Math.round(forecast.confidence * 100)}%</p>
               </div>
             </div>
           </div>

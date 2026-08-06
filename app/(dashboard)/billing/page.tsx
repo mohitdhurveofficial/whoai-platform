@@ -19,7 +19,13 @@ type Subscription = {
   status: string | null;
   currentPeriodEnd: string | null;
   hasBillingAccount: boolean;
-  usage: { agents: number; maxAgents: number | null };
+  usage: {
+    agents: number;
+    maxAgents: number | null;
+    requests: number;
+    monthlyRequests: number | null;
+    retentionDays: number;
+  };
 };
 
 const PLANS = [
@@ -162,6 +168,11 @@ export default function BillingPage() {
   const renewal = sub?.currentPeriodEnd
     ? new Date(sub.currentPeriodEnd).toLocaleDateString()
     : null;
+  // null on unlimited plans — there is no bar to fill.
+  const quotaUsedPercent =
+    sub?.usage.monthlyRequests != null && sub.usage.monthlyRequests > 0
+      ? (sub.usage.requests / sub.usage.monthlyRequests) * 100
+      : null;
 
   return (
     <div className="space-y-6">
@@ -198,6 +209,31 @@ export default function BillingPage() {
               Agents: {sub?.usage.agents ?? 0}
               {sub?.usage.maxAgents != null ? ` / ${sub.usage.maxAgents}` : " / Unlimited"}
             </div>
+            <div className="mt-1 text-[13px] text-[#666666]">
+              Requests this month: {(sub?.usage.requests ?? 0).toLocaleString()}
+              {sub?.usage.monthlyRequests != null
+                ? ` / ${sub.usage.monthlyRequests.toLocaleString()}`
+                : " / Unlimited"}
+              {sub ? ` · ${sub.usage.retentionDays}-day history` : ""}
+            </div>
+            {quotaUsedPercent != null && (
+              <div className="mt-2 max-w-[280px]">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#EEE8E2]">
+                  <div
+                    className={`h-full rounded-full ${
+                      quotaUsedPercent >= 90 ? "bg-[#EF4444]" : "bg-[#FF6B00]"
+                    }`}
+                    style={{ width: `${Math.min(quotaUsedPercent, 100)}%` }}
+                  />
+                </div>
+                {quotaUsedPercent >= 90 && (
+                  <p className="mt-1.5 text-[12px] font-medium text-[#EF4444]">
+                    You&apos;ve used {Math.round(quotaUsedPercent)}% of this month&apos;s requests.
+                    Further requests are refused once the quota is reached — upgrade to raise it.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           {sub?.hasBillingAccount && (
             <button

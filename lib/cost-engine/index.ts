@@ -15,12 +15,20 @@ export interface CostCalculationResult {
   cost: number;
 }
 
+/** USD per 1,000 tokens, as stored in pricing.json. */
+interface ModelRates {
+  input: number;
+  output: number;
+}
+
 // Normalise keys to lower-case once at module load.
-const REGISTRY: Record<string, { input: number; output: number }> = Object.fromEntries(
-  Object.entries((pricingData as any).models).map(([k, v]) => [k.toLowerCase(), v as any])
+const REGISTRY: Record<string, ModelRates> = Object.fromEntries(
+  Object.entries((pricingData as { models: Record<string, ModelRates> }).models).map(
+    ([model, rates]) => [model.toLowerCase(), rates]
+  )
 );
 
-function getRates(model: string): { input: number; output: number } | null {
+function getRates(model: string): ModelRates | null {
   const key = model.toLowerCase();
   if (REGISTRY[key]) return REGISTRY[key];
   // Fuzzy match: known key appears inside model name.
@@ -34,7 +42,6 @@ export class CostEngine {
   static calculateCost({ model, inputTokens, outputTokens }: CostCalculationParams): CostCalculationResult {
     const rates = getRates(model);
     if (!rates) {
-      // eslint-disable-next-line no-console
       console.warn(`[CostEngine] Unknown model "${model}" — cost returned as $0`);
       return { cost: 0 };
     }

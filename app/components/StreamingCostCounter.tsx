@@ -34,33 +34,51 @@ export function StreamingCostCounter({
 }: StreamingCostCounterProps) {
   const [visible, setVisible] = useState(false);
   const [currentTokens, setCurrentTokens] = useState(0);
-  const [startTime] = useState(Date.now());
   const [elapsedMs, setElapsedMs] = useState(0);
   const rafRef = useRef<number>(0);
+  const startTimeRef = useRef(0);
 
   const inputCost = (inputTokens / 1000) * inputPricePer1K;
   const currentOutputCost = (currentTokens / 1000) * outputPricePer1K;
   const totalCost = inputCost + currentOutputCost;
   const estimatedTotalCost = inputCost + (estimatedOutputTokens / 1000) * outputPricePer1K;
 
+  // The callback is held in a ref so the animation effect below doesn't list it
+  // as a dependency: parents commonly pass an inline arrow, and a new identity
+  // each render would tear down and restart the rAF loop (resetting the clock).
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  });
+
   // Animate token count based on elapsed time (simulates real streaming)
   useEffect(() => {
-    setVisible(true);
+    // Clock starts on mount — Date.now() is impure and must not run in render.
+    startTimeRef.current = Date.now();
+
     const tick = () => {
-      const elapsed = Date.now() - startTime;
+      // Fading in from the first animation frame rather than synchronously in
+      // the effect body gives the browser a paint at opacity-0 to transition from.
+      setVisible(true);
+      const elapsed = Date.now() - startTimeRef.current;
       setElapsedMs(elapsed);
       // Assume tokens arrive at ~50 tokens/second (typical for LLM streaming)
       const estimatedCurrent = Math.min(Math.floor((elapsed / 1000) * 50), estimatedOutputTokens);
       setCurrentTokens(estimatedCurrent);
       if (estimatedCurrent < estimatedOutputTokens) {
         rafRef.current = requestAnimationFrame(tick);
-      } else if (onComplete) {
-        onComplete(totalCost, estimatedCurrent);
+      } else {
+        // Derive the final cost from the token count in hand rather than from
+        // `totalCost`, which still reflects the previous frame's render.
+        onCompleteRef.current?.(
+          inputCost + (estimatedCurrent / 1000) * outputPricePer1K,
+          estimatedCurrent
+        );
       }
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [startTime, estimatedOutputTokens, onComplete, totalCost]);
+  }, [estimatedOutputTokens, inputCost, outputPricePer1K]);
 
   const progress = estimatedOutputTokens > 0 ? (currentTokens / estimatedOutputTokens) * 100 : 0;
   const tokensPerSecond = elapsedMs > 0 ? Math.round((currentTokens / elapsedMs) * 1000) : 0;
