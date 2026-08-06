@@ -186,7 +186,7 @@ export default function ApiKeysPage() {
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-[#FAF7F3] shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.16)]">
+      <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-[#FAF7F3] shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
         <div className="flex items-center gap-3 border-b border-[#EEE8E2] p-6">
           <KeyRound className="h-5 w-5 text-[#FF6B00]" />
           <h2 className="text-[16px] font-bold text-[#111111]">Active Keys</h2>

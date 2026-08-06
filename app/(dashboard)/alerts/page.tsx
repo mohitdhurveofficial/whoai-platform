@@ -77,7 +77,7 @@ export default async function AlertsPage({
         </nav>
       </header>
 
-      <div className="flex flex-col overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+      <div className="flex flex-col overflow-hidden rounded-2xl border border-[#EEE8E2] bg-white shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] text-left text-[13px]">
             <thead className="border-b border-[#EEE8E2] bg-[#FAF7F3]">

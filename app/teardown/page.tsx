@@ -101,7 +101,7 @@ export default function TeardownPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href={MAILTO}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-7 py-3.5 text-[15px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-7 py-3.5 text-[15px] font-semibold text-white hover:bg-[#E65A00] transition-colors"
             >
               Send my logs <ArrowRight className="h-4 w-4" />
             </a>
@@ -225,7 +225,7 @@ export default function TeardownPage() {
           </p>
           <a
             href={MAILTO}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white hover:bg-[#E65A00] transition-colors"
           >
             Send my logs <ArrowRight className="h-4 w-4" />
           </a>
@@ -262,7 +262,7 @@ function Tier({
         {ctaHref && ctaLabel && (
           <Link
             href={ctaHref}
-            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-[#E85F00] transition-colors"
+            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#FF6B00] px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-[#E65A00] transition-colors"
           >
             {ctaLabel} <ArrowRight className="h-4 w-4" />
           </Link>

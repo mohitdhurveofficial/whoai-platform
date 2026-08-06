@@ -72,7 +72,7 @@ export default function SettingsPage() {
       )}
 
       <div className="space-y-6">
-        <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-[#FAF7F3] shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.16)]">
+        <section className="overflow-hidden rounded-2xl border border-[#EEE8E2] bg-[#FAF7F3] shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
           <div className="border-b border-[#EEE8E2] p-6">
             <h2 className="text-[16px] font-bold text-[#111111]">Organization Profile</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Update your workspace details and branding.</p>
@@ -132,7 +132,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Danger Zone */}
-        <section className="overflow-hidden rounded-2xl border border-red-200 bg-[#FAF7F3] shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(190,18,60,0.12)]">
+        <section className="overflow-hidden rounded-2xl border border-red-200 bg-[#FAF7F3] shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
           <div className="p-6">
             <h2 className="text-[16px] font-bold text-red-600">Danger Zone</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Irreversible and destructive actions.</p>

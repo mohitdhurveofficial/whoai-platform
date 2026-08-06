@@ -10,7 +10,7 @@ const money = (value: number) =>
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.20)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#FFD9C2] hover:shadow-[0_1px_2px_rgba(17,17,17,0.05),0_20px_44px_-20px_rgba(17,17,17,0.24)]">
+    <div className="rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-all duration-200 hover:border-[#FFD9C2] hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
       <div className="text-[12px] font-semibold uppercase tracking-wide text-[#666666]">{label}</div>
       <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{value}</div>
     </div>
@@ -60,7 +60,7 @@ export default async function AgentDetailsPage({
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Spend by Day</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Last 30 days.</p>
@@ -69,7 +69,7 @@ export default async function AgentDetailsPage({
             <AgentSpendChart data={analytics.spendByDay} />
           </div>
         </div>
-        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+        <div className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
           <div className="mb-5">
             <h2 className="text-[16px] font-bold">Requests by Day</h2>
             <p className="mt-1 text-[13px] text-[#666666]">Gateway requests for this agent.</p>
@@ -86,7 +86,7 @@ export default async function AgentDetailsPage({
         <Stat label="Average Tokens per Request" value={Math.round(analytics.averageTokensPerRequest).toLocaleString()} />
       </section>
 
-      <section className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_12px_30px_-18px_rgba(17,17,17,0.18)]">
+      <section className="rounded-2xl border border-[#EEE8E2] bg-white p-6 shadow-[0_1px_2px_rgba(17,17,17,0.05)]">
         <h2 className="text-[16px] font-bold">Recent Activity</h2>
         <div className="mt-5 divide-y divide-[#EEE8E2]">
           {analytics.recentActivity.map((activity) => (

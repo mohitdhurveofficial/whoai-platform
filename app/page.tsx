@@ -27,7 +27,9 @@ import {
 } from "./components/marketing/Motion";
 import { PixelHero } from "@/components/ui/pixel-perfect-hero";
 import { FoundingPartners } from "@/components/ui/founding-partners";
+import { ModelContinuity } from "@/components/ui/model-continuity";
 import { ShaderAnimation } from "@/components/ui/shader-animation";
+import { TrustBadges } from "@/components/ui/trust-badges";
 
 export const metadata: Metadata = {
   title: "WHOAI — The Control Plane for AI Spend",
@@ -94,21 +96,37 @@ export default function LandingPage() {
           <div className="hidden items-center gap-8 text-[14px] font-medium text-[#425466] md:flex">
             <Link href="/#features" className="transition-colors hover:text-[#0A2540]">Product</Link>
             <Link href="/pricing" className="transition-colors hover:text-[#0A2540]">Pricing</Link>
+            <Link href="/continuity" className="transition-colors hover:text-[#0A2540]">Continuity</Link>
             <Link href="/docs" className="transition-colors hover:text-[#0A2540]">Docs</Link>
             <Link href="/teardown" className="transition-colors hover:text-[#0A2540]">Free Teardown</Link>
             <Link href="/security" className="transition-colors hover:text-[#0A2540]">Security</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="hidden text-[14px] font-medium text-[#425466] transition-colors hover:text-[#0A2540] sm:block">Sign in</Link>
-            <Link href="/auth/signup" className="rounded-lg bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white transition-colors hover:bg-[#E85F00]">Start free</Link>
+            <Link href="/auth/signup" className="rounded-lg bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white transition-colors hover:bg-[#E65A00]">Start free</Link>
           </div>
         </div>
       </nav>
 
       <main>
         {/* HERO — WHOAI pixel-canvas hero (replaces the old hero + logos strip;
-            the hero carries its own provider marquee) */}
-        <PixelHero />
+            the hero carries its own provider marquee). Dual-pillar copy:
+            cost control + model continuity. */}
+        <PixelHero
+          word1="Cap every dollar."
+          word2="Survive any model."
+          description="A runaway agent can burn your budget in an afternoon. A single directive can take a model offline overnight. Same exposure, one answer — WHOAI enforces hard budget caps in the path and lets you set a fallback across every provider you've connected, so no single model can take your agents down."
+          tagline="BYOK · $0 markup on tokens · OpenAI-compatible · Live in 5 minutes"
+          secondaryCta="See how continuity works"
+          secondaryHref="/continuity"
+        />
+
+        {/* TRUST STRIP — launch trust cues immediately below the hero */}
+        <section className="border-y border-[#EEF1F6] bg-[#FBFCFE]">
+          <div className="mx-auto max-w-[1180px] px-6 py-5">
+            <TrustBadges />
+          </div>
+        </section>
 
         {/* PRODUCT PREVIEW — the console */}
         <section className="bg-white pt-10 pb-24">
@@ -207,6 +225,10 @@ export default function LandingPage() {
             </Stagger>
           </div>
         </section>
+
+        {/* MODEL CONTINUITY — second launch pillar (navy palette). Extends the
+            danger beat with the live news before the watch-vs-enforce pivot. */}
+        <ModelContinuity />
 
         {/* COMPARISON */}
         <section className="border-y border-[#EEF1F6] bg-[#FBFCFE] py-28">
@@ -329,8 +351,8 @@ export default function LandingPage() {
             <Stagger className="grid grid-cols-2 gap-6 md:grid-cols-4">
               {[
                 { icon: Lock, t: "Encryption everywhere", b: "TLS 1.2+ · secrets encrypted at rest" },
-                { icon: KeyRound, t: "BYOK", b: "Your keys, your perimeter — never ours" },
-                { icon: ShieldCheck, t: "Zero-retention option", b: "Gateway never persists prompts" },
+                { icon: KeyRound, t: "BYOK", b: "Your keys, encrypted — you bring them, we don't resell" },
+                { icon: ShieldCheck, t: "Zero-retention option", b: "Enterprise & VPC: prompts aren't stored" },
                 { icon: FileCheck, t: "SOC 2 in progress", b: "Enterprise & self-hosted VPC ready" },
               ].map((c) => (
                 <StaggerItem key={c.t} hover className="flex flex-col items-center gap-3 rounded-2xl border border-[#E6EBF1] bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-md">
@@ -343,7 +365,7 @@ export default function LandingPage() {
               ))}
             </Stagger>
             <Reveal delay={0.1} className="mt-9 text-center">
-              <Link href="/security" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00]">
+              <Link href="/security" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#FF6B00] transition-colors hover:text-[#E65A00]">
                 Read about our security <ArrowRight className="h-4 w-4" />
               </Link>
             </Reveal>
@@ -397,7 +419,7 @@ export default function LandingPage() {
             <h2 className="mt-6 text-[40px] font-bold leading-[1.1] tracking-[-0.02em] text-white sm:text-[54px]">Take control of your AI spend today.</h2>
             <p className="mx-auto mt-6 max-w-[520px] text-[18px] leading-relaxed text-white/70">Real-time cost, hard budget enforcement, and a kill switch for runaway agents. Set up in 5 minutes.</p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <MagneticButton href="/auth/signup" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white shadow-[0_12px_30px_rgba(255,107,0,0.35)] transition-colors hover:bg-[#E85F00] sm:w-auto">
+              <MagneticButton href="/auth/signup" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF6B00] px-8 py-4 text-[16px] font-semibold text-white shadow-[0_12px_30px_rgba(255,107,0,0.35)] transition-colors hover:bg-[#E65A00] sm:w-auto">
                 Start free <ArrowRight className="h-4 w-4" />
               </MagneticButton>
               <MagneticButton href="/teardown" className="inline-flex w-full items-center justify-center rounded-lg border border-white/20 bg-white/5 px-8 py-4 text-[16px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/10 sm:w-auto">

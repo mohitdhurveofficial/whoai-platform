@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Sidebar from "../components/Sidebar";
+import Sidebar, { type SidebarUser } from "../components/Sidebar";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
 import { normalizeTier, planConfig } from "@/lib/subscription";
@@ -8,6 +8,13 @@ import { normalizeTier, planConfig } from "@/lib/subscription";
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
+
+function initialsFrom(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "—";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 /**
  * Resolve who is actually signed in and what they are actually paying for.
@@ -18,31 +25,29 @@ export const metadata: Metadata = {
  * The sidebar previously hardcoded "Current User / Pro Plan", which contradicted
  * the billing page and the quota the gateway actually enforces.
  */
-async function getIdentity() {
+async function getSidebarUser(): Promise<SidebarUser | undefined> {
   const auth = await getServerAuthContext().catch(() => null);
-  if (!auth) return null;
+  if (!auth?.userId) return undefined;
 
-  const [user, organization] = await Promise.all([
-    auth.userId
-      ? prisma.user.findUnique({
-          where: { id: auth.userId },
-          select: { email: true, fullName: true },
-        })
-      : null,
-    prisma.organization.findUnique({
-      where: { id: auth.organizationId },
-      select: { name: true, subscriptionTier: true },
-    }),
-  ]);
+  const user = await prisma.user
+    .findUnique({
+      where: { id: auth.userId },
+      select: {
+        email: true,
+        fullName: true,
+        organization: { select: { subscriptionTier: true } },
+      },
+    })
+    .catch(() => null);
+  if (!user) return undefined;
 
-  const displayName = user?.fullName || user?.email?.split("@")[0] || "Account";
+  const name = user.fullName?.trim() || user.email.split("@")[0];
+  // Label comes from plans.json via planConfig rather than being re-cased from
+  // the enum here, so the sidebar cannot drift from the tier the gateway
+  // actually enforces quota against.
+  const plan = `${planConfig(normalizeTier(user.organization?.subscriptionTier)).label} Plan`;
 
-  return {
-    displayName,
-    email: user?.email ?? null,
-    organizationName: organization?.name ?? null,
-    planLabel: planConfig(normalizeTier(organization?.subscriptionTier)).label,
-  };
+  return { name, plan, initials: initialsFrom(name), email: user.email };
 }
 
 export default async function DashboardLayout({
@@ -50,11 +55,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const identity = await getIdentity();
+  const sidebarUser = await getSidebarUser();
 
   return (
     <div className="texture min-h-screen text-[#111111] font-sans selection:bg-[#FF6B00] selection:text-white">
-      <Sidebar identity={identity} />
+      <Sidebar user={sidebarUser} />
       <main className="md:ml-[260px] min-h-screen pt-16 md:pt-0">
         <div className="max-w-[1200px] mx-auto p-4 md:p-8">
           {children}

@@ -16,11 +16,12 @@ import {
   LogOut,
 } from "lucide-react";
 
-export type SidebarIdentity = {
-  displayName: string;
-  email: string | null;
-  organizationName: string | null;
-  planLabel: string;
+export type SidebarUser = {
+  name: string;
+  plan: string;
+  initials: string;
+  /** Shown as a tooltip on the name, which is truncated when it overflows. */
+  email?: string | null;
 };
 
 // `match` lists extra paths that should light this item up. /usage is reachable
@@ -36,9 +37,10 @@ const navItems = [
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
-export default function Sidebar({ identity }: { identity: SidebarIdentity | null }) {
+export default function Sidebar({ user }: { user?: SidebarUser }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const account = user ?? { name: "Account", plan: "Not signed in", initials: "—" };
 
   // Escape closes the drawer — a mobile user who opened it must be able to get
   // out without hunting for the toggle.
@@ -50,8 +52,6 @@ export default function Sidebar({ identity }: { identity: SidebarIdentity | null
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileOpen]);
-
-  const initial = (identity?.displayName?.[0] ?? "?").toUpperCase();
 
   return (
     <>
@@ -124,16 +124,17 @@ export default function Sidebar({ identity }: { identity: SidebarIdentity | null
 
         <div className="border-t border-[#EEE8E2] bg-white p-4">
           <div className="mb-4 flex items-center gap-3 px-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-[#EEE8E2] bg-[#FAF7F3] text-[12px] font-bold text-[#111111]">
-              {initial}
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-[#EEE8E2] bg-[#FAF7F3] text-[12px] font-bold uppercase text-[#111111]">
+              {account.initials}
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[13px] font-semibold text-[#111111]" title={identity?.email ?? undefined}>
-                {identity?.displayName ?? "Not signed in"}
+              <span
+                className="truncate text-[13px] font-semibold text-[#111111]"
+                title={account.email ?? undefined}
+              >
+                {account.name}
               </span>
-              <span className="truncate text-[11px] text-[#666666]">
-                {identity ? `${identity.planLabel} plan` : "—"}
-              </span>
+              <span className="truncate text-[11px] text-[#666666]">{account.plan}</span>
             </div>
           </div>
 

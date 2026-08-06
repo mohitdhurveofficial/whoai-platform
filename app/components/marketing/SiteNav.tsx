@@ -17,6 +17,7 @@ import { Menu, X } from "lucide-react";
 const LINKS = [
   { href: "/#features", label: "Product" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/continuity", label: "Continuity" },
   { href: "/docs", label: "Docs" },
   { href: "/teardown", label: "Free Teardown" },
   { href: "/security", label: "Security" },

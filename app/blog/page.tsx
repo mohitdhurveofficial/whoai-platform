@@ -26,6 +26,15 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: "model-continuity-after-the-export-control-shutdown",
+    title: "When a Model Goes Dark Overnight: Model-Continuity Risk Is Real Now",
+    excerpt:
+      "A frontier model was disabled worldwide overnight by an export-control order — and stranded everyone built on it. Here's how to make sure no single model, or single bill, can take your agents down.",
+    date: "2026-06-18",
+    readTime: "5 min read",
+    tags: ["Model Continuity", "Resilience", "Multi-Provider"],
+  },
+  {
     slug: "gpt-4o-cost-tracking",
     title: "How to Track GPT-4o API Costs Per Request",
     excerpt:
