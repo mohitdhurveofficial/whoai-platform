@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Reveal, MagneticButton } from "@/app/components/marketing/Motion";
+import { Reveal, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Preventing Runaway Claude 3.5 Sonnet Costs | WHOAI Blog",

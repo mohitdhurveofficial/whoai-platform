@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Reveal, MagneticButton } from "@/app/components/marketing/Motion";
+import { Reveal, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "AI FinOps: A Complete Guide to LLM Budget Management | WHOAI Blog",

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Mail, MessageSquare, Building2 } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
-import LeadForm from "@/app/components/marketing/LeadForm";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import MarketingShell from "@/components/marketing/MarketingShell";
+import LeadForm from "@/components/marketing/LeadForm";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Contact Us",

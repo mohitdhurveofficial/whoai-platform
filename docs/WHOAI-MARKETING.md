@@ -79,8 +79,13 @@ WhoAI helps teams:
 Live API Docs:
 https://whoai-api.onrender.com/docs
 
-Health Endpoint:
-https://whoai-api.onrender.com/health
+Health Endpoints:
+https://whoai-api.onrender.com/health         (liveness — is the process up?)
+https://whoai-api.onrender.com/health/ready   (readiness — can it serve a request?)
+
+Point uptime monitors at /health/ready: a runtime that is alive but cannot
+reach Postgres cannot serve a single gateway call, and only that endpoint
+tells the two apart.
 
 GitHub:
 https://github.com/mohitdhurveofficial/whoai-api

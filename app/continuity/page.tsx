@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, AlertTriangle, Network, Layers, Gauge, Receipt } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
-import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/app/components/marketing/Motion";
+import MarketingShell from "@/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Model Continuity",

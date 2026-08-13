@@ -30,12 +30,20 @@ CRON_SECRET=...
 
 # App URLs
 NEXT_PUBLIC_APP_URL=https://whoai-dashboard.vercel.app
-NEXT_PUBLIC_GATEWAY_URL=https://whoai-api.onrender.com/api/v1/chat/completions
+# The runtime ORIGIN only — lib/runtime-url.ts derives every endpoint path from
+# it (completions, token exchange, health), so moving hosts is a one-line
+# change. NEXT_PUBLIC_GATEWAY_URL is still read as a fallback and may still hold
+# a full /api/v1/chat/completions URL; the suffix is trimmed automatically.
+NEXT_PUBLIC_WHOAI_RUNTIME_URL=https://whoai-api.onrender.com
 CORS_ALLOW_ORIGINS=https://whoai-dashboard.vercel.app
 
 # Supabase Auth
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+# Optional. Only used to delete Supabase auth identities when an owner deletes
+# their workspace — without it the workspace data is still removed, but the
+# member emails stay reserved and cannot be used to sign up again.
+SUPABASE_SERVICE_ROLE_KEY=...
 
 # Stripe
 STRIPE_SECRET_KEY=sk_live_...

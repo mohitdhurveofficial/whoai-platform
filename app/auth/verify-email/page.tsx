@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import { Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 export default function VerifyEmailPage() {
   const router = useRouter();

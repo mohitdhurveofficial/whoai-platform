@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Lock, Server, ShieldCheck, KeyRound, Eye, FileCheck, ArrowRight } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
-import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/app/components/marketing/Motion";
+import MarketingShell from "@/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Security",

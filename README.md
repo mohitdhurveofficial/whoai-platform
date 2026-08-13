@@ -65,21 +65,31 @@ graph TD;
 
 ```text
 whoai-platform/
-├── app/                      # Next.js App Router (Frontend & API)
-│   ├── analytics/            # FinOps Insights & KPI Dashboard
-│   ├── api/                  # Next.js API Routes (Mgmt Plane)
-│   ├── agents/               # Agent Registry & Budget Management
-│   └── layout.tsx & page.tsx # Core Landing Page & Layout
-├── components/               # Reusable React UI Components
-├── database/                 # FastAPI SQLAlchemy Models & Session
-├── lib/                      # Next.js Utilities (Prisma Client, Auth, Actions)
-├── prisma/                   # Database Schema & Migrations
-│   └── schema.prisma         # Single Source of Truth for Data Models
-├── routers/                  # FastAPI Route Handlers (Runtime Plane)
-├── utils/                    # Supabase SSR Utilities
-├── main.py                   # FastAPI Application Entrypoint
-├── package.json              # Node.js Dependencies & Scripts
-└── requirements.txt          # Python Dependencies
+├── app/                      # Next.js App Router — control plane
+│   ├── (dashboard)/          # Authenticated dashboard routes
+│   ├── api/                  # Management-plane API routes
+│   └── layout.tsx & page.tsx # Core landing page & layout
+├── components/               # All shared React components (@/components)
+│   ├── marketing/            # Public-site shell, nav, footer, lead form
+│   ├── analytics/            # Dashboard charts & tables
+│   └── ui/                   # Primitives and landing-page visuals
+├── lib/                      # Next.js utilities (Prisma client, auth, services)
+├── prisma/                   # Database schema & migrations
+│   └── schema.prisma         # Single source of truth for data models
+├── runtime/                  # FastAPI gateway — runtime plane
+│   ├── main.py               # FastAPI application entrypoint
+│   ├── routers/              # Auth, gateway and analytics routes
+│   └── providers/            # BYOK provider adapters
+├── database/                 # SQLAlchemy models & session (runtime plane)
+├── utils/                    # Supabase SSR utilities
+├── sdk/                      # Published client SDKs and examples
+├── scripts/                  # Operational & seed scripts
+├── tools/                    # AI Bill Teardown sales tool
+├── docs/                     # Architecture, billing and deployment docs
+├── __tests__/                # Vitest suites (control plane)
+├── tests/                    # Pytest suites (runtime plane)
+├── package.json              # Node.js dependencies & scripts
+└── requirements.txt          # Python dependencies
 ```
 
 ## Getting Started
@@ -192,7 +202,7 @@ of truth for both the pricing UI and entitlement enforcement.
 - **Pro ($799/mo):** Everything in Growth + SSO (Google/Okta) & audit-log export, advanced governance, 200 agents · 20M requests/mo, 180-day retention.
 - **Enterprise (custom, sales-led):** SAML SSO, unlimited agents, custom volume/retention, audit exports, SLA, and self-hosted/VPC — priced on AI spend under management (typically from ~$2,000/mo on an annual plan).
 
-> See [`REVENUE_MODEL.md`](REVENUE_MODEL.md) for the sales-led Enterprise motion and revenue projections.
+> See [`docs/REVENUE_MODEL.md`](docs/REVENUE_MODEL.md) for the sales-led Enterprise motion and revenue projections.
 
 ## Product Roadmap
 

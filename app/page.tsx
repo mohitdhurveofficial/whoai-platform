@@ -24,7 +24,7 @@ import {
   StaggerItem,
   CountUp,
   MagneticButton,
-} from "./components/marketing/Motion";
+} from "@/components/marketing/Motion";
 import { PixelHero } from "@/components/ui/pixel-perfect-hero";
 import { FoundingPartners } from "@/components/ui/founding-partners";
 import { ModelContinuity } from "@/components/ui/model-continuity";

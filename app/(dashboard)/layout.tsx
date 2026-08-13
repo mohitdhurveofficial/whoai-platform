@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Sidebar, { type SidebarUser } from "../components/Sidebar";
+import Sidebar, { type SidebarUser } from "@/components/Sidebar";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
 import { normalizeTier, planConfig } from "@/lib/subscription";

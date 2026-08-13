@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, AlertTriangle, Activity, ArrowRight, HelpCircle } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import MarketingShell from "@/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "System Status",

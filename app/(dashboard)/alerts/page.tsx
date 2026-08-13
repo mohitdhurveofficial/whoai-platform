@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
-import { AlertRowActions } from "@/app/components/alerts/AlertRowActions";
+import { AlertRowActions } from "@/components/alerts/AlertRowActions";
 
 const FILTERS = [
   { key: "active", label: "Active" },
