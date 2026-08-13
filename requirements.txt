@@ -17,6 +17,10 @@ openai==2.41.1
 anthropic==0.109.2
 google-generativeai==0.8.6
 
+# HTTP client. Pulled in transitively by the provider SDKs, but pinned here
+# because runtime/observability.py now imports it directly.
+httpx==0.28.1
+
 # Auth, crypto, config, validation
 PyJWT==2.13.0
 cryptography==49.0.0

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
+import { sessionCookieOptions } from "@/lib/auth/session";
+import { reportError } from "@/lib/observability/report";
+import { deleteWorkspace } from "@/lib/workspace/delete";
 
 // Organization profile (name + slug) for the General settings page, which
 // previously rendered hardcoded "Acme Corp" placeholders with an inert Save
@@ -28,11 +32,67 @@ export async function GET() {
   return NextResponse.json(organization);
 }
 
-export async function PATCH(req: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+/**
+ * Permanently delete the workspace.
+ *
+ * Requires `deleteWorkspace` (OWNER only) and the workspace slug echoed back in
+ * the body. The typed confirmation is not decoration: this destroys every
+ * agent, provider key, and spend record with no undo, so a mis-click or a
+ * forged cross-site request must not be enough to trigger it.
+ */
+export async function DELETE(req: Request) {
+  const guard = await requirePermission("deleteWorkspace");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
+
+  const body = await req.json().catch(() => ({}));
+  const confirmation = typeof body.confirm === "string" ? body.confirm.trim().toLowerCase() : "";
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: auth.organizationId },
+    select: { slug: true },
+  });
+
+  if (!organization) {
+    return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
   }
+
+  if (confirmation !== organization.slug.toLowerCase()) {
+    return NextResponse.json(
+      { error: `Type "${organization.slug}" to confirm deletion.` },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const result = await deleteWorkspace(auth.organizationId);
+
+    const response = NextResponse.json({
+      success: true,
+      // Surfaced so an owner whose subscription could not be cancelled learns
+      // it here rather than on their next invoice.
+      subscriptionCancelled: result.subscriptionCancelled,
+    });
+    // The session names an organization that no longer exists; leaving the
+    // cookie set would send the browser into a dashboard that 500s.
+    response.cookies.set("whoai_auth", "", { ...sessionCookieOptions, maxAge: 0 });
+    return response;
+  } catch (error) {
+    await reportError(error, {
+      source: "api:settings/organization:DELETE",
+      extra: { organizationId: auth.organizationId },
+    });
+    return NextResponse.json(
+      { error: "Could not delete the workspace. Nothing was removed — please try again." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(req: Request) {
+  const guard = await requirePermission("manageOrganization");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   const body = await req.json().catch(() => ({}));
   const name = typeof body.name === "string" ? body.name.trim() : "";

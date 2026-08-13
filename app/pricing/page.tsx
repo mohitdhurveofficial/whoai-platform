@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ArrowRight, Server, Building2, KeyRound, ShieldCheck, Zap } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
+import MarketingShell from "@/components/marketing/MarketingShell";
 import { ROICalculator } from "./roi-calculator";
 import { TrustBadges } from "@/components/ui/trust-badges";
+import { planConfig, planLimitsCopy } from "@/lib/subscription";
 import {
   Reveal,
   Stagger,
   StaggerItem,
   CountUp,
   MagneticButton,
-} from "@/app/components/marketing/Motion";
+} from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -19,76 +20,90 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-const TIERS = [
+/**
+ * Only the copy lives here. Agent counts, request allowances, retention windows
+ * and prices are read from plans.json — the same file the gateway enforces —
+ * so this page cannot advertise a limit the runtime does not honour.
+ *
+ * `support` is appended to the retention line where a tier has a support
+ * commitment, keeping the card to a fixed number of bullets.
+ */
+const TIER_COPY = [
   {
-    name: "Free",
-    price: "$0",
-    cadence: "/ month",
+    tier: "FREE",
     blurb: "Try WHOAI with no risk",
     continuity: "See your provider concentration — which agents lean on a single model.",
     cta: "Start free",
     highlighted: false,
+    support: null,
     features: [
       "Bring your own keys (OpenAI, Anthropic & more)",
       "Real-time spend & token analytics",
       "Usage dashboards",
       "1 budget alert",
-      "2 agents · 50k requests / mo",
-      "7-day data retention",
     ],
   },
   {
-    name: "Starter",
-    price: "$99",
-    cadence: "/ month",
+    tier: "STARTER",
     blurb: "Stop runaway agents before they burn your budget.",
-    continuity: "Multi-provider routing — set a fallback so one model going dark can't take your agents down.",
+    continuity:
+      "Multi-provider routing — set a fallback so one model going dark can't take your agents down.",
     cta: "Start free trial",
     highlighted: true,
+    support: "email support",
     features: [
       "Everything in Free",
       "Budget controls & hard limits",
       "Instant kill switch for runaway agents",
       "Multi-provider routing",
-      "10 agents · 1M requests / mo",
-      "30-day retention · email support",
     ],
   },
   {
-    name: "Growth",
-    price: "$299",
-    cadence: "/ month",
+    tier: "GROWTH",
     blurb: "Governance and analytics for a fleet of agents in production.",
     continuity: "Provider failover routing across every provider you've connected.",
     cta: "Start free trial",
     highlighted: false,
+    support: "priority support",
     features: [
       "Everything in Starter",
       "Team roles & policy controls (rolling out)",
       "Cost anomaly alerts",
       "Provider failover routing",
-      "50 agents · 5M requests / mo",
-      "90-day retention · priority support",
     ],
   },
   {
-    name: "Pro",
-    price: "$799",
-    cadence: "/ month",
+    tier: "PRO",
     blurb: "Mission-critical control once AI spend runs into five figures a month.",
     continuity: "Continuity at fleet scale — failover plus governance for mission-critical agents.",
     cta: "Start free trial",
     highlighted: false,
+    support: null,
     features: [
       "Everything in Growth",
       "SSO & audit-log export (set up in onboarding)",
       "Advanced governance policies (rolling out)",
       "Onboarding & solution support",
-      "200 agents · 20M requests / mo",
-      "180-day retention",
     ],
   },
-];
+] as const;
+
+const TIERS = TIER_COPY.map((copy) => {
+  const limits = planLimitsCopy(copy.tier);
+  return {
+    ...copy,
+    name: planConfig(copy.tier).label,
+    // Every self-serve tier has a price in plans.json; ENTERPRISE (the only
+    // quote-based tier) is rendered by its own band further down the page.
+    price: limits.price ?? "Custom",
+    cadence: "/ month",
+    features: [
+      ...copy.features,
+      limits.allowance,
+      copy.support ? `${limits.retention} · ${copy.support}` : limits.retention,
+    ],
+  };
+});
 
 const FAQ = [
   {

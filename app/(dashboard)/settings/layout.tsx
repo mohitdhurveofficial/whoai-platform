@@ -3,16 +3,17 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditCard, Shield, Sliders, KeyRound } from "lucide-react";
+import { CreditCard, Shield, Sliders, KeyRound, Users } from "lucide-react";
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Only routes that exist. "Team & Members" (/settings/team) was listed here
-  // with no page behind it, and Billing pointed at /settings/billing while the
-  // real billing page lives at /billing — both were 404s.
+  // Only routes that exist. Billing points at /billing rather than
+  // /settings/billing, which was a 404. "Team" is back now that
+  // /settings/team has a real page behind it.
   const navItems = [
     { name: "General", href: "/settings", icon: Sliders },
+    { name: "Team", href: "/settings/team", icon: Users },
     { name: "Providers", href: "/settings/providers", icon: Shield },
     { name: "API Keys", href: "/settings/api-keys", icon: KeyRound },
     { name: "Billing", href: "/billing", icon: CreditCard },

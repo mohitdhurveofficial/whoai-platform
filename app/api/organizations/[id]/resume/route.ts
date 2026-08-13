@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/supabase/server";
+import { requirePermission } from "@/lib/server/guard";
 
 export async function POST(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = user?.user_metadata?.organizationId;
+  // Pausing or resuming an entire organization halts every agent's traffic, so
+  // it is gated on manageOrganization rather than mere membership. The previous
+  // check read organizationId from Supabase user_metadata, which is mirrored at
+  // signup and can go stale; guard.auth.organizationId comes from the database.
+  const guard = await requirePermission("manageOrganization");
+  if (!guard.ok) return guard.response;
   const params = await context.params;
 
-  if (!orgId || orgId !== params.id) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (guard.auth.organizationId !== params.id) {
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
   }
 
   const body = await req.json().catch(() => ({}));
   const reason = body.reason || "MANUAL_RESUME";
 
   try {
-    const metadata = { reason, actorId: user?.id };
+    const metadata = { reason, actorId: guard.auth.userId };
     const organization = await prisma.$transaction(async (tx) => {
       const resumed = await tx.organization.update({
         where: { id: params.id },

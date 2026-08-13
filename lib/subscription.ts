@@ -93,6 +93,47 @@ export function retentionDays(plan?: PlanType | string | null): number {
   return PLAN_LIMITS[normalizeTier(plan)].retentionDays;
 }
 
+/**
+ * Compact request counts the way a pricing page writes them: 50k, 1M, 20M.
+ *
+ * Not Intl.NumberFormat's compact notation, which renders 50000 as "50K" and
+ * 1000000 as "1M" — inconsistent casing that reads as a typo in a feature list.
+ */
+function formatRequests(value: number): string {
+  if (value >= 1_000_000) return `${Number((value / 1_000_000).toFixed(1))}M`;
+  if (value >= 1_000) return `${Number((value / 1_000).toFixed(1))}k`;
+  return String(value);
+}
+
+/**
+ * The limit lines shown on the pricing page and in the billing UI.
+ *
+ * Derived rather than typed out, because the alternative — hand-written copy
+ * next to enforced numbers — is how a customer ends up buying "1M requests"
+ * and getting blocked at 500k. Change plans.json and the page follows.
+ */
+export function planLimitsCopy(tier: PlanType | string | null | undefined) {
+  const plan = planConfig(tier);
+
+  const agents = Number.isFinite(plan.maxAgents)
+    ? `${plan.maxAgents} agent${plan.maxAgents === 1 ? "" : "s"}`
+    : "Unlimited agents";
+  const requests = Number.isFinite(plan.monthlyRequests)
+    ? `${formatRequests(plan.monthlyRequests)} requests / mo`
+    : "Unmetered requests";
+
+  return {
+    agents,
+    requests,
+    /** e.g. "2 agents · 50k requests / mo" */
+    allowance: `${agents} · ${requests}`,
+    /** e.g. "7-day data retention" */
+    retention: `${plan.retentionDays}-day data retention`,
+    /** Formatted monthly price, or null for quote-based tiers. */
+    price: plan.priceMonthly === null ? null : `$${plan.priceMonthly}`,
+  };
+}
+
 /** Map a Stripe price ID (from env) back to a plan tier. */
 export function planForPriceId(priceId?: string | null): PlanType {
   if (!priceId) return "FREE";

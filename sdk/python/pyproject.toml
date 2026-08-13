@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "whoai"
+version = "0.1.0"
+description = "AI cost observability and control — route your LLM traffic through WHOAI"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "WHOAI" }]
+keywords = ["llm", "openai", "anthropic", "finops", "observability", "cost"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+# httpx only. The gateway speaks plain JSON over HTTP, so pulling in a provider
+# SDK would be dead weight for anyone not using that provider.
+dependencies = ["httpx>=0.24"]
+
+[project.optional-dependencies]
+# For whoai.openai_client() — the drop-in replacement path.
+openai = ["openai>=1.0"]
+
+[project.urls]
+Homepage = "https://whoai.ai"
+Documentation = "https://whoai.ai/docs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["whoai"]

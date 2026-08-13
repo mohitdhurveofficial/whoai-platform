@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/email";
+import { checkRateLimit, clientIp, RATE_LIMITS, rateLimitResponse } from "@/lib/security/rate-limit";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_TYPES = new Set(["DEMO", "CONTACT"]);
@@ -17,6 +18,13 @@ const FROM_ADDRESS = "WHOAI <notifications@whoai.ai>";
  * Persists the lead (source of truth) and best-effort emails the sales inbox.
  */
 export async function POST(request: Request) {
+  // Unauthenticated and it both writes a row and sends mail to the sales
+  // inbox, which makes it the obvious target for form spam.
+  const limited = await checkRateLimit(`lead:ip:${clientIp(request)}`, RATE_LIMITS.lead);
+  if (!limited.allowed) {
+    return rateLimitResponse(limited, "Too many submissions. Please try again later.");
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();

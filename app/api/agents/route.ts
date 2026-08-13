@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
 import { canCreateAgent, planConfig } from "@/lib/subscription";
 
 function errorMessage(error: unknown) {
@@ -40,10 +41,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageAgents");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
   const orgId = auth.organizationId;
 
   try {

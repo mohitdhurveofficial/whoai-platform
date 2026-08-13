@@ -14,9 +14,11 @@ import {
   SpendAgentBarChart,
   SpendLineChart,
   SpendModelPieChart,
-} from "@/app/components/analytics/DashboardCharts";
+} from "@/components/analytics/DashboardCharts";
 import { SummaryCards } from "./SummaryCards";
 import { ProviderSetupBanner } from "@/components/ProviderSetupBanner";
+import { OnboardingChecklist } from "./OnboardingChecklist";
+import { getOnboardingState } from "@/lib/onboarding/checklist";
 import { forecastSpend } from "@/lib/predictive-budget";
 import { efficiencyLeaderboard } from "@/lib/efficiency-score";
 
@@ -45,6 +47,15 @@ export default async function DashboardPage() {
     efficiencyLeaderboard(auth.organizationId, 7).catch(() => []),
   ]);
 
+  // Setup progress. Failing this must not take the dashboard down, so a broken
+  // query degrades to "fully set up" — the worst case is a missing nudge.
+  const onboarding = await getOnboardingState(auth.organizationId).catch(() => ({
+    steps: [],
+    completedCount: 0,
+    complete: true,
+    nextStep: null,
+  }));
+
   const providerCount = summary.providerCount;
 
   const hasSpend = summary.totalSpend > 0;
@@ -69,7 +80,15 @@ export default async function DashboardPage() {
         </Link>
       </header>
 
-      <ProviderSetupBanner configuredCount={providerCount} />
+      {/* The checklist's first step is the provider key, so it subsumes the
+          standalone banner while setup is unfinished. Once every step is done
+          the checklist renders nothing and the banner takes over again — which
+          only happens if a configured workspace later deletes its last key. */}
+      {onboarding.complete ? (
+        <ProviderSetupBanner configuredCount={providerCount} />
+      ) : (
+        <OnboardingChecklist state={onboarding} />
+      )}
 
       <SummaryCards />
 
@@ -157,7 +176,9 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {!hasSpend && (
+      {/* Only once setup is done. While the checklist is up, "no telemetry yet"
+          is the expected state and repeating it is noise, not information. */}
+      {!hasSpend && onboarding.complete && (
         <div className="flex items-center gap-3 rounded-lg border border-[#EEE8E2] bg-white p-4 text-[13px] text-[#666666] shadow-sm">
           <AlertTriangle className="h-4 w-4 text-[#D97706]" />
           No spend telemetry has been recorded for this organization yet.

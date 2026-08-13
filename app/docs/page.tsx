@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, KeyRound, Terminal } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
-import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/app/components/marketing/Motion";
+import MarketingShell from "@/components/marketing/MarketingShell";
+import { GATEWAY_COMPLETIONS_URL } from "@/lib/runtime-url";
+import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Documentation",
@@ -11,11 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs" },
 };
 
-const GATEWAY_URL =
-  process.env.NEXT_PUBLIC_GATEWAY_URL ||
-  "https://whoai-api.onrender.com/api/v1/chat/completions";
 
-const curlExample = `curl ${GATEWAY_URL} \\
+const curlExample = `curl ${GATEWAY_COMPLETIONS_URL} \\
   -H "Authorization: Bearer $WHOAI_AGENT_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{

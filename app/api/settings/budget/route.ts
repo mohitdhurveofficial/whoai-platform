@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
 
 export async function GET() {
   const auth = await getServerAuthContext();
@@ -17,10 +18,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageBudgets");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   const body = (await req.json().catch(() => ({}))) as { budget?: unknown };
   const budget = Number(body.budget);

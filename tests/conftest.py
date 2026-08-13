@@ -24,6 +24,17 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 
 from runtime.main import app
+from runtime.rate_limit import reset_rate_limits
+
+
+@pytest.fixture(autouse=True)
+def _clear_rate_limits():
+    """The gateway and token limiters keep module-level counters, so without
+    this a test that fires many requests would leak its window into the next
+    test and fail it with a 429."""
+    reset_rate_limits()
+    yield
+    reset_rate_limits()
 
 
 @pytest.fixture

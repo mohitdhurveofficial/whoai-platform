@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
 import { decrypt } from "@/lib/encryption";
 import { getAdapter } from "@/lib/gateway/adapters";
 import { isSupportedProvider } from "@/lib/providers/key-format";
@@ -12,10 +12,9 @@ export async function POST(
   _req: Request,
   context: { params: { provider: string } | Promise<{ provider: string }> },
 ) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageProviderKeys");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   const { provider } = await context.params;
 

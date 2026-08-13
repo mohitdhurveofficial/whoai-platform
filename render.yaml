@@ -5,6 +5,12 @@ services:
 
     buildCommand: pip install -r requirements.txt
 
-    startCommand: uvicorn runtime.main:app --host 0.0.0.0 --port $PORT
+    # Two workers minimum. With one, a single slow provider call or a restart
+    # takes the whole gateway down — the runtime is the only path customer
+    # traffic has, so it must not be a single process.
+    startCommand: uvicorn runtime.main:app --host 0.0.0.0 --port $PORT --workers ${WEB_CONCURRENCY:-2}
 
-    healthCheckPath: /health
+    # Readiness, not liveness: Render pulls an instance from rotation when this
+    # fails, and an instance that cannot reach Postgres cannot serve a single
+    # gateway request even though its process is perfectly healthy.
+    healthCheckPath: /health/ready

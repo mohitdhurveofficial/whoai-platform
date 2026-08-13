@@ -43,6 +43,8 @@ from runtime.entitlements.quota_service import (
     reserve_request_quota,
 )
 
+from runtime.rate_limit import check_rate_limit
+
 from runtime.providers.provider_factory import ProviderFactory
 from runtime.encryption import decrypt
 
@@ -258,6 +260,30 @@ async def unified_chat_completions(
     org_id = identity["org"]
     
     await log_activity(db, org_id, ActivityAction.REQUEST_RECEIVED, agent_id, "PENDING", {"ip": ip_address})
+
+    # Throughput guard, checked before the body is read: a runaway retry loop
+    # should cost us a token comparison, not a payload parse plus four queries.
+    # 429 (not 402) — this clears on its own in a minute; no upgrade required.
+    rate = check_rate_limit(agent_id)
+    if not rate.allowed:
+        await log_activity(
+            db, org_id, ActivityAction.REQUEST_BLOCKED, agent_id, "FAILURE",
+            {"reason": "RATE_LIMIT_EXCEEDED", "limit": rate.limit},
+        )
+        await db.commit()  # persist the audit log; nothing else is in flight yet
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "RATE_LIMIT_EXCEEDED",
+                "message": f"This agent exceeded {rate.limit} requests per minute.",
+                "retry_after": rate.retry_after,
+            },
+            headers={
+                "Retry-After": str(rate.retry_after),
+                "X-RateLimit-Limit": str(rate.limit),
+                "X-RateLimit-Remaining": "0",
+            },
+        )
 
     raw_body = await request.body()
     payload_size = len(raw_body)

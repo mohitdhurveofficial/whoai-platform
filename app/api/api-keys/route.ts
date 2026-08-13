@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
 import { generateApiKey } from "@/lib/security/api-keys";
 import crypto from "crypto";
 
@@ -36,10 +37,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageApiKeys");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -73,10 +73,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageApiKeys");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   const id = new URL(req.url).searchParams.get("id");
   if (!id) {
