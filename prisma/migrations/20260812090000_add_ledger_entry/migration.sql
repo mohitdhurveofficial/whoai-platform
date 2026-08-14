@@ -12,7 +12,10 @@
 CREATE TYPE "LedgerVerdict" AS ENUM ('ALLOWED', 'CAPPED', 'BLOCKED', 'REROUTED');
 
 -- AlterTable
-ALTER TABLE "Alert" ADD COLUMN     "notifiedAt" TIMESTAMP(6);
+-- IF NOT EXISTS because production already has this column: it reached the
+-- database outside the migration history (a `db push`), so a plain ADD COLUMN
+-- aborts the whole migration and the LedgerEntry table below never gets created.
+ALTER TABLE "Alert" ADD COLUMN IF NOT EXISTS "notifiedAt" TIMESTAMP(6);
 
 -- CreateTable
 CREATE TABLE "LedgerEntry" (
