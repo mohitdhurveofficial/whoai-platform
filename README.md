@@ -59,7 +59,7 @@ graph TD;
 | **Styling** | Tailwind CSS v4 | Utility-first responsive design. |
 | **Charting** | Recharts | Interactive SVG charts for the Analytics dashboard. |
 | **Authentication** | JWT + Supabase SSR | Secure, stateless HTTP-only cookie authentication. |
-| **Deployment** | Vercel / Render | Serverless edge deployment. |
+| **Deployment** | Vercel | Serverless edge deployment of the control plane. |
 
 ## Project Structure
 

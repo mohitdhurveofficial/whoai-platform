@@ -2,7 +2,7 @@
 
 ## Architecture
 - **Frontend**: Next.js 16 → Vercel
-- **Backend**: FastAPI → Render
+- **Backend**: FastAPI → not currently deployed (see section 2)
 - **Database**: Supabase PostgreSQL (shared by both)
 
 ---
@@ -89,25 +89,27 @@ vercel --prod
 
 ---
 
-## 2. Render (FastAPI Backend)
+## 2. FastAPI Runtime — currently not deployed
 
-The `render.yaml` is already configured. Just:
+The Render service and its `render.yaml` were removed; Vercel is the only
+hosting target now. **The runtime plane therefore has no host**, which means the
+gateway (`/api/v1/chat/completions`), budget enforcement, kill switch and the
+readiness probe behind `/api/status` are all offline. The Next.js control plane
+runs fine without it — dashboards, auth and settings are unaffected — but no
+customer LLM traffic can be proxied or metered until the runtime is hosted again.
 
-1. Go to [dashboard.render.com](https://dashboard.render.com)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repo
-4. Render will auto-detect `render.yaml`
-5. Add environment variables in Render dashboard:
+When it is hosted, it needs:
 
 ```
-DATABASE_URL=postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:5432/postgres
+ASYNC_DATABASE_URL=postgresql+asyncpg://postgres.[REF]:[PASSWORD]@[POOLER_HOST]:5432/postgres
 GATEWAY_SECRET=... (same as Vercel)
 ENCRYPTION_KEY=... (same as Vercel)
-CORS_ALLOW_ORIGINS=https://whoai-dashboard.vercel.app
+CORS_ALLOW_ORIGINS=https://whoai-platform.vercel.app
 ```
 
-### Deploy
-Render auto-deploys on git push.
+and Vercel needs `NEXT_PUBLIC_WHOAI_RUNTIME_URL` pointed at it — see
+[`lib/runtime-url.ts`](../lib/runtime-url.ts), which still defaults to the old
+Render origin when that variable is unset.
 
 ---
 
