@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerAuthContext } from '@/lib/server/auth';
+import { requirePermission } from '@/lib/server/guard';
 
 // The organization is taken from the session, never from the request. This
 // endpoint previously read `?organizationId=` and returned that org's alerts
@@ -24,10 +25,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const guard = await requirePermission("acknowledgeAlerts");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   const body = await request.json().catch(() => ({}));
   const { id, resolved } = body as { id?: string; resolved?: boolean };

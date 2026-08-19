@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
 import { createSessionToken, sessionCookieOptions } from "@/lib/auth/session";
+import { checkRateLimit, clientIp, RATE_LIMITS, rateLimitResponse } from "@/lib/security/rate-limit";
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Login failed";
@@ -18,6 +19,21 @@ export async function POST(request: Request) {
         { success: false, error: "Email and password are required" },
         { status: 400 },
       );
+    }
+
+    // Two independent limits. Per-IP alone lets a botnet spread one password
+    // across many addresses; per-account alone lets one host walk a user list.
+    // Both are counted before the credential check so a wrong password costs
+    // the attacker an attempt either way.
+    const ip = clientIp(request);
+    for (const key of [`login:ip:${ip}`, `login:email:${email}`]) {
+      const limited = await checkRateLimit(key, RATE_LIMITS.login);
+      if (!limited.allowed) {
+        return rateLimitResponse(
+          limited,
+          "Too many sign-in attempts. Please wait a minute and try again.",
+        );
+      }
     }
 
     const supabase = await createClient();

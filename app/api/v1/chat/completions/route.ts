@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { corsHeaders, corsPreflight } from "@/lib/gateway/cors";
+import { GATEWAY_COMPLETIONS_URL } from "@/lib/runtime-url";
 
 export function OPTIONS() {
   return corsPreflight();
 }
 
-const FASTAPI_GATEWAY =
-  process.env.NEXT_PUBLIC_GATEWAY_URL ||
-  "https://whoai-api.onrender.com/api/v1/chat/completions";
 
 export async function POST() {
   return NextResponse.json(
@@ -15,7 +13,7 @@ export async function POST() {
       error: "This gateway endpoint has been retired.",
       message:
         "Send all traffic to the WHOAI FastAPI runtime gateway. The Next.js route no longer processes LLM requests.",
-      use: FASTAPI_GATEWAY,
+      use: GATEWAY_COMPLETIONS_URL,
       docs: "/docs",
     },
     { status: 410, headers: corsHeaders },

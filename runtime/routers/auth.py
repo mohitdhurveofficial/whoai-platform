@@ -3,13 +3,14 @@ import time
 from typing import Optional
 
 import jwt
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Agent
 from database.session import get_db
+from runtime.rate_limit import check_rate_limit
 from runtime.routers.gateway import GATEWAY_SECRET
 
 router = APIRouter(
@@ -19,6 +20,12 @@ router = APIRouter(
 
 # Short-lived access tokens; agents re-request a token as needed.
 TOKEN_TTL_SECONDS = 3600
+
+# Token exchange per source IP per minute. This endpoint takes a raw agent key
+# and is unauthenticated by definition, so it is the one place an attacker can
+# guess keys. Well above what a legitimate client needs: tokens last an hour,
+# so a correctly-behaved fleet exchanges roughly once per agent per hour.
+TOKEN_RATE_LIMIT_PER_MINUTE = 30
 
 
 class TokenRequest(BaseModel):
@@ -35,6 +42,7 @@ async def auth_health():
 
 @router.post("/token")
 async def issue_agent_token(
+    request: Request,
     body: Optional[TokenRequest] = None,
     x_api_key: Optional[str] = Header(None),
     authorization: Optional[str] = Header(None),
@@ -48,6 +56,18 @@ async def issue_agent_token(
     organization (`org` claim) — preserving multi-tenant isolation at the
     data plane.
     """
+    # Keyed by IP, since a caller presenting an unknown key has no identity to
+    # key on. Checked first so guessing costs an attacker nothing we care about
+    # — no hash, no query.
+    ip_address = request.client.host if request.client else "unknown"
+    rate = check_rate_limit(f"auth-token:{ip_address}", limit=TOKEN_RATE_LIMIT_PER_MINUTE)
+    if not rate.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many token requests. Please retry shortly.",
+            headers={"Retry-After": str(rate.retry_after)},
+        )
+
     raw_key: Optional[str] = None
     if body and body.api_key:
         raw_key = body.api_key

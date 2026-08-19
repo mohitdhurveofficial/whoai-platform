@@ -39,6 +39,7 @@ model Organization {
   alerts               Alert[]
   ApiKey               ApiKey[]
   budgetViolations     BudgetViolation[]
+  invites              Invite[]
   policies             Policy[]
   providerCredentials  ProviderCredential[]
   requestLogs          RequestLog[]
@@ -51,11 +52,51 @@ model Organization {
 model User {
   id             String       @id @default(uuid())
   email          String       @unique
+  // One of the values in lib/auth/roles.ts: OWNER | ADMIN | DEVELOPER | VIEWER.
+  // Kept as String rather than an enum so adding a role later does not require
+  // a migration that locks the table.
   role           String       @default("DEVELOPER")
   organizationId String
   createdAt      DateTime     @default(now())
   fullName       String?
   organization   Organization @relation(fields: [organizationId], references: [id])
+  sentInvites    Invite[]     @relation("InviteSender")
+
+  @@index([organizationId])
+}
+
+/// A pending invitation for someone to join an organization.
+///
+/// The raw token is emailed to the invitee and never stored: only its SHA-256
+/// hash lives here, so a database leak does not hand an attacker a set of
+/// working join links.
+model Invite {
+  id             String       @id @default(uuid())
+  organizationId String
+  email          String
+  /// Role the invitee receives on acceptance. Validated against lib/auth/roles.ts.
+  role           String       @default("DEVELOPER")
+  /// SHA-256 of the raw token. Unique so acceptance is a single indexed lookup.
+  tokenHash      String       @unique
+  status         InviteStatus @default(PENDING)
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  invitedById    String?
+  invitedBy      User?        @relation("InviteSender", fields: [invitedById], references: [id], onDelete: SetNull)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// At most one live invite per address per org. Re-inviting replaces the old
+  /// row rather than accumulating duplicates that all still work.
+  @@unique([organizationId, email])
+  @@index([organizationId, status])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
 }
 
 model Agent {

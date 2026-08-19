@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import LegalLayout from "@/app/components/marketing/LegalLayout";
-import { Reveal } from "@/app/components/marketing/Motion";
+import LegalLayout from "@/components/marketing/LegalLayout";
+import { Reveal } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Terms of Service",

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
-import { AgentsAnalyticsTable } from "@/app/components/analytics/AgentsAnalyticsTable";
+import { AgentsAnalyticsTable } from "@/components/analytics/AgentsAnalyticsTable";
 import { getAgentsAnalytics } from "@/lib/analytics/service";
 import { getServerAuthContext } from "@/lib/server/auth";
 

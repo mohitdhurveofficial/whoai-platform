@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Reveal, MagneticButton } from "@/app/components/marketing/Motion";
+import { Reveal, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "How to Track GPT-4o API Costs Per Request | WHOAI Blog",

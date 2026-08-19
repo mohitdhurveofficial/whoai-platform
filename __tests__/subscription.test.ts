@@ -5,6 +5,7 @@ import {
   normalizeTier,
   planConfig,
   planForPriceId,
+  planLimitsCopy,
   priceIdForTier,
   retentionDays,
 } from "@/lib/subscription";
@@ -104,5 +105,35 @@ describe("price <-> tier mapping", () => {
     expect(priceIdForTier("GROWTH")).toBe("price_growth");
     expect(priceIdForTier("PRO")).toBe("price_pro");
     expect(priceIdForTier("FREE")).toBeUndefined();
+  });
+});
+
+describe("planLimitsCopy", () => {
+  it("derives the marketing copy from plans.json rather than restating it", () => {
+    const free = planLimitsCopy("FREE");
+    const raw = plansData.plans.FREE;
+
+    expect(free.agents).toBe(`${raw.maxAgents} agents`);
+    expect(free.retention).toBe(`${raw.retentionDays}-day data retention`);
+    expect(free.price).toBe(`$${raw.priceMonthly}`);
+  });
+
+  it("abbreviates request allowances the way a pricing page writes them", () => {
+    expect(planLimitsCopy("FREE").requests).toBe("50k requests / mo");
+    expect(planLimitsCopy("STARTER").requests).toBe("1M requests / mo");
+    expect(planLimitsCopy("PRO").requests).toBe("20M requests / mo");
+  });
+
+  it("says unlimited instead of Infinity on quote-based tiers", () => {
+    const enterprise = planLimitsCopy("ENTERPRISE");
+
+    expect(enterprise.agents).toBe("Unlimited agents");
+    expect(enterprise.requests).toBe("Unmetered requests");
+    // null, not "$null" — the caller decides whether to print "Custom".
+    expect(enterprise.price).toBeNull();
+  });
+
+  it("falls back to Free for an unknown tier, matching enforcement", () => {
+    expect(planLimitsCopy("nonsense").allowance).toBe(planLimitsCopy("FREE").allowance);
   });
 });

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 // A browser Supabase client is created inline because the repo only ships a
 // server client (@/utils/supabase/server). The recovery link from the

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Edit2 } from "lucide-react";
-import { AgentRequestsChart, AgentSpendChart } from "@/app/components/analytics/AgentCharts";
+import { AgentRequestsChart, AgentSpendChart } from "@/components/analytics/AgentCharts";
 import { getAgentAnalytics } from "@/lib/analytics/service";
 import { getServerAuthContext } from "@/lib/server/auth";
 

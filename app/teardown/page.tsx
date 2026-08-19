@@ -11,8 +11,8 @@ import {
   ShieldCheck,
   Clock,
 } from "lucide-react";
-import MarketingShell from "@/app/components/marketing/MarketingShell";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import MarketingShell from "@/components/marketing/MarketingShell";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Free AI Spend Teardown",

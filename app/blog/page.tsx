@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Blog — AI FinOps, LLM Cost Tracking & Budget Management",

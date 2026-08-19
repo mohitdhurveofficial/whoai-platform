@@ -17,7 +17,7 @@ import {
   TriangleAlert,
   UserRound,
 } from "lucide-react";
-import { Reveal, Stagger, StaggerItem, CountUp } from "../../components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/marketing/Motion";
 
 const workflowSteps = [
   { icon: Bot, label: "Agent request", tone: "bg-white text-[#071126]" },

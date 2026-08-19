@@ -67,7 +67,6 @@ function canon(value: unknown): string {
     const keys = Object.keys(obj).sort();
     const parts: string[] = [];
     for (const k of keys) {
-      // eslint-disable-next-line no-control-regex
       if (!/^[\x00-\x7F]*$/.test(k)) {
         throw new Error("object keys must be ASCII for cross-language determinism");
       }

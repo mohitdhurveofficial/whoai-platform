@@ -1,10 +1,17 @@
 import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeRole, type Role } from "@/lib/auth/roles";
 import { createClient } from "@/utils/supabase/server";
 
 export type ServerAuthContext = {
   userId?: string;
   organizationId: string;
+  /**
+   * Read from the database on every call rather than from the session JWT, so
+   * demoting a member takes effect immediately instead of when their token
+   * happens to expire.
+   */
+  role: Role;
 };
 
 export async function getServerAuthContext(): Promise<ServerAuthContext | null> {
@@ -19,6 +26,7 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
       select: {
         id: true,
         organizationId: true,
+        role: true,
       },
     });
 
@@ -26,6 +34,7 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
       return {
         userId: user.id,
         organizationId: user.organizationId,
+        role: normalizeRole(user.role),
       };
     }
   }
@@ -52,6 +61,7 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
     select: {
       id: true,
       organizationId: true,
+      role: true,
     },
   });
 
@@ -60,5 +70,6 @@ export async function getServerAuthContext(): Promise<ServerAuthContext | null> 
   return {
     userId: appUser.id,
     organizationId: appUser.organizationId,
+    role: normalizeRole(appUser.role),
   };
 }

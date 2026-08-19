@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Gift, MessageSquare, Tag } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 /* -----------------------------------------------------------------------------
  * WHOAI FOUNDING PARTNERS

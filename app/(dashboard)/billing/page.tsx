@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle, Loader2, CreditCard } from "lucide-react";
+import { planConfig, planLimitsCopy } from "@/lib/subscription";
 
 // Plan ordering used to label a plan switch as an upgrade vs a downgrade.
 const TIER_RANK: Record<string, number> = {
@@ -28,12 +29,26 @@ type Subscription = {
   };
 };
 
-const PLANS = [
-  { tier: "STARTER", label: "Starter", price: "$99/mo", blurb: "Budget controls + kill switches", agents: "10 agents" },
-  { tier: "GROWTH", label: "Growth", price: "$299/mo", blurb: "RBAC, governance & anomaly detection", agents: "50 agents" },
-  { tier: "PRO", label: "Pro", price: "$799/mo", blurb: "Scale governance, SSO & audit exports", agents: "200 agents" },
-  { tier: "ENTERPRISE", label: "Enterprise", price: "Custom", blurb: "SAML SSO, SLA, unlimited & self-hosted", agents: "Unlimited" },
-];
+// Blurbs are copy; price and agent count come from plans.json, the same file
+// the gateway enforces — so an upgrade card can never quote a limit the runtime
+// will not actually grant.
+const PLAN_BLURBS = [
+  { tier: "STARTER", blurb: "Budget controls + kill switches" },
+  { tier: "GROWTH", blurb: "RBAC, governance & anomaly detection" },
+  { tier: "PRO", blurb: "Scale governance, SSO & audit exports" },
+  { tier: "ENTERPRISE", blurb: "SAML SSO, SLA, unlimited & self-hosted" },
+] as const;
+
+const PLANS = PLAN_BLURBS.map(({ tier, blurb }) => {
+  const limits = planLimitsCopy(tier);
+  return {
+    tier,
+    blurb,
+    label: planConfig(tier).label,
+    price: limits.price ? `${limits.price}/mo` : "Custom",
+    agents: limits.agents,
+  };
+});
 
 export default function BillingPage() {
   const [sub, setSub] = useState<Subscription | null>(null);

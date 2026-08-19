@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Reveal } from "@/app/components/marketing/Motion";
+import { Reveal } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Search WHOAI",

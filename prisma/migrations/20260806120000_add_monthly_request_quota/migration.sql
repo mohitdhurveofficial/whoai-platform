@@ -7,4 +7,7 @@
 -- silently evaluate to NULL (and therefore never match, blocking every request).
 -- (The retention sweep's delete predicates are already covered: SpendLog,
 -- RequestLog and ActivityLog each carry an (organizationId, <date>) index.)
-ALTER TABLE "Organization" ADD COLUMN "currentMonthlyRequests" INTEGER NOT NULL DEFAULT 0;
+-- IF NOT EXISTS for the same reason as Alert.notifiedAt in the next migration:
+-- this database has had columns pushed to it outside the migration history, and
+-- one collision must not abort the run.
+ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS "currentMonthlyRequests" INTEGER NOT NULL DEFAULT 0;

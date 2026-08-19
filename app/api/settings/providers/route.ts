@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
 import { encrypt } from "@/lib/encryption";
 import { validateKeyFormat } from "@/lib/providers/key-format";
 
@@ -41,10 +42,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageProviderKeys");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   try {
     const body = await req.json();

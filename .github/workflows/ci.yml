@@ -1,0 +1,90 @@
+name: CI
+
+# The repo had 19 test files and nothing that ran them. This gate runs on every
+# push and PR so a broken merge cannot reach main unnoticed.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch supersedes an in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  control-plane:
+    name: Control plane (lint, types, unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      # The Prisma client is gitignored, so every downstream step (typecheck,
+      # vitest) needs it generated first. `generate` reads schema.prisma only —
+      # it never connects to the database, so no DATABASE_URL is required.
+      - run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+  runtime-plane:
+    name: Runtime plane (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # tests/conftest.py sets GATEWAY_SECRET and ENCRYPTION_KEY defaults and
+      # runs against in-memory aiosqlite, so no Postgres service is needed.
+      - name: Gateway + budget + telemetry tests
+        run: pytest -q
+
+  migrations:
+    name: Migrations apply cleanly
+    runs-on: ubuntu-latest
+    # Catches a migration that is malformed or conflicts with the checked-in
+    # schema *before* it runs against production during a deploy build.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: whoai_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/whoai_ci
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/whoai_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run db:deploy
+      # Fails if schema.prisma has drifted from the migration history — i.e. if
+      # someone edited the schema without generating a matching migration.
+      - name: Schema matches migration history
+        run: npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "$DATABASE_URL" --exit-code

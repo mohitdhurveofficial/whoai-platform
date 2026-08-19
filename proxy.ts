@@ -8,7 +8,6 @@ import type { NextRequest } from "next/server";
 const PROTECTED_PREFIXES = [
   "/dashboard",
   "/agents",
-  "/agent-details",
   "/usage",
   "/alerts",
   "/analytics",

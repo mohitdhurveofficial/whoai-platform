@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Network, Layers, Gauge, Receipt, AlertTriangle } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/app/components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem } from "@/components/marketing/Motion";
 
 /* -----------------------------------------------------------------------------
  * WHOAI MODEL CONTINUITY

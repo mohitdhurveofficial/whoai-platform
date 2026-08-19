@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { requirePermission } from "@/lib/server/guard";
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unexpected error";
@@ -42,10 +43,9 @@ export async function GET(req: Request, context: { params: { id: string } | Prom
 }
 
 export async function PUT(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageAgents");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
   const orgId = auth.organizationId;
 
   try {
@@ -104,10 +104,9 @@ export async function PUT(req: Request, context: { params: { id: string } | Prom
 }
 
 export async function DELETE(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requirePermission("manageAgents");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
   const orgId = auth.organizationId;
 
   try {
