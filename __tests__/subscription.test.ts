@@ -222,6 +222,11 @@ describe("planLimitsCopy", () => {
     expect(free.price).toBe(`$${raw.priceMonthly}`);
   });
 
+  it("groups thousands so Business reads $1,499 and not $1499", () => {
+    expect(planLimitsCopy("BUSINESS").price).toBe("$1,499");
+    expect(planLimitsCopy("STARTER").price).toBe("$149");
+  });
+
   it("abbreviates request allowances the way a pricing page writes them", () => {
     expect(planLimitsCopy("FREE").requests).toBe("50k requests / mo");
     expect(planLimitsCopy("STARTER").requests).toBe("1M requests / mo");

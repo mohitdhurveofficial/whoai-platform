@@ -216,8 +216,15 @@ export function planLimitsCopy(tier: PlanType | string | null | undefined) {
     allowance: `${agents} · ${requests}`,
     /** e.g. "7-day data retention" */
     retention: `${plan.retentionDays}-day data retention`,
-    /** Formatted monthly price, or null for quote-based tiers. */
-    price: plan.priceMonthly === null ? null : `$${plan.priceMonthly}`,
+    /**
+     * Formatted monthly price, or null for quote-based tiers. The locale is
+     * pinned because this string is rendered on the server: letting it follow
+     * the machine's locale would give the client different digits to hydrate.
+     */
+    price:
+      plan.priceMonthly === null
+        ? null
+        : `$${plan.priceMonthly.toLocaleString("en-US")}`,
   };
 }
 
