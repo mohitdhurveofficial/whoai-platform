@@ -11,6 +11,7 @@ import {
   priceIdForTier,
   PURCHASABLE_TIERS,
   isPurchasableTier,
+  hasUpgradeAvailable,
   retentionDays,
 } from "@/lib/subscription";
 import plansData from "@/plans.json";
@@ -220,6 +221,22 @@ describe("planLimitsCopy", () => {
     expect(free.agents).toBe(`${raw.maxAgents} agents`);
     expect(free.retention).toBe(`${raw.retentionDays}-day data retention`);
     expect(free.price).toBe(`$${raw.priceMonthly}`);
+  });
+
+  it("offers an upgrade to everyone who has somewhere to go", () => {
+    // Drives the sidebar's Upgrade pill. Showing it to a Business or Enterprise
+    // customer would send them to a page with nothing to buy.
+    expect(hasUpgradeAvailable("FREE")).toBe(true);
+    expect(hasUpgradeAvailable("STARTER")).toBe(true);
+    expect(hasUpgradeAvailable("GROWTH")).toBe(true);
+    expect(hasUpgradeAvailable("BUSINESS")).toBe(false);
+    expect(hasUpgradeAvailable("ENTERPRISE")).toBe(false);
+  });
+
+  it("treats an unknown or missing tier as Free, so the pill still shows", () => {
+    expect(hasUpgradeAvailable(null)).toBe(true);
+    expect(hasUpgradeAvailable("nonsense")).toBe(true);
+    expect(hasUpgradeAvailable("pro")).toBe(false); // legacy alias for Business
   });
 
   it("groups thousands so Business reads $1,499 and not $1499", () => {

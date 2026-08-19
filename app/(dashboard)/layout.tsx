@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Sidebar, { type SidebarUser } from "@/components/Sidebar";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
-import { normalizeTier, planConfig } from "@/lib/subscription";
+import { hasUpgradeAvailable, normalizeTier, planConfig } from "@/lib/subscription";
 
 // The authenticated app should never be indexed by search engines.
 export const metadata: Metadata = {
@@ -42,12 +42,19 @@ async function getSidebarUser(): Promise<SidebarUser | undefined> {
   if (!user) return undefined;
 
   const name = user.fullName?.trim() || user.email.split("@")[0];
+  const tier = normalizeTier(user.organization?.subscriptionTier);
   // Label comes from plans.json via planConfig rather than being re-cased from
   // the enum here, so the sidebar cannot drift from the tier the gateway
   // actually enforces quota against.
-  const plan = `${planConfig(normalizeTier(user.organization?.subscriptionTier)).label} Plan`;
+  const plan = `${planConfig(tier).label} Plan`;
 
-  return { name, plan, initials: initialsFrom(name), email: user.email };
+  return {
+    name,
+    plan,
+    initials: initialsFrom(name),
+    email: user.email,
+    canUpgrade: hasUpgradeAvailable(tier),
+  };
 }
 
 export default async function DashboardLayout({

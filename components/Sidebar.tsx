@@ -22,6 +22,8 @@ export type SidebarUser = {
   initials: string;
   /** Shown as a tooltip on the name, which is truncated when it overflows. */
   email?: string | null;
+  /** Drives the Upgrade pill. False on Enterprise and on the top paid plan. */
+  canUpgrade?: boolean;
 };
 
 // `match` lists extra paths that should light this item up. /usage is reachable
@@ -123,7 +125,14 @@ export default function Sidebar({ user }: { user?: SidebarUser }) {
         </nav>
 
         <div className="border-t border-[#EEE8E2] bg-white p-4">
-          <div className="mb-4 flex items-center gap-3 px-2">
+          {/* The block that names your plan is the thing people tap to change
+              it, so it links to billing rather than sitting there inert. */}
+          <Link
+            href="/billing"
+            onClick={() => setMobileOpen(false)}
+            aria-label={`${account.name}, ${account.plan}. Manage plan and billing.`}
+            className="mb-4 flex items-center gap-3 rounded-md border border-transparent px-2 py-2 transition-colors hover:bg-[#FAF7F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-1"
+          >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-[#EEE8E2] bg-[#FAF7F3] text-[12px] font-bold uppercase text-[#111111]">
               {account.initials}
             </div>
@@ -136,7 +145,12 @@ export default function Sidebar({ user }: { user?: SidebarUser }) {
               </span>
               <span className="truncate text-[11px] text-[#666666]">{account.plan}</span>
             </div>
-          </div>
+            {account.canUpgrade && (
+              <span className="ml-auto shrink-0 rounded bg-[#FFF5F0] px-2 py-0.5 text-[11px] font-semibold text-[#FF6B00]">
+                Upgrade
+              </span>
+            )}
+          </Link>
 
           <button
             onClick={async () => {

@@ -118,6 +118,21 @@ export function isPurchasableTier(tier?: string | null): boolean {
   return PURCHASABLE_TIERS.includes(normalizeTier(tier));
 }
 
+/**
+ * True when a strictly more expensive self-serve plan exists. Compares prices
+ * rather than positions, so reordering plans.json cannot silently offer someone
+ * a downgrade labelled "Upgrade". Enterprise is quote-based and has no price,
+ * so it never reports an upgrade — that conversation goes through sales.
+ */
+export function hasUpgradeAvailable(tier?: string | null): boolean {
+  const current = PLAN_LIMITS[normalizeTier(tier)].priceMonthly;
+  if (current === null) return false;
+  return PURCHASABLE_TIERS.some((candidate) => {
+    const price = PLAN_LIMITS[candidate].priceMonthly;
+    return price !== null && price > current;
+  });
+}
+
 /** Normalize an arbitrary (possibly null/unknown) tier string to a PlanType. */
 export function normalizeTier(tier?: string | null): PlanType {
   const key = (tier ?? "FREE").toUpperCase();
