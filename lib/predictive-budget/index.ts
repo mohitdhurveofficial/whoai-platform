@@ -66,26 +66,38 @@ export async function forecastSpend(
 ): Promise<ForecastResult> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const rows = await prisma.spendLog.groupBy({
-    by: ["createdAt"],
-    where: {
-      organizationId,
-      createdAt: { gte: since },
-    },
-    _sum: { cost: true },
-  });
+  // Grouped by day in Postgres, together with the budget the exhaustion
+  // estimate needs, in one round trip.
+  //
+  // This was a groupBy on ["createdAt"] — a millisecond-precision timestamp, so
+  // it produced one row per request and shipped a month of raw spend rows over
+  // the wire for JavaScript to bucket into thirty numbers. Behind PgBouncer's
+  // single connection that was also two serial round trips, not two parallel
+  // ones.
+  const [row] = await prisma.$queryRaw<
+    Array<{
+      daily: Array<{ date: string; spend: number | string }>;
+      monthly_budget: number | string | null;
+      current_monthly_spend: number | string | null;
+    }>
+  >`
+    SELECT
+      COALESCE((
+        SELECT json_agg(json_build_object('date', to_char(day, 'YYYY-MM-DD'), 'spend', spend))
+        FROM (
+          SELECT DATE("createdAt") AS day, COALESCE(SUM("cost"), 0) AS spend
+          FROM "SpendLog"
+          WHERE "organizationId" = ${organizationId} AND "createdAt" >= ${since}
+          GROUP BY 1
+        ) d
+      ), '[]'::json) AS daily,
+      (SELECT "monthlyBudget" FROM "Organization" WHERE id = ${organizationId}) AS monthly_budget,
+      (SELECT "currentMonthlySpend" FROM "Organization" WHERE id = ${organizationId}) AS current_monthly_spend
+  `;
 
-  // Aggregate to daily spend
-  const dailyMap = new Map<string, number>();
-  for (const row of rows) {
-    const date = row.createdAt.toISOString().slice(0, 10);
-    const costRaw = row._sum.cost;
-    const cost =
-      typeof costRaw === "number"
-        ? costRaw
-        : (costRaw as unknown as { toNumber: () => number })?.toNumber() ?? 0;
-    dailyMap.set(date, (dailyMap.get(date) ?? 0) + cost);
-  }
+  const dailyMap = new Map<string, number>(
+    row.daily.map((entry) => [entry.date, Number(entry.spend) || 0]),
+  );
 
   // Fill missing days with 0
   const spendSeries: number[] = [];
@@ -134,20 +146,11 @@ export async function forecastSpend(
   const suggestedMonthlyBudget = Math.ceil(suggestedDailyBudget * 30 * 100) / 100;
 
   // Days until exhaustion
-  const org = await prisma.organization.findUnique({
-    where: { id: organizationId },
-    select: { monthlyBudget: true, currentMonthlySpend: true },
-  });
-
   let daysUntilExhaustion: number | null = null;
   let alert = false;
 
-  const monthlyBudget = org?.monthlyBudget
-    ? (org.monthlyBudget as unknown as { toNumber: () => number }).toNumber()
-    : 0;
-  const currentMonthlySpend = org?.currentMonthlySpend
-    ? (org.currentMonthlySpend as unknown as { toNumber: () => number }).toNumber()
-    : 0;
+  const monthlyBudget = Number(row.monthly_budget ?? 0) || 0;
+  const currentMonthlySpend = Number(row.current_monthly_spend ?? 0) || 0;
 
   if (monthlyBudget > 0 && mean > 0) {
     const remaining = Math.max(0, monthlyBudget - currentMonthlySpend);

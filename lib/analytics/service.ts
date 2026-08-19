@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type {
   AgentAnalytics,
   AgentAnalyticsRow,
-  DashboardSummary,
+  DashboardBundle,
   SpendByAgentPoint,
   SpendByDayPoint,
   SpendByModelPoint,
@@ -55,53 +55,154 @@ function lastNDays(days: number): { start: Date; points: SpendByDayPoint[] } {
   return { start, points };
 }
 
-export async function getDashboardSummary(organizationId: string): Promise<DashboardSummary> {
+/**
+ * Everything the dashboard draws, in one round trip.
+ *
+ * The page used to call four query functions one after another, and then the
+ * KPI cards fetched six more aggregates from the browser after hydration.
+ * Production runs Prisma through PgBouncer with connection_limit=1, so none of
+ * that overlaps — every query is a full serial round trip to Supabase, and the
+ * client fetch does not even start until the HTML has landed. Postgres can
+ * compute all of it at once, so it does.
+ */
+export async function getDashboardBundle(organizationId: string): Promise<DashboardBundle> {
   const today = startOfUtcDay(new Date());
+  const { start, points } = lastNDays(30);
+  const blockedActions = Prisma.join(BLOCKED_ACTIONS);
 
-  // Single raw query fetches all 4 aggregates + provider count in one round-trip.
   const [row] = await prisma.$queryRaw<
     Array<{
       total_spend: Prisma.Decimal | number | null;
       today_spend: Prisma.Decimal | number | null;
+      spend_tokens: bigint | number | null;
+      metric_cost: Prisma.Decimal | number | null;
+      metric_requests: Prisma.Decimal | number | null;
+      metric_tokens: Prisma.Decimal | number | null;
       active_agents: bigint | number;
+      request_count: bigint | number;
       blocked_requests: bigint | number;
       provider_count: bigint | number;
+      active_alerts: bigint | number;
+      monthly_budget: Prisma.Decimal | number | null;
+      current_monthly_spend: Prisma.Decimal | number | null;
+      spend_by_day: Array<{ date: string; spend: number | string }>;
+      spend_by_agent: Array<{ agentId: string; agentName: string | null; spend: number | string }>;
+      spend_by_model: Array<{ model: string; spend: number | string }>;
     }>
   >`
     WITH
-      total AS (
-        SELECT COALESCE(SUM("cost"), 0) AS val FROM "SpendLog" WHERE "organizationId" = ${organizationId}
-      ),
-      today AS (
-        SELECT COALESCE(SUM("cost"), 0) AS val FROM "SpendLog"
-        WHERE "organizationId" = ${organizationId} AND "createdAt" >= ${today}
-      ),
-      agents AS (
-        SELECT COUNT(*) AS val FROM "Agent" WHERE "organizationId" = ${organizationId} AND status = 'ACTIVE'
-      ),
-      blocked AS (
-        SELECT COUNT(*) AS val FROM "ActivityLog"
+      spend AS (
+        SELECT
+          COALESCE(SUM("cost"), 0) AS total,
+          COALESCE(SUM("cost") FILTER (WHERE "createdAt" >= ${today}), 0) AS today,
+          COALESCE(SUM("tokensIn" + "tokensOut"), 0) AS tokens
+        FROM "SpendLog"
         WHERE "organizationId" = ${organizationId}
-          AND "action" IN ('BUDGET_EXCEEDED', 'REQUEST_BLOCKED', 'RATE_LIMIT_EXCEEDED')
       ),
-      providers AS (
-        SELECT COUNT(*) AS val FROM "ProviderCredential" WHERE "organizationId" = ${organizationId}
+      metrics AS (
+        SELECT
+          COALESCE(SUM("totalCost"), 0) AS cost,
+          COALESCE(SUM("totalRequests"), 0) AS requests,
+          COALESCE(SUM("totalTokens"), 0) AS tokens
+        FROM "UsageMetrics"
+        WHERE "organizationId" = ${organizationId}
+      ),
+      by_day AS (
+        SELECT COALESCE(
+          json_agg(json_build_object('date', to_char(day, 'YYYY-MM-DD'), 'spend', spend) ORDER BY day),
+          '[]'::json
+        ) AS rows
+        FROM (
+          SELECT DATE("createdAt") AS day, COALESCE(SUM("cost"), 0) AS spend
+          FROM "SpendLog"
+          WHERE "organizationId" = ${organizationId} AND "createdAt" >= ${start}
+          GROUP BY 1
+        ) d
+      ),
+      by_agent AS (
+        SELECT COALESCE(
+          json_agg(json_build_object('agentId', agent_id, 'agentName', agent_name, 'spend', spend) ORDER BY spend DESC),
+          '[]'::json
+        ) AS rows
+        FROM (
+          SELECT a.id AS agent_id, a.name AS agent_name, COALESCE(SUM(s."cost"), 0) AS spend
+          FROM "Agent" a
+          LEFT JOIN "SpendLog" s ON s."agentId" = a.id
+          WHERE a."organizationId" = ${organizationId}
+          GROUP BY a.id, a.name
+        ) g
+      ),
+      by_model AS (
+        SELECT COALESCE(
+          json_agg(json_build_object('model', model, 'spend', spend) ORDER BY spend DESC),
+          '[]'::json
+        ) AS rows
+        FROM (
+          SELECT "model" AS model, COALESCE(SUM("cost"), 0) AS spend
+          FROM "SpendLog"
+          WHERE "organizationId" = ${organizationId}
+          GROUP BY "model"
+        ) m
       )
     SELECT
-      total.val AS total_spend,
-      today.val AS today_spend,
-      agents.val AS active_agents,
-      blocked.val AS blocked_requests,
-      providers.val AS provider_count
-    FROM total, today, agents, blocked, providers
+      spend.total AS total_spend,
+      spend.today AS today_spend,
+      spend.tokens AS spend_tokens,
+      metrics.cost AS metric_cost,
+      metrics.requests AS metric_requests,
+      metrics.tokens AS metric_tokens,
+      (SELECT COUNT(*) FROM "Agent" WHERE "organizationId" = ${organizationId} AND status = 'ACTIVE') AS active_agents,
+      (SELECT COUNT(*) FROM "RequestLog" WHERE "organizationId" = ${organizationId}) AS request_count,
+      (SELECT COUNT(*) FROM "ActivityLog" WHERE "organizationId" = ${organizationId} AND "action" IN (${blockedActions})) AS blocked_requests,
+      (SELECT COUNT(*) FROM "ProviderCredential" WHERE "organizationId" = ${organizationId}) AS provider_count,
+      (SELECT COUNT(*) FROM "Alert" WHERE "organizationId" = ${organizationId} AND "resolved" = false) AS active_alerts,
+      (SELECT "monthlyBudget" FROM "Organization" WHERE id = ${organizationId}) AS monthly_budget,
+      (SELECT "currentMonthlySpend" FROM "Organization" WHERE id = ${organizationId}) AS current_monthly_spend,
+      by_day.rows AS spend_by_day,
+      by_agent.rows AS spend_by_agent,
+      by_model.rows AS spend_by_model
+    FROM spend, metrics, by_day, by_agent, by_model
   `;
 
+  const spendByDate = new Map(row.spend_by_day.map((point) => [point.date, toNumber(point.spend)]));
+
+  // SpendLog is the truth once the gateway has run; UsageMetrics is the rolled-up
+  // fallback for workspaces migrated before per-request logging existed.
+  const spendLogTotal = toNumber(row.total_spend);
+  const requestLogCount = Number(row.request_count);
+  const spendLogTokens = toNumber(row.spend_tokens);
+  const monthlyBudget = toNumber(row.monthly_budget);
+
   return {
-    totalSpend: toNumber(row.total_spend),
-    todaySpend: toNumber(row.today_spend),
-    activeAgents: Number(row.active_agents),
-    blockedRequests: Number(row.blocked_requests),
-    providerCount: Number(row.provider_count),
+    summary: {
+      totalSpend: spendLogTotal,
+      todaySpend: toNumber(row.today_spend),
+      activeAgents: Number(row.active_agents),
+      blockedRequests: Number(row.blocked_requests),
+      providerCount: Number(row.provider_count),
+    },
+    kpis: {
+      totalSpend: spendLogTotal || toNumber(row.metric_cost),
+      totalRequests: requestLogCount || toNumber(row.metric_requests),
+      totalTokens: spendLogTokens || toNumber(row.metric_tokens),
+      activeAgents: Number(row.active_agents),
+      budgetRemaining:
+        monthlyBudget > 0 ? monthlyBudget - toNumber(row.current_monthly_spend) : null,
+      activeAlerts: Number(row.active_alerts),
+    },
+    // Days with no spend produce no row, so the series is padded here rather
+    // than with generate_series — the chart needs all 30 points to keep its
+    // x-axis honest.
+    spendByDay: points.map((point) => ({ ...point, spend: spendByDate.get(point.date) ?? 0 })),
+    spendByAgent: row.spend_by_agent.map((agent) => ({
+      agentId: agent.agentId,
+      agentName: agent.agentName ?? "Deleted agent",
+      spend: toNumber(agent.spend),
+    })),
+    spendByModel: row.spend_by_model.map((model) => ({
+      model: model.model,
+      spend: toNumber(model.spend),
+    })),
   };
 }
 

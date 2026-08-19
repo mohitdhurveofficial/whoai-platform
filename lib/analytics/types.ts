@@ -6,6 +6,26 @@ export type DashboardSummary = {
   providerCount: number;
 };
 
+/** The six headline numbers on the dashboard's KPI cards. */
+export type DashboardKpis = {
+  totalSpend: number;
+  totalRequests: number;
+  totalTokens: number;
+  activeAgents: number;
+  /** null when no monthly budget is configured — the UI renders it as ∞. */
+  budgetRemaining: number | null;
+  activeAlerts: number;
+};
+
+/** Everything the dashboard renders, fetched in a single round trip. */
+export type DashboardBundle = {
+  summary: DashboardSummary;
+  kpis: DashboardKpis;
+  spendByDay: SpendByDayPoint[];
+  spendByAgent: SpendByAgentPoint[];
+  spendByModel: SpendByModelPoint[];
+};
+
 export type SpendByDayPoint = {
   date: string;
   spend: number;

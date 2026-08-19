@@ -2,29 +2,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Prisma is mocked before the module under test is imported so no client is
 // ever constructed and no connection attempted.
-const prisma = {
-  providerCredential: { count: vi.fn() },
-  agent: { count: vi.fn() },
-  requestLog: { count: vi.fn() },
-  organization: { findUnique: vi.fn() },
-};
+const prisma = { $queryRaw: vi.fn() };
 vi.mock("@/lib/prisma", () => ({ prisma }));
 
 const { getOnboardingState } = await import("@/lib/onboarding/checklist");
 
 type Setup = {
-  providers?: number;
-  agents?: number;
-  requests?: number;
-  dailyBudget?: number;
-  monthlyBudget?: number;
+  provider?: boolean;
+  agent?: boolean;
+  request?: boolean;
+  budget?: boolean;
 };
 
-function stub({ providers = 0, agents = 0, requests = 0, dailyBudget = 0, monthlyBudget = 0 }: Setup) {
-  prisma.providerCredential.count.mockResolvedValue(providers);
-  prisma.agent.count.mockResolvedValue(agents);
-  prisma.requestLog.count.mockResolvedValue(requests);
-  prisma.organization.findUnique.mockResolvedValue({ dailyBudget, monthlyBudget });
+function stub({ provider = false, agent = false, request = false, budget = false }: Setup) {
+  prisma.$queryRaw.mockResolvedValue([
+    { has_provider: provider, has_agent: agent, has_request: request, has_budget: budget },
+  ]);
 }
 
 beforeEach(() => {
@@ -44,7 +37,7 @@ describe("getOnboardingState", () => {
   });
 
   it("completes once all four conditions hold", async () => {
-    stub({ providers: 1, agents: 2, requests: 40, monthlyBudget: 500 });
+    stub({ provider: true, agent: true, request: true, budget: true });
     const state = await getOnboardingState("org-1");
 
     expect(state.complete).toBe(true);
@@ -53,66 +46,42 @@ describe("getOnboardingState", () => {
   });
 
   it("advances nextStep past whatever is already done", async () => {
-    stub({ providers: 1, agents: 1 });
+    stub({ provider: true, agent: true });
     const state = await getOnboardingState("org-1");
 
     expect(state.completedCount).toBe(2);
     expect(state.nextStep?.id).toBe("request");
   });
 
-  it("accepts either budget window as satisfying the budget step", async () => {
-    stub({ dailyBudget: 25 });
-    expect((await getOnboardingState("org-1")).steps.find((s) => s.id === "budget")?.done).toBe(true);
-
-    stub({ monthlyBudget: 25 });
-    expect((await getOnboardingState("org-1")).steps.find((s) => s.id === "budget")?.done).toBe(true);
-  });
-
   it("treats a zero budget as unset, not as a zero allowance", async () => {
     // The kill switch reads 0 as "no limit configured", so the checklist must
     // agree — otherwise we would tell a customer they are protected when the
-    // gateway would happily spend without bound.
-    stub({ dailyBudget: 0, monthlyBudget: 0 });
+    // gateway would happily spend without bound. The query encodes this as
+    // `"dailyBudget" > 0 OR "monthlyBudget" > 0`, which is false for 0/0.
+    stub({ budget: false });
     expect((await getOnboardingState("org-1")).steps.find((s) => s.id === "budget")?.done).toBe(false);
   });
 
-  it("handles Prisma Decimal budgets, not just numbers", async () => {
-    // Prisma returns Decimal for @db.Decimal columns; a naive `> 0` on the
-    // object would be false for every real budget.
-    prisma.providerCredential.count.mockResolvedValue(0);
-    prisma.agent.count.mockResolvedValue(0);
-    prisma.requestLog.count.mockResolvedValue(0);
-    prisma.organization.findUnique.mockResolvedValue({
-      dailyBudget: { toString: () => "50.0000" },
-      monthlyBudget: { toString: () => "0" },
-    });
+  it("survives an organization the query returned nothing for", async () => {
+    // A deleted workspace mid-render must degrade to "nothing set up" rather
+    // than throwing and taking the dashboard down with it.
+    prisma.$queryRaw.mockResolvedValue([]);
 
-    const state = await getOnboardingState("org-1");
-    expect(state.steps.find((s) => s.id === "budget")?.done).toBe(true);
+    const state = await getOnboardingState("org-gone");
+    expect(state.completedCount).toBe(0);
+    expect(state.complete).toBe(false);
   });
 
-  it("treats a missing organization as having no budget", async () => {
-    stub({ providers: 1 });
-    prisma.organization.findUnique.mockResolvedValue(null);
-
-    const state = await getOnboardingState("org-1");
-    expect(state.steps.find((s) => s.id === "budget")?.done).toBe(false);
-  });
-
-  it("scopes every query to the caller's organization", async () => {
+  it("asks the database once, scoped to the caller's organization", async () => {
     stub({});
     await getOnboardingState("org-42");
 
-    for (const call of [
-      prisma.providerCredential.count,
-      prisma.agent.count,
-      prisma.requestLog.count,
-    ]) {
-      expect(call).toHaveBeenCalledWith({ where: { organizationId: "org-42" } });
-    }
-    expect(prisma.organization.findUnique).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "org-42" } }),
-    );
+    // Four separate counts through PgBouncer's single connection were four
+    // serial round trips; this must stay one.
+    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+    const [, ...params] = prisma.$queryRaw.mock.calls[0];
+    expect(params.length).toBeGreaterThan(0);
+    expect(params.every((value: unknown) => value === "org-42")).toBe(true);
   });
 
   it("gives every step a destination and a label", async () => {

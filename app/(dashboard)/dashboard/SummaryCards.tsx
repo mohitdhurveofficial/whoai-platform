@@ -1,25 +1,21 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { Bot, DollarSign, Activity, Database, AlertTriangle, Wallet } from "lucide-react";
+import type { DashboardKpis } from "@/lib/analytics/types";
 
 const money = (value: number) =>
-  `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const numberFormat = (value: number) => value.toLocaleString();
+const count = (value: number) => value.toLocaleString("en-US");
 
 function KpiCard({
   label,
   value,
   detail,
   icon,
-  loading,
 }: {
   label: string;
   value: string;
   detail: string;
   icon: React.ReactNode;
-  loading?: boolean;
 }) {
   return (
     <div className="group rounded-2xl border border-[#EEE8E2] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.05)] transition-all duration-200 hover:border-[#FFD9C2] hover:shadow-[0_2px_10px_rgba(17,17,17,0.08)]">
@@ -29,60 +25,25 @@ function KpiCard({
         </span>
         <div className="rounded-lg bg-[#FFF1E8] p-2 text-[#FF6B00]">{icon}</div>
       </div>
-      <div className="mt-5 text-3xl font-bold tracking-tight tabular-nums text-[#111111]">
-        {loading ? (
-          <div className="h-8 w-28 animate-pulse rounded-md bg-[#F0EBE5]" />
-        ) : (
-          value
-        )}
-      </div>
+      <div className="mt-5 text-3xl font-bold tracking-tight tabular-nums text-[#111111]">{value}</div>
       <div className="mt-2 text-[13px] text-[#666666]">{detail}</div>
     </div>
   );
 }
 
-export function SummaryCards() {
-  const [data, setData] = useState({
-    totalSpend: 0,
-    totalRequests: 0,
-    totalTokens: 0,
-    activeAgents: 0,
-    budgetRemaining: null as number | null,
-    activeAlerts: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function fetchSummary() {
-      try {
-        const res = await fetch("/api/dashboard/summary");
-
-        if (res.ok) {
-          const json = await res.json();
-
-          if (mounted) {
-            setData(json);
-            setLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard summary:", error);
-
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-        fetchSummary();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
+/**
+ * Rendered on the server from the dashboard's single query.
+ *
+ * These were client components that fetched /api/dashboard/summary on mount, so
+ * the six numbers a customer opens the dashboard to see arrived as pulsing grey
+ * boxes and only resolved after the HTML landed, a round trip to the API route,
+ * and six more serial queries behind it. They are in the payload now.
+ *
+ * Locale is pinned to en-US rather than the visitor's: money on this page is
+ * USD, and letting the browser pick a separator produced a server/client
+ * hydration mismatch for anyone outside the US.
+ */
+export function SummaryCards({ data }: { data: DashboardKpis }) {
   return (
     <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       <KpiCard
@@ -90,42 +51,36 @@ export function SummaryCards() {
         value={money(data.totalSpend)}
         detail="Lifetime organization spend"
         icon={<DollarSign className="h-4 w-4" />}
-        loading={loading}
       />
       <KpiCard
         label="Budget Remaining"
         value={data.budgetRemaining === null ? "∞" : money(data.budgetRemaining)}
-        detail="of organization budget"
+        detail={data.budgetRemaining === null ? "No monthly budget set" : "of organization budget"}
         icon={<Wallet className="h-4 w-4" />}
-        loading={loading}
       />
       <KpiCard
         label="Total Requests"
-        value={numberFormat(data.totalRequests)}
+        value={count(data.totalRequests)}
         detail="Lifetime API requests"
         icon={<Activity className="h-4 w-4" />}
-        loading={loading}
       />
       <KpiCard
         label="Total Tokens"
-        value={numberFormat(data.totalTokens)}
+        value={count(data.totalTokens)}
         detail="Tokens processed"
         icon={<Database className="h-4 w-4" />}
-        loading={loading}
       />
       <KpiCard
         label="Active Agents"
-        value={numberFormat(data.activeAgents)}
+        value={count(data.activeAgents)}
         detail="Agents with ACTIVE status"
         icon={<Bot className="h-4 w-4" />}
-        loading={loading}
       />
       <KpiCard
         label="Active Alerts"
-        value={numberFormat(data.activeAlerts)}
+        value={count(data.activeAlerts)}
         detail="requiring attention"
         icon={<AlertTriangle className="h-4 w-4 text-[#FF6B00]" />}
-        loading={loading}
       />
     </section>
   );

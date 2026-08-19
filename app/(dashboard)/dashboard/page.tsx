@@ -2,13 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type React from "react";
 import { AlertTriangle, Activity, ArrowRight } from "lucide-react";
-import {
-  getDashboardSummary,
-  getSpendByAgent,
-  getSpendByDay,
-  getSpendByModel,
-  getUsageRequests,
-} from "@/lib/analytics/service";
+import { getDashboardBundle, getUsageRequests } from "@/lib/analytics/service";
 import { getServerAuthContext } from "@/lib/server/auth";
 import {
   SpendAgentBarChart,
@@ -34,18 +28,19 @@ export default async function DashboardPage() {
   const auth = await getServerAuthContext();
   if (!auth) redirect("/login");
 
-  // Batched raw SQL queries eliminate PgBouncer connection overhead.
-  const summary = await getDashboardSummary(auth.organizationId);
-  const spendByDay = await getSpendByDay(auth.organizationId);
-  const spendByAgent = await getSpendByAgent(auth.organizationId);
-  const spendByModel = await getSpendByModel(auth.organizationId);
+  // Everything below is sequential on purpose: production reaches Supabase
+  // through PgBouncer with connection_limit=1, so Promise.all here would queue
+  // on a single connection and risk a pool timeout for no gain. The way to make
+  // this page fast is fewer round trips, not concurrent ones — hence the
+  // bundle, which is one query for what used to be ten.
+  const { summary, kpis, spendByDay, spendByAgent, spendByModel } = await getDashboardBundle(
+    auth.organizationId,
+  );
   const recentRequests = await getUsageRequests(auth.organizationId);
 
   // AI-powered features
-  const [forecast, leaderboard] = await Promise.all([
-    forecastSpend(auth.organizationId, 30).catch(() => null),
-    efficiencyLeaderboard(auth.organizationId, 7).catch(() => []),
-  ]);
+  const forecast = await forecastSpend(auth.organizationId, 30).catch(() => null);
+  const leaderboard = await efficiencyLeaderboard(auth.organizationId, 7).catch(() => []);
 
   // Setup progress. Failing this must not take the dashboard down, so a broken
   // query degrades to "fully set up" — the worst case is a missing nudge.
@@ -90,7 +85,7 @@ export default async function DashboardPage() {
         <OnboardingChecklist state={onboarding} />
       )}
 
-      <SummaryCards />
+      <SummaryCards data={kpis} />
 
       {/* AI-POWERED FORECAST */}
       {forecast && (

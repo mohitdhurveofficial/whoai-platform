@@ -32,22 +32,29 @@ export interface OnboardingState {
 }
 
 export async function getOnboardingState(organizationId: string): Promise<OnboardingState> {
-  // One round trip. Counts rather than full rows: nothing here needs the data,
-  // only whether any exists.
-  const [providerCount, agentCount, requestCount, organization] = await Promise.all([
-    prisma.providerCredential.count({ where: { organizationId } }),
-    prisma.agent.count({ where: { organizationId } }),
-    prisma.requestLog.count({ where: { organizationId } }),
-    prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { dailyBudget: true, monthlyBudget: true },
-    }),
-  ]);
+  // Genuinely one round trip. Promise.all does not buy parallelism here:
+  // production connects through PgBouncer with connection_limit=1, so four
+  // "concurrent" queries are four serial ones plus pool contention.
+  //
+  // EXISTS rather than COUNT throughout — the checklist only asks whether any
+  // row exists, and counting every RequestLog row of a busy workspace to learn
+  // "at least one" is the difference between an index probe and a full scan.
+  // Budgets default to 0, which means "unset" rather than "zero allowance":
+  // the kill switch treats 0 as no limit, so the checklist must agree.
+  const [row] = await prisma.$queryRaw<
+    Array<{ has_provider: boolean; has_agent: boolean; has_request: boolean; has_budget: boolean }>
+  >`
+    SELECT
+      EXISTS (SELECT 1 FROM "ProviderCredential" WHERE "organizationId" = ${organizationId}) AS has_provider,
+      EXISTS (SELECT 1 FROM "Agent" WHERE "organizationId" = ${organizationId}) AS has_agent,
+      EXISTS (SELECT 1 FROM "RequestLog" WHERE "organizationId" = ${organizationId}) AS has_request,
+      COALESCE(
+        (SELECT "dailyBudget" > 0 OR "monthlyBudget" > 0 FROM "Organization" WHERE id = ${organizationId}),
+        false
+      ) AS has_budget
+  `;
 
-  // Budgets default to 0, which means "unset" rather than "zero allowance" —
-  // the kill switch treats 0 as no limit. Either one configured counts.
-  const hasBudget =
-    Number(organization?.dailyBudget ?? 0) > 0 || Number(organization?.monthlyBudget ?? 0) > 0;
+  const hasBudget = row?.has_budget === true;
 
   const steps: OnboardingStep[] = [
     {
@@ -57,7 +64,7 @@ export async function getOnboardingState(organizationId: string): Promise<Onboar
         "WHOAI is strict BYOK — your OpenAI or Anthropic key, encrypted at rest. Until one exists, gateway calls fail closed.",
       href: "/settings/providers",
       cta: "Add a key",
-      done: providerCount > 0,
+      done: row?.has_provider === true,
     },
     {
       id: "agent",
@@ -66,7 +73,7 @@ export async function getOnboardingState(organizationId: string): Promise<Onboar
         "An agent is the unit WHOAI meters, budgets, and can pause. Creating one issues the API key your code authenticates with.",
       href: "/agents",
       cta: "Create an agent",
-      done: agentCount > 0,
+      done: row?.has_agent === true,
     },
     {
       id: "request",
@@ -75,7 +82,7 @@ export async function getOnboardingState(organizationId: string): Promise<Onboar
         "Point your existing OpenAI or Anthropic client at the WHOAI base URL. The first call starts your cost telemetry.",
       href: "/docs/quickstart",
       cta: "View the quickstart",
-      done: requestCount > 0,
+      done: row?.has_request === true,
     },
     {
       id: "budget",
