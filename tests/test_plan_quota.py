@@ -19,6 +19,7 @@ from database.models import ActivityLog, Agent, Organization
 from database.session import get_db
 from runtime.entitlements.plans import (
     PLANS,
+    has_feature,
     monthly_request_quota,
     normalize_tier,
     plan_config,
@@ -60,8 +61,44 @@ def test_unknown_tier_degrades_to_free():
 
 def test_only_enterprise_is_unlimited():
     assert monthly_request_quota("ENTERPRISE") is None
-    for tier in ("FREE", "STARTER", "GROWTH", "PRO"):
+    for tier in ("FREE", "STARTER", "GROWTH", "BUSINESS"):
         assert isinstance(monthly_request_quota(tier), int)
+
+
+def test_legacy_pro_tier_maps_onto_business():
+    """Organizations sold the old PRO plan still have "PRO" in the database.
+
+    Without the alias they would normalize to FREE and be cut off at the free
+    quota — a paying customer throttled by a rename.
+    """
+    assert normalize_tier("PRO") == "BUSINESS"
+    assert normalize_tier("pro") == "BUSINESS"
+    assert monthly_request_quota("PRO") == monthly_request_quota("BUSINESS")
+
+
+def test_feature_entitlements_match_what_is_sold():
+    """The gateway gates capabilities on these flags; the pricing page sells
+    them. Both read this table, so it is the only place they can disagree."""
+    assert has_feature("FREE", "budgetEnforcement") is False
+    assert has_feature("STARTER", "budgetEnforcement") is True
+    assert has_feature("STARTER", "anomalyDetection") is False
+    assert has_feature("GROWTH", "anomalyDetection") is True
+    assert has_feature("PRO", "anomalyDetection") is True  # via the alias
+    assert has_feature(None, "killSwitch") is False
+
+    # Not built. Never advertise them as included on any plan.
+    for tier in PLANS:
+        assert has_feature(tier, "sso") is False
+        assert has_feature(tier, "auditExport") is False
+
+
+def test_features_are_monotonic_across_plans():
+    """No capability may be lost by upgrading — an entitlement table that dips
+    would deny a customer something a cheaper plan gave them."""
+    order = ["FREE", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"]
+    for feature in PLANS["FREE"]["features"]:
+        enabled = [has_feature(tier, feature) for tier in order]
+        assert enabled == sorted(enabled), f"{feature} is not monotonic: {enabled}"
 
 
 # ── reservation ───────────────────────────────────────────────────────────────

@@ -5,7 +5,7 @@ import {
   GatewayError,
 } from "@/lib/gateway/http";
 import { getAdapter } from "@/lib/gateway/adapters";
-import { OpenAIAdapter } from "@/lib/gateway/adapters/openai";
+import { OpenAICompatibleAdapter } from "@/lib/gateway/adapters/openai";
 import { AnthropicAdapter } from "@/lib/gateway/adapters/anthropic";
 import { GeminiAdapter } from "@/lib/gateway/adapters/gemini";
 
@@ -113,13 +113,19 @@ describe("providerFetch", () => {
 
 describe("getAdapter", () => {
   it("resolves known providers and rejects unknown ones", () => {
-    expect(getAdapter("openai")).toBeInstanceOf(OpenAIAdapter);
+    expect(getAdapter("openai")).toBeInstanceOf(OpenAICompatibleAdapter);
     expect(getAdapter("ANTHROPIC")).toBeInstanceOf(AnthropicAdapter);
     expect(() => getAdapter("madeup")).toThrow(/Unsupported provider/);
   });
+
+  it("serves every OpenAI-compatible vendor from the one adapter", () => {
+    for (const id of ["grok", "deepseek", "groq", "mistral", "openrouter"]) {
+      expect(getAdapter(id)).toBeInstanceOf(OpenAICompatibleAdapter);
+    }
+  });
 });
 
-describe("OpenAIAdapter", () => {
+describe("OpenAICompatibleAdapter", () => {
   it("routes to OpenAI and normalizes the response", async () => {
     global.fetch = vi.fn().mockResolvedValue(
       jsonResponse({
@@ -130,7 +136,7 @@ describe("OpenAIAdapter", () => {
       }),
     );
 
-    const res = await new OpenAIAdapter().chat(
+    const res = await getAdapter("openai").chat(
       { model: "gpt-4o", messages: [{ role: "user", content: "hello" }] },
       "sk-test",
     );
@@ -150,8 +156,20 @@ describe("OpenAIAdapter", () => {
       .fn()
       .mockResolvedValue(jsonResponse({ error: { message: "invalid key" } }, { status: 401 }));
     await expect(
-      new OpenAIAdapter().chat({ model: "gpt-4o", messages: [] }, "bad"),
+      getAdapter("openai").chat({ model: "gpt-4o", messages: [] }, "bad"),
     ).rejects.toBeInstanceOf(GatewayError);
+  });
+
+  it("sends each vendor to its own endpoint", async () => {
+    for (const [id, host] of [
+      ["grok", "https://api.x.ai/v1/chat/completions"],
+      ["deepseek", "https://api.deepseek.com/chat/completions"],
+      ["groq", "https://api.groq.com/openai/v1/chat/completions"],
+    ] as const) {
+      global.fetch = vi.fn().mockResolvedValue(jsonResponse({ id: "x", model: "m", choices: [] }));
+      await getAdapter(id).chat({ model: "m", messages: [] }, "key");
+      expect(lastFetchCall()[0]).toBe(host);
+    }
   });
 });
 

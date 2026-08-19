@@ -2,13 +2,22 @@ import { ProviderAdapter, ChatRequest, ChatResponse, KeyCheckResult } from "./ty
 import { providerFetch } from "../http";
 import { runAuthCheck } from "./connection-test";
 
-export class OpenAIAdapter implements ProviderAdapter {
-  provider = "openai";
+/**
+ * One adapter for OpenAI and every vendor that speaks its wire format —
+ * xAI, DeepSeek, Groq, Mistral, Together, Fireworks, OpenRouter, Perplexity and
+ * the rest. The request body and response shape are identical across them, so
+ * the only thing that varies is the base URL, which comes from providers.json.
+ */
+export class OpenAICompatibleAdapter implements ProviderAdapter {
+  constructor(
+    readonly provider: string,
+    private readonly baseUrl: string,
+  ) {}
 
   async validateKey(apiKey: string): Promise<KeyCheckResult> {
     // GET /models is a zero-cost auth check (no tokens billed).
     return runAuthCheck(
-      "https://api.openai.com/v1/models",
+      `${this.baseUrl}/models`,
       { method: "GET", headers: { Authorization: `Bearer ${apiKey}` } },
       { provider: this.provider },
     );
@@ -17,7 +26,7 @@ export class OpenAIAdapter implements ProviderAdapter {
   async chat(request: ChatRequest, apiKey: string): Promise<ChatResponse> {
     const start = Date.now();
     const data = await providerFetch(
-      "https://api.openai.com/v1/chat/completions",
+      `${this.baseUrl}/chat/completions`,
       {
         method: "POST",
         headers: {

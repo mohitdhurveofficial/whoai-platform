@@ -1,0 +1,146 @@
+{
+  "_comment": "Single source of truth for supported model providers. Read by the Python gateway (runtime/providers/provider_factory.py) and the Next.js control plane (lib/providers/registry.ts), following the same shared-file pattern as plans.json and pricing.json. Adding a provider is one entry here — no new class, no new UI list.",
+  "_api": "`api` selects the wire protocol. Almost every vendor now speaks OpenAI's chat-completions shape, so `openai` entries need nothing but a baseUrl and are served by the one shared adapter. `anthropic` and `gemini` have genuinely different request/response shapes and keep native adapters — their baseUrl is null because those adapters own their endpoints.",
+  "_baseUrlEnv": "Optional. When present the environment variable wins over `baseUrl`, which is how self-hosted and private endpoints are pointed somewhere real without a code change.",
+  "_keyPrefixes": "Empty means the vendor publishes no stable key prefix, so only length and whitespace are checked. A prefix rule invented for a vendor that has none would reject valid keys, which is worse than the weaker check.",
+  "_pricing": "A provider being routable does not mean its models are priced. Cost attribution needs the model in pricing.json; anything missing is recorded with cost 0 and flagged by runtime/telemetry/pricing.py. See docs/PROVIDERS.md.",
+  "providers": {
+    "openai": {
+      "label": "OpenAI",
+      "api": "openai",
+      "baseUrl": "https://api.openai.com/v1",
+      "keyEnv": "OPENAI_API_KEY",
+      "keyPrefixes": ["sk-"],
+      "keyRequired": true,
+      "docsUrl": "https://platform.openai.com/api-keys"
+    },
+    "anthropic": {
+      "label": "Anthropic",
+      "api": "anthropic",
+      "baseUrl": null,
+      "keyEnv": "ANTHROPIC_API_KEY",
+      "keyPrefixes": ["sk-ant-"],
+      "keyRequired": true,
+      "docsUrl": "https://console.anthropic.com/settings/keys"
+    },
+    "gemini": {
+      "label": "Google Gemini",
+      "api": "gemini",
+      "baseUrl": null,
+      "keyEnv": "GEMINI_API_KEY",
+      "keyPrefixes": ["AIza"],
+      "keyRequired": true,
+      "docsUrl": "https://aistudio.google.com/apikey"
+    },
+    "grok": {
+      "label": "xAI Grok",
+      "api": "openai",
+      "baseUrl": "https://api.x.ai/v1",
+      "keyEnv": "GROK_API_KEY",
+      "keyPrefixes": ["xai-"],
+      "keyRequired": true,
+      "docsUrl": "https://console.x.ai"
+    },
+    "deepseek": {
+      "label": "DeepSeek",
+      "api": "openai",
+      "baseUrl": "https://api.deepseek.com",
+      "keyEnv": "DEEPSEEK_API_KEY",
+      "keyPrefixes": ["sk-"],
+      "keyRequired": true,
+      "docsUrl": "https://platform.deepseek.com/api_keys"
+    },
+    "mistral": {
+      "label": "Mistral AI",
+      "api": "openai",
+      "baseUrl": "https://api.mistral.ai/v1",
+      "keyEnv": "MISTRAL_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": true,
+      "docsUrl": "https://console.mistral.ai/api-keys"
+    },
+    "groq": {
+      "label": "Groq",
+      "api": "openai",
+      "baseUrl": "https://api.groq.com/openai/v1",
+      "keyEnv": "GROQ_API_KEY",
+      "keyPrefixes": ["gsk_"],
+      "keyRequired": true,
+      "docsUrl": "https://console.groq.com/keys"
+    },
+    "together": {
+      "label": "Together AI",
+      "api": "openai",
+      "baseUrl": "https://api.together.xyz/v1",
+      "keyEnv": "TOGETHER_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": true,
+      "docsUrl": "https://api.together.ai/settings/api-keys"
+    },
+    "fireworks": {
+      "label": "Fireworks AI",
+      "api": "openai",
+      "baseUrl": "https://api.fireworks.ai/inference/v1",
+      "keyEnv": "FIREWORKS_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": true,
+      "docsUrl": "https://fireworks.ai/account/api-keys"
+    },
+    "openrouter": {
+      "label": "OpenRouter",
+      "api": "openai",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "keyEnv": "OPENROUTER_API_KEY",
+      "keyPrefixes": ["sk-or-"],
+      "keyRequired": true,
+      "docsUrl": "https://openrouter.ai/keys"
+    },
+    "perplexity": {
+      "label": "Perplexity",
+      "api": "openai",
+      "baseUrl": "https://api.perplexity.ai",
+      "keyEnv": "PERPLEXITY_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": true,
+      "docsUrl": "https://www.perplexity.ai/settings/api"
+    },
+    "cerebras": {
+      "label": "Cerebras",
+      "api": "openai",
+      "baseUrl": "https://api.cerebras.ai/v1",
+      "keyEnv": "CEREBRAS_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": true,
+      "docsUrl": "https://cloud.cerebras.ai"
+    },
+    "deepinfra": {
+      "label": "DeepInfra",
+      "api": "openai",
+      "baseUrl": "https://api.deepinfra.com/v1/openai",
+      "keyEnv": "DEEPINFRA_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": true,
+      "docsUrl": "https://deepinfra.com/dash/api_keys"
+    },
+    "ollama": {
+      "label": "Ollama (self-hosted)",
+      "api": "openai",
+      "baseUrl": "http://localhost:11434/v1",
+      "baseUrlEnv": "OLLAMA_BASE_URL",
+      "keyEnv": "OLLAMA_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": false,
+      "docsUrl": "https://docs.ollama.com/openai"
+    },
+    "custom": {
+      "label": "Custom (OpenAI-compatible)",
+      "api": "openai",
+      "baseUrl": null,
+      "baseUrlEnv": "CUSTOM_OPENAI_BASE_URL",
+      "keyEnv": "CUSTOM_OPENAI_API_KEY",
+      "keyPrefixes": [],
+      "keyRequired": false,
+      "docsUrl": null
+    }
+  }
+}

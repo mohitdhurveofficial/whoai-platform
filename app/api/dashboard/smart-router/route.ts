@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerAuthContext } from "@/lib/server/auth";
+import { requireFeature } from "@/lib/server/guard";
 import { routeModel } from "@/lib/smart-router";
 
 export async function POST(request: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  // Routing is a pure function of the prompt and model — no tenant data is read,
+  // so the guard is here for entitlement, not for scoping.
+  const guard = await requireFeature("multiProviderRouting");
+  if (!guard.ok) return guard.response;
 
   const body = await request.json().catch(() => null);
   if (!body?.prompt || !body?.model) {

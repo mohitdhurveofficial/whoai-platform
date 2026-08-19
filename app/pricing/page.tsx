@@ -16,7 +16,7 @@ import {
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Start free, then $99/mo. Budget controls and kill switches for AI agents — bring your own provider keys. Self-serve Free, Starter, Growth, and Pro plans, plus Enterprise and self-hosted VPC.",
+    "The financial control plane for enterprise AI. Start free, then $149/mo. Budget enforcement and kill switches for AI agents — bring your own provider keys. Free, Starter, Growth and Business plans, plus Enterprise and self-hosted VPC.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -49,7 +49,7 @@ const TIER_COPY = [
     continuity:
       "Multi-provider routing — set a fallback so one model going dark can't take your agents down.",
     cta: "Start free trial",
-    highlighted: true,
+    highlighted: false,
     support: "email support",
     features: [
       "Everything in Free",
@@ -63,40 +63,60 @@ const TIER_COPY = [
     blurb: "Governance and analytics for a fleet of agents in production.",
     continuity: "Provider failover routing across every provider you've connected.",
     cta: "Start free trial",
-    highlighted: false,
+    highlighted: true,
     support: "priority support",
     features: [
       "Everything in Starter",
-      "Team roles & policy controls (rolling out)",
-      "Cost anomaly alerts",
+      "Cost anomaly detection",
       "Provider failover routing",
+      "Org roles (RBAC) & policy enforcement",
+      "Advanced analytics & spend attribution",
     ],
   },
   {
-    tier: "PRO",
-    blurb: "Mission-critical control once AI spend runs into five figures a month.",
+    tier: "BUSINESS",
+    blurb: "For teams operating AI at scale.",
     continuity: "Continuity at fleet scale — failover plus governance for mission-critical agents.",
     cta: "Start free trial",
     highlighted: false,
-    support: null,
+    support: "priority support",
     features: [
       "Everything in Growth",
-      "SSO & audit-log export (set up in onboarding)",
-      "Advanced governance policies (rolling out)",
+      "Advanced governance & policy controls",
       "Onboarding & solution support",
+      // SSO and audit-log export are not built. Naming them as roadmap here
+      // rather than as included features is the difference between a promise
+      // and a lie — see plans.json `_implemented`.
+      "SSO & audit-log export — coming soon",
+    ],
+  },
+  {
+    tier: "ENTERPRISE",
+    blurb: "AI governance for organizations with custom security and deployment needs.",
+    continuity: null,
+    cta: "Talk to sales",
+    highlighted: false,
+    support: "dedicated support & SLA",
+    features: [
+      "Everything in Business",
+      "Unlimited agents & custom volume",
+      "VPC / self-hosted deployment",
+      "SAML SSO, SCIM & audit exports — coming soon",
     ],
   },
 ] as const;
 
 const TIERS = TIER_COPY.map((copy) => {
   const limits = planLimitsCopy(copy.tier);
+  // ENTERPRISE is the only quote-based tier: plans.json gives it a null price,
+  // and it is rendered as a card without a number and without a checkout link.
+  const isCustomPriced = limits.price === null;
   return {
     ...copy,
     name: planConfig(copy.tier).label,
-    // Every self-serve tier has a price in plans.json; ENTERPRISE (the only
-    // quote-based tier) is rendered by its own band further down the page.
+    isCustomPriced,
     price: limits.price ?? "Custom",
-    cadence: "/ month",
+    cadence: isCustomPriced ? "pricing" : "/ month",
     features: [
       ...copy.features,
       limits.allowance,
@@ -112,7 +132,7 @@ const FAQ = [
   },
   {
     q: "When is WHOAI worth paying for?",
-    a: "Once your agents are spending real money, a single runaway loop can burn thousands overnight. As a rule of thumb: Starter and Growth pay for themselves around $2k–10k/mo of AI spend; Pro and Enterprise are built for teams past ~$15k/mo, where the subscription is a small fraction of what one prevented incident saves.",
+    a: "Once your agents are spending real money, a single runaway loop can burn thousands overnight. As a rule of thumb: Starter and Growth pay for themselves around $2k–10k/mo of AI spend; Business and Enterprise are built for teams past ~$25k/mo, where the subscription is a small fraction of what one prevented incident saves.",
   },
   {
     q: "Is there really a free plan?",
@@ -120,7 +140,7 @@ const FAQ = [
   },
   {
     q: "What makes WHOAI different from observability tools?",
-    a: "Most tools watch your spend after the fact. WHOAI sits in the path and can act — enforce hard budget limits and hit a kill switch the moment an agent goes haywire. That enforcement starts on the $99 Starter plan, not buried in an enterprise tier.",
+    a: "Most tools watch your spend after the fact. WHOAI sits in the path and can act — enforce hard budget limits and hit a kill switch the moment an agent goes haywire. That enforcement starts on the $149 Starter plan, not buried in an enterprise tier.",
   },
   {
     q: "Do you charge per seat?",
@@ -128,7 +148,7 @@ const FAQ = [
   },
   {
     q: "Can I self-host?",
-    a: "Yes. Enterprise customers can deploy WHOAI in their own cloud or VPC, including air-gapped environments with a zero-data-retention gateway. Talk to us about a self-hosted plan.",
+    a: "Yes. Enterprise customers can deploy WHOAI in their own cloud or VPC, including air-gapped environments, so prompts and responses never leave your perimeter. It is a scoped engagement with our team rather than a self-serve install — engagements start at $30,000/year.",
   },
 ];
 
@@ -154,14 +174,21 @@ export default function PricingPage() {
           <TrustBadges />
         </Reveal>
 
-        <Stagger className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-start" stagger={0.1}>
+        <Stagger
+          className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 items-start"
+          stagger={0.1}
+        >
           {TIERS.map((tier) => (
             <StaggerItem key={tier.name} hover className="h-full">
               <div
-                className={`rounded-2xl border p-7 flex flex-col h-full ${
+                className={`rounded-2xl border p-6 flex flex-col h-full ${
                   tier.highlighted
-                    ? "border-[#FF6B00] bg-white shadow-xl shadow-[#FF6B00]/10 lg:-translate-y-2"
-                    : "border-[#EEE8E2] bg-white shadow-sm"
+                    ? "border-[#FF6B00] bg-white shadow-xl shadow-[#FF6B00]/10 xl:-translate-y-2"
+                    : tier.isCustomPriced
+                      // Enterprise is sales-led, not a checkout tier — the tinted
+                      // dashed card says that before anyone reads the button.
+                      ? "border-dashed border-[#DCD5CD] bg-[#FAF7F3]"
+                      : "border-[#EEE8E2] bg-white shadow-sm"
                 }`}
               >
                 {tier.highlighted && (
@@ -172,18 +199,24 @@ export default function PricingPage() {
                 <h3 className="text-[20px] font-bold mb-2">{tier.name}</h3>
                 <p className="text-[13px] text-[#666666] mb-6 min-h-[56px]">{tier.blurb}</p>
                 <div className="mb-6 flex items-start">
-                  <span className="text-[34px] font-extrabold tracking-tight tabular-nums">
-                    <CountUp value={Number(tier.price.replace(/[^0-9.]/g, ""))} prefix="$" />
-                  </span>
+                  {tier.isCustomPriced ? (
+                    <span className="text-[34px] font-extrabold tracking-tight">Custom</span>
+                  ) : (
+                    <span className="text-[34px] font-extrabold tracking-tight tabular-nums">
+                      <CountUp value={Number(tier.price.replace(/[^0-9.]/g, ""))} prefix="$" />
+                    </span>
+                  )}
                   <span className="text-[15px] text-[#888888] ml-2">{tier.cadence}</span>
                 </div>
-                {tier.price !== "$0" && (
+                {tier.price !== "$0" && !tier.isCustomPriced && (
                   <div className="mt-2 inline-block text-[12px] bg-[#FF6B00]/20 text-[#FF6B00] px-2 py-1 rounded">
                     Annual billing available — contact us
                   </div>
                 )}
                 <Link
-                  href={`/auth/signup?plan=${tier.name.toLowerCase()}`}
+                  href={
+                    tier.isCustomPriced ? "/demo" : `/auth/signup?plan=${tier.name.toLowerCase()}`
+                  }
                   className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-semibold text-[15px] transition-colors mb-8 ${
                     tier.highlighted
                       ? "bg-[#FF6B00] text-white hover:bg-[#E65A00] shadow-md"
@@ -230,7 +263,8 @@ export default function PricingPage() {
           </p>
         </Reveal>
 
-        {/* Enterprise + On-prem bands — understated anchors, sales-led. */}
+        {/* Enterprise + On-prem detail bands — the annual anchors behind the
+            "Custom" card above. Both are sales-led, neither is self-serve. */}
         <Stagger className="mt-6 grid md:grid-cols-2 gap-5">
           <StaggerItem hover className="rounded-2xl border border-[#EEE8E2] bg-white p-7 shadow-sm flex flex-col transition-shadow hover:shadow-md">
             <div className="flex items-center gap-3 mb-3">
@@ -240,10 +274,10 @@ export default function PricingPage() {
               <h3 className="text-[18px] font-bold">Enterprise</h3>
             </div>
             <p className="text-[14px] text-[#666666] mb-4 flex-1">
-              For organizations running AI agents at scale. SAML SSO and audit exports
-              (provisioned during onboarding), unlimited agents, custom volume and retention,
-              dedicated support, and an SLA. Priced on AI spend under management — typically from
-              $2,000/mo on an annual plan.
+              For organizations running AI agents at scale: unlimited agents, custom volume and
+              retention, dedicated support, and an SLA. SAML SSO, SCIM and audit-log export are on
+              the roadmap and scoped during onboarding — they are not shipping today. Priced on AI
+              spend under management; engagements typically start around $25,000/year.
             </p>
             <Link
               href="/demo"
@@ -261,9 +295,10 @@ export default function PricingPage() {
               <h3 className="text-[18px] font-bold">Self-Hosted / On-Prem (VPC)</h3>
             </div>
             <p className="text-[14px] text-[#666666] mb-4 flex-1">
-              Run the entire gateway inside your own cloud or air-gapped network with a
-              zero-data-retention guarantee — for regulated teams where data can never leave the
-              perimeter. Includes everything in Enterprise. Custom pricing.
+              Run the gateway inside your own cloud or air-gapped network, so prompts and responses
+              never leave your perimeter — for regulated teams. Deployed with our team as a scoped
+              engagement rather than a self-serve install. Includes everything in Enterprise;
+              engagements start at $30,000/year.
             </p>
             <Link
               href="/contact"

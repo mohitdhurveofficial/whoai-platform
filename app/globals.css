@@ -26,10 +26,20 @@
   --breakpoint-xs: 480px;
 }
 
+/* Self-hosted from /public/fonts. These previously pointed at an unrelated
+ * third-party Vercel deployment, which cost every first paint a fresh DNS
+ * lookup + TLS handshake to an origin we do not control — and would have taken
+ * the site's typography down with it had that deployment ever been removed.
+ * Served from our own origin they are same-connection, immutably cached, and
+ * the two above-the-fold weights are preloaded in app/layout.tsx.
+ *
+ * `font-display: swap` stays: text paints immediately in the fallback and
+ * swaps, rather than holding the first paint hostage to a font. The fallback
+ * stack below is metric-adjacent to keep the swap from shifting layout.
+ */
 @font-face {
   font-family: "Axiforma";
-  src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/7554ea643bf147df-s.p.woff2")
-    format("woff2");
+  src: url("/fonts/axiforma-100.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 100;
@@ -37,8 +47,7 @@
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/867189eed67f65fa-s.p.woff2")
-    format("woff2");
+  src: url("/fonts/axiforma-300.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 300;
@@ -46,8 +55,7 @@
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/99243ddb09b1fb0d-s.p.woff2")
-    format("woff2");
+  src: url("/fonts/axiforma-400.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 400;
@@ -55,8 +63,7 @@
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/6c939865e26f3ad8-s.p.woff2")
-    format("woff2");
+  src: url("/fonts/axiforma-600.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 600;
@@ -64,8 +71,7 @@
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/bac2073ddde225d0-s.p.woff2")
-    format("woff2");
+  src: url("/fonts/axiforma-700.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
   font-weight: 700;
@@ -73,8 +79,7 @@
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://web3-checkout-ashy.vercel.app/_next/static/media/a0ff6be1c3d1cfc6-s.p.woff2")
-    format("woff2");
+  src: url("/fonts/axiforma-400-italic.woff2") format("woff2");
   font-display: swap;
   font-style: italic;
   font-weight: 400;
@@ -561,7 +566,24 @@ a {
     radial-gradient(120% 80% at 50% -20%, rgba(124,168,255,0.13), transparent 60%);
 }
 
+/* Drifting colour field behind the closing CTA band.
+ * This replaced a WebGL shader: three.js cost ~600 KB of JavaScript to render a
+ * texture that the band's own vignette overlays almost entirely cover. Two
+ * radial gradients on a compositor-only transform look the same and cost
+ * nothing. */
+@keyframes whoai-drift {
+  0%, 100% { transform: translate3d(-5%, -3%, 0) scale(1.1); }
+  50%      { transform: translate3d(5%, 3%, 0) scale(1.25); }
+}
+
+.whoai-aurora {
+  background:
+    radial-gradient(38% 52% at 24% 38%, rgba(255,107,0,0.45), transparent 70%),
+    radial-gradient(42% 46% at 74% 62%, rgba(37,99,235,0.38), transparent 72%);
+  animation: whoai-drift 24s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .wa-grid3d, .wa-orb-ring { animation: none !important; }
+  .wa-grid3d, .wa-orb-ring, .whoai-aurora { animation: none !important; }
   .wa-tilt3d { transform: none !important; }
 }

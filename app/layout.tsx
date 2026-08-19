@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import plansData from "@/plans.json";
+
+/** Paid, self-serve tiers only — Enterprise is quote-based (null price). */
+const PAID_PLANS = Object.values(plansData.plans).filter(
+  (plan): plan is typeof plan & { priceMonthly: number } =>
+    typeof plan.priceMonthly === "number" && plan.priceMonthly > 0,
+);
+const SELF_SERVE_MAX_PRICE = Math.max(...PAID_PLANS.map((plan) => plan.priceMonthly));
+const SELF_SERVE_PRICES = `Free tier available. Paid plans: ${PAID_PLANS.map(
+  (plan) => `$${plan.priceMonthly}/mo (${plan.label})`,
+).join(", ")}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://whoai-platform.vercel.app"),
@@ -30,8 +41,7 @@ export const metadata: Metadata = {
     "BYOK AI gateway",
     "AI cost per request",
     "smart model router",
-    "prompt cache",
-    "predictive budget AI",
+    "AI spend forecasting",
   ],
   authors: [{ name: "WHOAI", url: "https://whoai-platform.vercel.app" }],
   creator: "WHOAI",
@@ -43,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WHOAI | AI FinOps & Cost Control Platform",
     description:
-      "Track, control, and reduce AI spending across OpenAI, Anthropic, Gemini, and more. Real-time agent monitoring and budget enforcement.",
+      "Track, control, and reduce AI spending across OpenAI, Anthropic, Gemini, and more. Per-request agent monitoring and budget enforcement.",
     url: "https://whoai-platform.vercel.app",
     siteName: "WHOAI",
     type: "website",
@@ -53,7 +63,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WHOAI | AI FinOps Platform",
     description:
-      "Know exactly which AI agent is burning your budget. Real-time cost tracking for OpenAI, Anthropic, and all major LLM providers.",
+      "Know exactly which AI agent is burning your budget. Per-request cost tracking for OpenAI, Anthropic, and every major LLM provider.",
     creator: "@whoai",
   },
   robots: {
@@ -94,7 +104,7 @@ const structuredData = {
         "https://linkedin.com/company/whoai",
       ],
       description:
-        "WHOAI is an enterprise AI FinOps platform that provides real-time cost tracking, agent monitoring, and budget enforcement for LLM APIs.",
+        "WHOAI is an enterprise AI FinOps platform that provides per-request cost tracking, agent monitoring, and budget enforcement for LLM APIs.",
     },
     {
       "@type": "SoftwareApplication",
@@ -108,23 +118,23 @@ const structuredData = {
         priceSpecification: {
           "@type": "UnitPriceSpecification",
           minPrice: "0",
-          maxPrice: "799",
+          maxPrice: String(SELF_SERVE_MAX_PRICE),
           priceCurrency: "USD",
         },
-        description:
-          "Free tier available. Paid plans start at $99/mo (Starter), $299/mo (Growth), $799/mo (Pro). Enterprise pricing is custom.",
+        // Built from plans.json so a price change cannot leave Google serving a
+        // number the pricing page no longer honours.
+        description: `${SELF_SERVE_PRICES} Enterprise pricing is custom.`,
       },
       featureList: [
         "AI cost monitoring and tracking",
         "Token usage analytics",
         "Agent-level budget controls",
-        "Real-time anomaly detection",
-        "Multi-provider support (OpenAI GPT-5.5, Anthropic Claude Opus 4.8, Google Gemini 3.5 Flash, xAI Grok 3, DeepSeek V4, Meta Llama 4)",
+        "Cost anomaly detection",
+        "Multi-provider support (OpenAI, Anthropic, Google Gemini, xAI Grok, DeepSeek, Mistral, Groq and any OpenAI-compatible API)",
         "BYOK (Bring Your Own Key) architecture",
         "Kill switch for runaway agents",
-        "Smart model router with 30-60% cost savings",
-        "Semantic prompt cache",
-        "Predictive budget AI",
+        "Model routing recommendations",
+        "Spend forecasting",
       ],
     },
     {
@@ -157,6 +167,23 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
     >
       <head>
+        {/* Only the two weights that render above the fold. The rest are
+            declared in globals.css and fetched lazily on first use — preloading
+            all six would compete with the CSS and JS the first paint needs. */}
+        <link
+          rel="preload"
+          href="/fonts/axiforma-400.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/axiforma-700.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

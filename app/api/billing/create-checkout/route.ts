@@ -4,9 +4,9 @@ import { getStripe } from "@/lib/stripe";
 import { requirePermission } from "@/lib/server/guard";
 import { priceIdForTier, type PlanType } from "@/lib/subscription";
 
-// Self-serve checkout is Starter/Growth/Pro only. Enterprise is sales-led
+// Self-serve checkout is Starter/Growth/Business only. Enterprise is sales-led
 // (the UI routes it to "Contact sales"), so it is intentionally excluded here.
-const PURCHASABLE_TIERS: PlanType[] = ["STARTER", "GROWTH", "PRO"];
+const PURCHASABLE_TIERS: PlanType[] = ["STARTER", "GROWTH", "BUSINESS"];
 
 export async function POST(req: Request) {
   const guard = await requirePermission("manageBilling");

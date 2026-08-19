@@ -4,13 +4,14 @@
  * The plan tier is stored on Organization.subscriptionTier and kept in sync
  * with Stripe by the billing webhook.
  *
- * Launch pricing (developer-led funnel, value-based expansion):
- *   Free $0 · Starter $99 · Growth $299 · Pro $799 · Enterprise custom (sales).
+ * Pricing (developer-led funnel, value-based expansion):
+ *   Free $0 · Starter $149 · Growth $499 · Business $1,499 · Enterprise custom (sales).
  *
  * Every limit here is enforced somewhere:
  *   · maxAgents        → canCreateAgent(), on agent creation
  *   · monthlyRequests  → the runtime gateway's atomic quota reservation
  *   · retentionDays    → app/api/cron/enforce-retention
+ *   · features         → requireFeature() in lib/server/guard, at each route
  *
  * The numbers themselves live in plans.json at the project root, because the
  * Python runtime enforces the request quota and must read the same values the
@@ -19,6 +20,25 @@
  */
 import plansData from "@/plans.json";
 
+/**
+ * Capability gates, as opposed to the volume limits above.
+ *
+ * Named individually rather than as `Record<string, boolean>` so that a typo in
+ * a call site — `hasFeature(tier, "killswitch")` — is a compile error instead of
+ * a silent `undefined` that reads as "denied" and quietly breaks a paid feature.
+ */
+export type FeatureKey =
+  | "budgetEnforcement"
+  | "killSwitch"
+  | "multiProviderRouting"
+  | "providerFailover"
+  | "anomalyDetection"
+  | "rbac"
+  | "policyEnforcement"
+  | "advancedAnalytics"
+  | "auditExport"
+  | "sso";
+
 /** Shape of a single plan entry in plans.json. `null` means unlimited. */
 interface RawPlan {
   label: string;
@@ -26,6 +46,7 @@ interface RawPlan {
   maxAgents: number | null;
   monthlyRequests: number | null;
   retentionDays: number;
+  features: Record<FeatureKey, boolean>;
 }
 
 const RAW_PLANS = (plansData as { plans: Record<string, RawPlan> }).plans;
@@ -41,7 +62,7 @@ export const PLAN_LIMITS = {
   FREE: buildPlan("FREE"),
   STARTER: buildPlan("STARTER"),
   GROWTH: buildPlan("GROWTH"),
-  PRO: buildPlan("PRO"),
+  BUSINESS: buildPlan("BUSINESS"),
   ENTERPRISE: buildPlan("ENTERPRISE"),
 } as const;
 
@@ -54,15 +75,29 @@ function buildPlan(tier: string) {
     maxAgents: unlimitedAsInfinity(raw.maxAgents),
     monthlyRequests: unlimitedAsInfinity(raw.monthlyRequests),
     retentionDays: raw.retentionDays,
+    features: raw.features,
   };
 }
 
 export type PlanType = keyof typeof PLAN_LIMITS;
 
+/**
+ * Tier names that no longer exist but may still be stored on an Organization or
+ * carried in old Stripe subscription metadata.
+ *
+ * PRO was renamed to BUSINESS at the same limits. Mapping it here rather than
+ * letting it fall through to FREE matters: an unknown tier silently downgrades a
+ * paying customer to 2 agents and would start rejecting their traffic. The data
+ * migration rewrites the stored rows, but Stripe objects created before the
+ * rename keep the old name forever, so the alias stays.
+ */
+const LEGACY_TIER_ALIASES: Record<string, PlanType> = { PRO: "BUSINESS" };
+
 /** Normalize an arbitrary (possibly null/unknown) tier string to a PlanType. */
 export function normalizeTier(tier?: string | null): PlanType {
   const key = (tier ?? "FREE").toUpperCase();
-  return (key in PLAN_LIMITS ? key : "FREE") as PlanType;
+  if (key in PLAN_LIMITS) return key as PlanType;
+  return LEGACY_TIER_ALIASES[key] ?? "FREE";
 }
 
 export function planConfig(tier?: string | null) {
@@ -91,6 +126,33 @@ export function monthlyRequestQuota(plan?: PlanType | string | null): number | n
 /** Telemetry retention window for a plan, in days. */
 export function retentionDays(plan?: PlanType | string | null): number {
   return PLAN_LIMITS[normalizeTier(plan)].retentionDays;
+}
+
+/**
+ * True if `plan` includes `feature`.
+ *
+ * This is the authoritative check. The UI hides gated controls for tidiness, but
+ * hiding a button stops nobody from calling the route directly — every gated
+ * handler re-checks with requireFeature() in lib/server/guard.
+ */
+export function hasFeature(
+  plan: PlanType | string | null | undefined,
+  feature: FeatureKey,
+): boolean {
+  return PLAN_LIMITS[normalizeTier(plan)].features[feature] === true;
+}
+
+/**
+ * The lowest-priced plan that includes `feature`, or null if no plan does.
+ *
+ * Used to tell a blocked caller *which* plan unlocks what they tried to use,
+ * rather than a bare "upgrade required" that leaves them guessing. Returns null
+ * for capabilities that are not built yet, so an upsell is never shown for
+ * something we cannot actually deliver.
+ */
+export function lowestPlanWithFeature(feature: FeatureKey): PlanType | null {
+  const order: PlanType[] = ["FREE", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"];
+  return order.find((tier) => PLAN_LIMITS[tier].features[feature]) ?? null;
 }
 
 /**
@@ -134,28 +196,44 @@ export function planLimitsCopy(tier: PlanType | string | null | undefined) {
   };
 }
 
-/** Map a Stripe price ID (from env) back to a plan tier. */
-export function planForPriceId(priceId?: string | null): PlanType {
-  if (!priceId) return "FREE";
-  if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return "STARTER";
-  if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) return "GROWTH";
-  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return "PRO";
-  if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return "ENTERPRISE";
-  return "FREE";
-}
+/**
+ * Stripe price IDs, read from the environment at call time.
+ *
+ * Both naming schemes are accepted: STRIPE_PRICE_<TIER> is the current
+ * convention, STRIPE_<TIER>_PRICE_ID the original one. Production still has the
+ * old names set, and silently returning undefined for a configured plan turns
+ * checkout into "Plan GROWTH is not configured for purchase" — so the old names
+ * keep working until they are migrated. BUSINESS also falls back to the PRO
+ * variables, since the Stripe price object survived the tier rename.
+ *
+ * Read per call rather than captured at module load: Next.js evaluates this
+ * module during the build, where the runtime's env is not yet present.
+ */
+const PRICE_ENV_NAMES: Record<Exclude<PlanType, "FREE">, readonly string[]> = {
+  STARTER: ["STRIPE_PRICE_STARTER", "STRIPE_STARTER_PRICE_ID"],
+  GROWTH: ["STRIPE_PRICE_GROWTH", "STRIPE_GROWTH_PRICE_ID"],
+  BUSINESS: ["STRIPE_PRICE_BUSINESS", "STRIPE_BUSINESS_PRICE_ID", "STRIPE_PRO_PRICE_ID"],
+  ENTERPRISE: ["STRIPE_PRICE_ENTERPRISE", "STRIPE_ENTERPRISE_PRICE_ID"],
+};
 
 /** Map a plan tier to its configured Stripe price ID (from env), if any. */
 export function priceIdForTier(tier: PlanType): string | undefined {
-  switch (tier) {
-    case "STARTER":
-      return process.env.STRIPE_STARTER_PRICE_ID;
-    case "GROWTH":
-      return process.env.STRIPE_GROWTH_PRICE_ID;
-    case "PRO":
-      return process.env.STRIPE_PRO_PRICE_ID;
-    case "ENTERPRISE":
-      return process.env.STRIPE_ENTERPRISE_PRICE_ID;
-    default:
-      return undefined;
+  const names = PRICE_ENV_NAMES[tier as Exclude<PlanType, "FREE">];
+  if (!names) return undefined;
+  for (const name of names) {
+    const value = process.env[name];
+    if (value) return value;
   }
+  return undefined;
+}
+
+/** Map a Stripe price ID (from env) back to a plan tier. */
+export function planForPriceId(priceId?: string | null): PlanType {
+  if (!priceId) return "FREE";
+  for (const tier of ["STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"] as const) {
+    if (PRICE_ENV_NAMES[tier].some((name) => process.env[name] === priceId)) {
+      return tier;
+    }
+  }
+  return "FREE";
 }

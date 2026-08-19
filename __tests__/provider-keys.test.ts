@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { validateKeyFormat, isSupportedProvider } from "@/lib/providers/key-format";
+import {
+  validateKeyFormat,
+  isSupportedProvider,
+  SUPPORTED_PROVIDERS,
+} from "@/lib/providers/key-format";
+import { PROVIDERS, PROVIDER_IDS } from "@/lib/providers/registry";
 
 describe("validateKeyFormat", () => {
   it("accepts well-formed keys per provider", () => {
@@ -40,10 +45,36 @@ describe("validateKeyFormat", () => {
 });
 
 describe("isSupportedProvider", () => {
-  it("recognizes the five supported providers", () => {
-    for (const p of ["openai", "anthropic", "gemini", "grok", "deepseek"]) {
+  it("recognizes every provider a customer can bring a key for", () => {
+    for (const p of ["openai", "anthropic", "gemini", "grok", "deepseek", "groq", "mistral"]) {
       expect(isSupportedProvider(p)).toBe(true);
     }
     expect(isSupportedProvider("cohere")).toBe(false);
+  });
+
+  it("excludes self-hosted endpoints, which are configured by env not by key", () => {
+    for (const id of PROVIDER_IDS) {
+      expect(isSupportedProvider(id)).toBe(PROVIDERS[id].keyRequired);
+    }
+  });
+});
+
+describe("the registry itself", () => {
+  it("accepts a plausible key for every BYOK provider", () => {
+    // A prefix rule invented for a vendor that publishes none would reject real
+    // keys, so a documented prefix must actually validate.
+    for (const id of SUPPORTED_PROVIDERS) {
+      const prefix = PROVIDERS[id].keyPrefixes[0] ?? "";
+      expect(validateKeyFormat(id, prefix + "a".repeat(40)).ok).toBe(true);
+    }
+  });
+
+  it("gives every OpenAI-compatible provider an endpoint to reach", () => {
+    for (const id of PROVIDER_IDS) {
+      const entry = PROVIDERS[id];
+      if (entry.api === "openai" && entry.keyRequired) {
+        expect(entry.baseUrl).toMatch(/^https:\/\//);
+      }
+    }
   });
 });

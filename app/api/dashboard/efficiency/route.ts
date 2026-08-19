@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerAuthContext } from "@/lib/server/auth";
+import { requireFeature } from "@/lib/server/guard";
 import { calculateEfficiency, efficiencyLeaderboard } from "@/lib/efficiency-score";
 
 export async function GET(request: Request) {
-  const auth = await getServerAuthContext();
-  if (!auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requireFeature("advancedAnalytics");
+  if (!guard.ok) return guard.response;
+  const auth = guard.auth;
 
   const { searchParams } = new URL(request.url);
   const agentId = searchParams.get("agentId");

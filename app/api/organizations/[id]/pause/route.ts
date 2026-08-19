@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/server/guard";
+import { requireFeature } from "@/lib/server/guard";
 
 export async function POST(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
   // Pausing or resuming an entire organization halts every agent's traffic, so
   // it is gated on manageOrganization rather than mere membership. The previous
   // check read organizationId from Supabase user_metadata, which is mirrored at
   // signup and can go stale; guard.auth.organizationId comes from the database.
-  const guard = await requirePermission("manageOrganization");
+  const guard = await requireFeature("killSwitch", "manageOrganization");
   if (!guard.ok) return guard.response;
   const params = await context.params;
 

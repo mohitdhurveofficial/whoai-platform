@@ -24,6 +24,13 @@ with open(_plans_path, "r") as f:
 
 DEFAULT_TIER = "FREE"
 
+# Tiers that no longer exist but may still be stored on an Organization or held
+# in Stripe metadata predating the rename. Mirrors LEGACY_TIER_ALIASES in
+# lib/subscription.ts. Without this, a row still reading "PRO" would normalize to
+# FREE and the gateway would start rejecting a paying customer's traffic at the
+# 50k free-tier quota.
+LEGACY_TIER_ALIASES = {"PRO": "BUSINESS"}
+
 
 def normalize_tier(tier: Optional[str]) -> str:
     """Map an arbitrary (possibly null/unknown) tier string to a known plan.
@@ -33,7 +40,9 @@ def normalize_tier(tier: Optional[str]) -> str:
     most restrictive plan instead of failing the request open.
     """
     key = (tier or DEFAULT_TIER).upper()
-    return key if key in PLANS else DEFAULT_TIER
+    if key in PLANS:
+        return key
+    return LEGACY_TIER_ALIASES.get(key, DEFAULT_TIER)
 
 
 def plan_config(tier: Optional[str]) -> dict:
@@ -49,3 +58,13 @@ def monthly_request_quota(tier: Optional[str]) -> Optional[int]:
 def retention_days(tier: Optional[str]) -> int:
     """Telemetry retention window for a tier, in days."""
     return plan_config(tier)["retentionDays"]
+
+
+def has_feature(tier: Optional[str], feature: str) -> bool:
+    """True if `tier` includes `feature`. Mirrors hasFeature() in lib/subscription.ts.
+
+    Defaults to False for an unrecognised feature name rather than raising: the
+    gateway sits in the request path, and a typo here should close a capability
+    rather than 500 every call that touches it.
+    """
+    return plan_config(tier).get("features", {}).get(feature, False) is True

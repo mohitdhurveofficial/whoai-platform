@@ -11,7 +11,7 @@ vi.mock("@/lib/gateway/http", async () => {
 });
 
 import { providerFetch, GatewayError } from "@/lib/gateway/http";
-import { OpenAIAdapter } from "@/lib/gateway/adapters/openai";
+import { getAdapter } from "@/lib/gateway/adapters";
 import { AnthropicAdapter } from "@/lib/gateway/adapters/anthropic";
 
 const mockFetch = vi.mocked(providerFetch);
@@ -23,7 +23,7 @@ beforeEach(() => {
 describe("adapter.validateKey", () => {
   it("returns ok:true when the auth check succeeds (2xx)", async () => {
     mockFetch.mockResolvedValueOnce({ data: [] });
-    const res = await new OpenAIAdapter().validateKey("sk-test");
+    const res = await getAdapter("openai").validateKey("sk-test");
     expect(res.ok).toBe(true);
     // Hits the zero-cost /models endpoint, not chat/completions.
     expect(mockFetch).toHaveBeenCalledWith(
@@ -35,7 +35,7 @@ describe("adapter.validateKey", () => {
 
   it("returns ok:false on a 401 (rejected key)", async () => {
     mockFetch.mockRejectedValueOnce(new GatewayError("unauthorized", 401, "openai"));
-    const res = await new OpenAIAdapter().validateKey("sk-bad");
+    const res = await getAdapter("openai").validateKey("sk-bad");
     expect(res.ok).toBe(false);
     expect(res.detail).toMatch(/Authentication failed/i);
   });
@@ -49,7 +49,7 @@ describe("adapter.validateKey", () => {
 
   it("does not throw on a non-GatewayError failure", async () => {
     mockFetch.mockRejectedValueOnce(new Error("boom"));
-    const res = await new OpenAIAdapter().validateKey("sk-test");
+    const res = await getAdapter("openai").validateKey("sk-test");
     expect(res.ok).toBe(false);
   });
 });

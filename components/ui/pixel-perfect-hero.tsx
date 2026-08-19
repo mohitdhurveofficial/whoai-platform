@@ -4,30 +4,21 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { PROVIDERS, ProviderLogo } from "@/components/ui/provider-logos";
 
 /* -----------------------------------------------------------------------------
- * WHOAI model providers shown in the trust marquee.
+ * Model providers shown in the trust marquee — official marks, one shared list.
  * -------------------------------------------------------------------------- */
 
-const WHOAI_PROVIDERS = [
-  "OpenAI",
-  "Anthropic",
-  "Google",
-  "xAI",
-  "DeepSeek",
-  "Meta",
-  "Alibaba",
-  "Mistral",
-];
-
-function ProviderRow({ providers, copy = false }: { providers: string[]; copy?: boolean }) {
+function ProviderRow({ copy = false }: { copy?: boolean }) {
   return (
     <div className="flex items-center gap-x-10 sm:gap-x-12" aria-hidden={copy || undefined}>
-      {providers.map((name, i) => (
+      {PROVIDERS.map((name) => (
         <span
-          key={`${copy ? "c-" : ""}${name}-${i}`}
-          className="whitespace-nowrap text-[15px] sm:text-lg font-semibold text-[#697386] select-none transition-colors duration-300 hover:text-[#0A2540]"
+          key={`${copy ? "c-" : ""}${name}`}
+          className="flex items-center gap-2 whitespace-nowrap text-[15px] sm:text-lg font-semibold text-[#697386] select-none transition-colors duration-300 hover:text-[#0A2540]"
         >
+          <ProviderLogo name={name} className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
           {name}
         </span>
       ))}
@@ -240,7 +231,6 @@ interface PixelHeroProps {
   secondaryCta?: string;
   secondaryHref?: string;
   eyebrow?: string;
-  providers?: string[];
 }
 
 export function PixelHero({
@@ -253,7 +243,6 @@ export function PixelHero({
   secondaryCta = "Book a demo",
   secondaryHref = "/demo",
   eyebrow = "Works with every major model provider",
-  providers = WHOAI_PROVIDERS,
 }: PixelHeroProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [themeColors, setThemeColors] = useState<string[]>([]);
@@ -327,8 +316,8 @@ export function PixelHero({
           </div>
           <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_15%,white_85%,transparent)]">
             <div className="flex w-max gap-x-10 wa-pixel-marquee">
-              <ProviderRow providers={providers} />
-              <ProviderRow providers={providers} copy />
+              <ProviderRow />
+              <ProviderRow copy />
             </div>
           </div>
         </div>
@@ -369,8 +358,8 @@ export function PixelHero({
         </span>
         <div className="relative w-full max-w-5xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_15%,white_85%,transparent)]">
           <div className="flex w-max gap-x-12 wa-pixel-marquee">
-            <ProviderRow providers={providers} />
-            <ProviderRow providers={providers} copy />
+            <ProviderRow />
+            <ProviderRow copy />
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ from typing import Optional, Dict, AsyncGenerator, Any
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from database.session import get_db, async_session_maker
 from database.models import Agent, Organization, RequestLog, ProviderCredential
 
@@ -36,7 +36,7 @@ from runtime.killswitch.kill_switch_service import (
     pause_agent,
     pause_organization,
 )
-from runtime.entitlements.plans import monthly_request_quota, normalize_tier
+from runtime.entitlements.plans import has_feature, monthly_request_quota, normalize_tier
 from runtime.entitlements.quota_service import (
     PLAN_REQUEST_QUOTA_EXCEEDED,
     release_request_quota,
@@ -57,9 +57,23 @@ async def _run_anomaly_detection(org_id: str, agent_id: str) -> None:
     """Detached runaway/anomaly detection. Runs after telemetry is committed so
     it reads freshly persisted daily metrics. Owns its own session and swallows
     every error: detection must never block or break the request path.
+
+    Cost anomaly detection is a Growth-and-above capability, so the plan is
+    checked here rather than at the call sites: this runs detached from the
+    request either way, and one lookup in the background task is cheaper than
+    threading the tier through every path that schedules it. Spend is still
+    metered and budgets still enforced on every plan — what a lower tier does not
+    get is the anomaly analysis and the alerts it raises.
     """
     try:
         async with async_session_maker() as adb:
+            row = await adb.execute(
+                text('SELECT "subscriptionTier" FROM "Organization" WHERE id = :id'),
+                {"id": org_id},
+            )
+            tier = row.scalar_one_or_none()
+            if not has_feature(tier, "anomalyDetection"):
+                return
             await detect_anomalies(adb, agent_id, org_id)
     except Exception as e:
         logger.warning(f"Anomaly detection failed for agent {agent_id}: {e}")
@@ -510,7 +524,9 @@ async def unified_chat_completions(
 
 @router.get("/providers/status")
 async def provider_health_checks():
-    providers = ["openai", "anthropic", "grok", "deepseek"]
+    # Only providers WHOAI holds a platform key for. Reporting "unhealthy" for
+    # the dozen we deliberately have no credential for would be noise, not news.
+    providers = ProviderFactory.configured()
     results = {}
     
     async def check(prov_name):

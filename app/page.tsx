@@ -28,13 +28,12 @@ import {
 import { PixelHero } from "@/components/ui/pixel-perfect-hero";
 import { FoundingPartners } from "@/components/ui/founding-partners";
 import { ModelContinuity } from "@/components/ui/model-continuity";
-import { ShaderAnimation } from "@/components/ui/shader-animation";
 import { TrustBadges } from "@/components/ui/trust-badges";
 
 export const metadata: Metadata = {
   title: "WHOAI — The Control Plane for AI Spend",
   description:
-    "WHOAI is the financial control plane for AI agents. Real-time per-token cost, hard budget enforcement, and an instant kill switch for runaway agents — across OpenAI, Anthropic, Gemini, and every major model. BYOK. OpenAI-compatible.",
+    "WHOAI is the financial control plane for enterprise AI. Real-time per-token cost, hard budget enforcement, and an instant kill switch for runaway agents — across OpenAI, Anthropic, Gemini, and every major model. BYOK. OpenAI-compatible.",
   alternates: { canonical: "/" },
 };
 
@@ -59,21 +58,21 @@ const COMPARISON = [
 ];
 
 const FEATURES = [
-  { icon: BarChart3, title: "Real-time cost monitoring", body: "Every dollar across every provider in one dashboard — daily, weekly, monthly, live." },
+  { icon: BarChart3, title: "Cost monitoring", body: "Every dollar across every provider in one dashboard — daily, weekly, monthly." },
   { icon: Fingerprint, title: "Per-token attribution", body: "Exact prompt + completion tokens per request, per user, per agent. No averages." },
   { icon: ShieldAlert, title: "Budget enforcement", body: "Hard daily and monthly caps. The kill switch pauses any agent that exceeds its budget." },
   { icon: Activity, title: "Anomaly detection", body: "Catch a 400% spike against an agent's own baseline the moment it happens." },
-  { icon: Zap, title: "Cost optimization", body: "Find duplicate prompts, cache hot queries, route to cheaper models — cut spend up to 30%." },
+  { icon: Zap, title: "Model routing advice", body: "Score a prompt against cheaper models and see the projected saving before you switch. Advisory today — automatic routing is coming soon." },
   { icon: ShieldCheck, title: "BYOK & secure", body: "Your keys, encrypted at rest, never ours. OpenAI-compatible — point your base URL and go." },
 ];
 
 const FAQS = [
   { q: "What is an AI FinOps platform and why do I need one?", a: "An AI FinOps platform like WHOAI gives you real-time visibility into every dollar your AI agents spend on LLM APIs like OpenAI GPT-4o, Anthropic Claude, Gemini, Grok, and DeepSeek. Without it, autonomous agents can burn through budgets silently—costs spike 400% overnight and teams only find out when the monthly bill arrives." },
   { q: "How does WHOAI track AI cost per request?", a: "WHOAI intercepts every API call through a high-performance gateway, logging exact token counts (prompt + completion), model used, provider, latency, and precise cost in Decimal cents. You see real spend per agent, per request, per model—no averages, no estimates." },
-  { q: "Which LLM providers does WHOAI support?", a: "WHOAI supports OpenAI (GPT-5.5, GPT-5.4, o3, o4-mini, GPT-4o), Anthropic (Claude Opus 4.8, Claude 4 Sonnet, Claude 3.5 Sonnet), Google (Gemini 3.5 Flash, Gemini Spark, Gemini 2.5 Pro), xAI Grok 3, DeepSeek V4, Meta Llama 4, Alibaba Qwen 3.7, and Mistral Large 2. New models are added within 48 hours of release." },
+  { q: "Which LLM providers does WHOAI support?", a: "OpenAI, Anthropic, Google Gemini, xAI Grok, DeepSeek, Mistral, Groq, Together, Fireworks, OpenRouter, Perplexity, Cerebras and DeepInfra — plus self-hosted models via Ollama and any other OpenAI-compatible endpoint you point us at. Anything that speaks the OpenAI API works, which is most of the ecosystem." },
   { q: "What is BYOK and why does it matter for security?", a: "BYOK means Bring Your Own Key. Your organization keeps its own API credentials for every provider. WHOAI never stores or pays with its own keys—you control access, rotation, and revocation. This prevents vendor lock-in and keeps your data within your security perimeter." },
   { q: "How do budget controls and kill switches prevent runaway AI costs?", a: "Set hard daily and monthly spend limits per agent and per organization. WHOAI uses atomic budget pre-reservation: every request reserves its projected cost before execution. If a limit would be exceeded, the request is blocked instantly. The kill switch pauses the agent immediately—no runaway loops, no surprise bills." },
-  { q: "Can WHOAI detect AI cost anomalies automatically?", a: "Yes. WHOAI monitors spend velocity, token burn rate, and request patterns in real time. If an agent suddenly spikes by 400% or behaves outside its historical baseline, you get an instant alert in Slack, Teams, or email—before the damage compounds." },
+  { q: "Can WHOAI detect AI cost anomalies automatically?", a: "Yes, on Growth and above. WHOAI checks spend velocity and token burn rate against each agent's own historical baseline as requests come in. When an agent departs from its baseline, the alert is raised immediately and emailed to your organization owner. Slack and Teams delivery are coming soon." },
   { q: "How long does setup take?", a: "Most teams are live in under 5 minutes. Point your existing AI API calls at the WHOAI gateway, add your provider keys in Settings, and budgets start enforcing immediately. No code changes to your LLM prompts or agent logic." },
 ];
 
@@ -133,8 +132,8 @@ export default function LandingPage() {
           <div className="mx-auto max-w-[1180px] px-6">
             <Reveal className="mx-auto mb-12 max-w-[680px] text-center">
               <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.14em] text-[#FF6B00]">The console</p>
-              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">Watch every dollar, in real time</h2>
-              <p className="mt-4 text-[18px] leading-relaxed text-[#425466]">Real-time spend, per-token attribution, and live budget enforcement — one control plane for every agent.</p>
+              <h2 className="text-[34px] font-bold tracking-[-0.02em] sm:text-[42px]">Every dollar, attributed to an agent</h2>
+              <p className="mt-4 text-[18px] leading-relaxed text-[#425466]">Per-token cost on every request, and budget enforcement that runs in the request path — one control plane for every agent.</p>
             </Reveal>
             <Reveal delay={0.1} y={40} className="relative mx-auto max-w-[1000px]">
               {/* soft gradient glow beneath the product */}
@@ -353,7 +352,7 @@ export default function LandingPage() {
                 { icon: Lock, t: "Encryption everywhere", b: "TLS 1.2+ · secrets encrypted at rest" },
                 { icon: KeyRound, t: "BYOK", b: "Your keys, encrypted — you bring them, we don't resell" },
                 { icon: ShieldCheck, t: "Zero-retention option", b: "Enterprise & VPC: prompts aren't stored" },
-                { icon: FileCheck, t: "SOC 2 in progress", b: "Enterprise & self-hosted VPC ready" },
+                { icon: FileCheck, t: "SOC 2 in progress", b: "Not yet certified — controls documented on request" },
               ].map((c) => (
                 <StaggerItem key={c.t} hover className="flex flex-col items-center gap-3 rounded-2xl border border-[#E6EBF1] bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-md">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF1E8] text-[#FF6B00]"><c.icon className="h-5 w-5" /></div>
@@ -407,8 +406,8 @@ export default function LandingPage() {
 
         {/* FINAL CTA — futuristic shader band */}
         <section className="relative overflow-hidden bg-[#070B14] py-36">
-          {/* WebGL shader field (pauses off-screen) */}
-          <ShaderAnimation className="absolute inset-0 h-full w-full opacity-60" />
+          {/* Decorative drift — pure CSS, see .whoai-aurora in globals.css */}
+          <div aria-hidden className="whoai-aurora pointer-events-none absolute inset-0 opacity-70" />
           {/* legibility + vignette overlays */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(7,11,20,0.82)_68%,#070B14_100%)]" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070B14] via-transparent to-[#070B14]" />
@@ -438,7 +437,7 @@ export default function LandingPage() {
               <span className="flex h-6 w-6 items-center justify-center rounded bg-[#0A2540] text-[10px] font-black text-white">W</span>
               <span className="text-[15px] font-bold">WHOAI</span>
             </Link>
-            <p className="mt-4 max-w-[260px] text-[14px] text-[#697386]">The financial control plane for the autonomous AI era. Track tokens, enforce budgets, stop runaway spend.</p>
+            <p className="mt-4 max-w-[260px] text-[14px] text-[#697386]">The financial control plane for enterprise AI. Track tokens, enforce budgets, stop runaway spend.</p>
           </div>
           {[
             { h: "Product", links: [["Features", "/#features"], ["Pricing", "/pricing"], ["Docs", "/docs"], ["Free teardown", "/teardown"]] },

@@ -1,14 +1,39 @@
 import os
 import time
 import uuid
-from typing import Dict, Any, AsyncGenerator
+from typing import Dict, Any, AsyncGenerator, Optional
 from openai import AsyncOpenAI
 from runtime.providers.base import BaseProvider
 
 class OpenAIProvider(BaseProvider):
-    def __init__(self, api_key: str = None, timeout: float = 30.0):
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.client = AsyncOpenAI(api_key=self.api_key, timeout=timeout)
+    """Adapter for OpenAI and for every vendor that speaks its wire format.
+
+    Groq, DeepSeek, xAI, Mistral, Together, OpenRouter and the rest all accept
+    the same request body and return the same response shape; only the base URL
+    and the environment variable holding the key differ, and both are supplied
+    from providers.json by ProviderFactory. That is why there is no GrokProvider
+    or DeepSeekProvider — they were this class with one string changed.
+    """
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        timeout: float = 30.0,
+        *,
+        base_url: Optional[str] = None,
+        key_env: str = "OPENAI_API_KEY",
+        key_required: bool = True,
+    ):
+        self.api_key = api_key or os.getenv(key_env)
+        self.key_required = key_required
+        # Self-hosted endpoints (Ollama, a private vLLM) authenticate by network
+        # position rather than by key, but the SDK refuses to construct without
+        # some value, hence the placeholder.
+        self.client = AsyncOpenAI(
+            api_key=self.api_key or "not-required",
+            base_url=base_url,
+            timeout=timeout,
+        )
 
     def _format_unified_response(self, response, model: str) -> Dict[str, Any]:
         return {
@@ -68,7 +93,7 @@ class OpenAIProvider(BaseProvider):
             }
 
     async def health_check(self) -> str:
-        if not self.api_key:
+        if self.key_required and not self.api_key:
             return "unhealthy"
         try:
             await self.client.models.list(timeout=5.0)

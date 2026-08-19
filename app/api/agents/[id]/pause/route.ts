@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/server/guard";
+import { requireFeature } from "@/lib/server/guard";
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unexpected error";
 }
 
 export async function POST(req: Request, context: { params: { id: string } | Promise<{ id: string }> }) {
-  const guard = await requirePermission("manageAgents");
+  const guard = await requireFeature("killSwitch", "manageAgents");
   if (!guard.ok) return guard.response;
   const auth = guard.auth;
   const orgId = auth.organizationId;

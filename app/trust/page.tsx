@@ -31,8 +31,8 @@ export default function TrustPage() {
           Built for trust, designed for transparency
         </h1>
         <p className="text-[18px] text-[#666666] leading-relaxed">
-          Your AI spend and data deserve enterprise-grade protection. Your keys are encrypted,
-          we never mark up tokens, and you keep full control over your AI gateway.
+          Your provider keys are encrypted at rest and scoped to your organization, we never mark up
+          tokens, and you keep full control over your AI gateway.
         </p>
       </Reveal>
 

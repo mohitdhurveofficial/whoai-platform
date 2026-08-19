@@ -1,0 +1,12 @@
+-- Rename the PRO plan to BUSINESS.
+--
+-- Organization.subscriptionTier is a free-text String, not the OrgTier enum, so
+-- this is a data migration rather than a type change. Rows are rewritten here so
+-- the database agrees with plans.json; the code keeps a PRO -> BUSINESS alias as
+-- well (LEGACY_TIER_ALIASES in lib/subscription.ts and runtime/entitlements/plans.py)
+-- because Stripe subscription metadata created before the rename still says PRO
+-- and cannot be rewritten retroactively.
+--
+-- Deliberately scoped to the exact old value: an org that is already on any other
+-- tier must not be touched, and re-running this changes nothing.
+UPDATE "Organization" SET "subscriptionTier" = 'BUSINESS' WHERE "subscriptionTier" = 'PRO';

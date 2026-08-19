@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle, XCircle, Trash2, Loader2, Plug } from "lucide-react";
+import { ProviderLogo } from "@/components/ui/provider-logos";
+import { BYOK_PROVIDER_IDS, PROVIDERS as REGISTRY } from "@/lib/providers/registry";
 
 type Provider = {
   id: string;
@@ -11,13 +13,13 @@ type Provider = {
   lastTestedAt: string | null;
 };
 
-const PROVIDERS = [
-  { id: "openai", name: "OpenAI", logo: "🟢" },
-  { id: "anthropic", name: "Anthropic", logo: "🟣" },
-  { id: "gemini", name: "Google Gemini", logo: "🔵" },
-  { id: "grok", name: "xAI Grok", logo: "✖️" },
-  { id: "deepseek", name: "DeepSeek", logo: "🐋" },
-];
+// Straight from providers.json, so a provider added to the registry appears
+// here without touching this file.
+const PROVIDERS = BYOK_PROVIDER_IDS.map((id) => ({
+  id,
+  name: REGISTRY[id].label,
+  docsUrl: REGISTRY[id].docsUrl,
+}));
 
 export default function ProvidersPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -169,11 +171,23 @@ export default function ProvidersPage() {
           return (
             <div key={provider.id} className="p-5 border border-[#EEE8E2] rounded-lg bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#FAF7F3] flex items-center justify-center text-xl">
-                  {provider.logo}
+                <div className="w-10 h-10 rounded-full bg-[#FAF7F3] flex items-center justify-center text-[#111111]">
+                  <ProviderLogo name={provider.id} className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-[#111111] font-medium text-[15px]">{provider.name}</h4>
+                  <h4 className="text-[#111111] font-medium text-[15px]">
+                    {provider.name}
+                    {provider.docsUrl && (
+                      <a
+                        href={provider.docsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ml-2 text-[12px] font-normal text-[#888888] underline underline-offset-2 hover:text-[#FF6B00]"
+                      >
+                        get a key
+                      </a>
+                    )}
+                  </h4>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {!isConnected ? (
                       <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[#888888] bg-[#FAF7F3] px-2 py-0.5 rounded-full">

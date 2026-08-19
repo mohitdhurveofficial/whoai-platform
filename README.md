@@ -18,13 +18,13 @@
 
 ## Features
 
-- 💸 **Reduce AI Spend 15-30%:** Real-time observability into token spend. Find exactly which team owns the spend.
-- 🛑 **Cost Anomaly Detection:** Get alerts when an agent's spend increases by 400% in 45 minutes.
-- 🔌 **Kill Switch:** Instantly suspend runaway agents before they burn through your API budget.
-- 📊 **Executive Dashboard:** Visualize daily and monthly token burn rates, active agents, and top cost offenders.
-- 📈 **Analytics & Insights:** Real-time data visualization of agent spending trends and model distribution.
-- 🔀 **High-Performance AI Gateway:** Scalable ingestion layer that intercepts LLM traffic, meters API usage, and enforces budgets. Available for VPC self-hosting.
-- 🏢 **Enterprise Multi-Tenancy:** Secure data isolation via strict Organization-level constraints. Role-based access control (admin/user roles) is rolling out.
+- 💸 **Per-request cost attribution:** Exact prompt and completion token cost on every call, attributed to the agent that made it.
+- 🛑 **Cost anomaly detection:** Alerts when an agent's spend departs from its own baseline. Growth and above.
+- 🔌 **Kill switch:** Instantly suspend runaway agents before they burn through your API budget.
+- 📊 **Executive dashboard:** Daily and monthly token burn rates, active agents, and top cost offenders.
+- 🔀 **AI gateway:** Ingestion layer that intercepts LLM traffic, meters usage, and enforces budgets in the request path.
+- 🌐 **Any LLM API:** OpenAI, Anthropic, Gemini, xAI, DeepSeek, Mistral, Groq, Together, Fireworks, OpenRouter, Perplexity, Cerebras, DeepInfra, plus self-hosted and any OpenAI-compatible endpoint. See [`docs/PROVIDERS.md`](docs/PROVIDERS.md).
+- 🏢 **Multi-tenancy:** Data isolation via strict organization-level constraints, with role-based access control.
 
 ## Architecture
 
@@ -79,7 +79,7 @@ whoai-platform/
 ├── runtime/                  # FastAPI gateway — runtime plane
 │   ├── main.py               # FastAPI application entrypoint
 │   ├── routers/              # Auth, gateway and analytics routes
-│   └── providers/            # BYOK provider adapters
+│   └── providers/            # BYOK provider adapters (driven by providers.json)
 ├── database/                 # SQLAlchemy models & session (runtime plane)
 ├── utils/                    # Supabase SSR utilities
 ├── sdk/                      # Published client SDKs and examples
@@ -192,15 +192,24 @@ npm run build
 
 WHOAI is product-led: self-serve plans that scale with usage, plus a sales-led
 Enterprise tier. You always bring your own provider keys (BYOK) — WHOAI never
-marks up tokens. Self-serve plans are billed via Stripe subscriptions; tier
-limits live in [`lib/subscription.ts`](lib/subscription.ts) — the single source
-of truth for both the pricing UI and entitlement enforcement.
+marks up tokens. Self-serve plans are billed via Stripe subscriptions.
 
-- **Free ($0/mo):** BYOK, real-time spend & token analytics, dashboards, 1 budget alert, 2 agents · 50k requests/mo, 7-day retention.
-- **Starter ($99/mo):** Everything in Free + budget controls & hard limits, instant kill switch, multi-provider routing, 10 agents · 1M requests/mo, 30-day retention.
-- **Growth ($299/mo):** Everything in Starter + org RBAC & policy enforcement, cost anomaly detection, provider failover, 50 agents · 5M requests/mo, 90-day retention.
-- **Pro ($799/mo):** Everything in Growth + SSO (Google/Okta) & audit-log export, advanced governance, 200 agents · 20M requests/mo, 180-day retention.
-- **Enterprise (custom, sales-led):** SAML SSO, unlimited agents, custom volume/retention, audit exports, SLA, and self-hosted/VPC — priced on AI spend under management (typically from ~$2,000/mo on an annual plan).
+Plan limits and feature entitlements live in [`plans.json`](plans.json), read by
+[`lib/subscription.ts`](lib/subscription.ts) (control plane) and
+[`runtime/entitlements/plans.py`](runtime/entitlements/plans.py) (gateway).
+`lib/subscription.ts` is the single source of truth for the pricing UI and for
+entitlement enforcement; the gateway enforces the same numbers server-side, so a
+limit cannot be bypassed by calling the API directly.
+
+- **Free ($0/mo):** BYOK, spend & token analytics, dashboards, 1 budget alert, 2 agents · 50k requests/mo, 7-day retention.
+- **Starter ($149/mo):** Everything in Free + budget controls & hard limits, instant kill switch, multi-provider routing, 10 agents · 1M requests/mo, 30-day retention.
+- **Growth ($499/mo):** Everything in Starter + org RBAC & policy enforcement, cost anomaly detection, provider failover, 50 agents · 5M requests/mo, 90-day retention. *Most popular.*
+- **Business ($1,499/mo):** Everything in Growth + advanced governance and priority support, 200 agents · 20M requests/mo, 180-day retention. For teams operating AI at scale.
+- **Enterprise (custom, sales-led):** Unlimited agents, custom volume/retention, SLA, and self-hosted/VPC deployment — priced on AI spend under management, typically starting around $25,000/year. VPC / self-hosted engagements start at $30,000/year.
+
+> **Not built yet:** SAML SSO, SCIM and audit-log export are sold as roadmap
+> ("coming soon") and are `false` for every tier in `plans.json`. Do not list
+> them as shipped features anywhere in the product or marketing site.
 
 > See [`docs/REVENUE_MODEL.md`](docs/REVENUE_MODEL.md) for the sales-led Enterprise motion and revenue projections.
 

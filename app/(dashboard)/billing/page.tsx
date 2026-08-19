@@ -10,7 +10,7 @@ const TIER_RANK: Record<string, number> = {
   FREE: 0,
   STARTER: 1,
   GROWTH: 2,
-  PRO: 3,
+  BUSINESS: 3,
   ENTERPRISE: 4,
 };
 
@@ -35,8 +35,8 @@ type Subscription = {
 const PLAN_BLURBS = [
   { tier: "STARTER", blurb: "Budget controls + kill switches" },
   { tier: "GROWTH", blurb: "RBAC, governance & anomaly detection" },
-  { tier: "PRO", blurb: "Scale governance, SSO & audit exports" },
-  { tier: "ENTERPRISE", blurb: "SAML SSO, SLA, unlimited & self-hosted" },
+  { tier: "BUSINESS", blurb: "Governance and control at 200-agent scale" },
+  { tier: "ENTERPRISE", blurb: "Unlimited agents, SLA & self-hosted (VPC)" },
 ] as const;
 
 const PLANS = PLAN_BLURBS.map(({ tier, blurb }) => {
@@ -91,7 +91,7 @@ export default function BillingPage() {
 
         // Arrived from the pricing page with a chosen plan → kick off Stripe
         // checkout automatically for paid tiers (skip if already on that plan).
-        const paidTiers = ["STARTER", "GROWTH", "PRO"];
+        const paidTiers = ["STARTER", "GROWTH", "BUSINESS"];
         const currentTier = (data?.tier ?? "FREE").toUpperCase();
         if (
           planParam &&

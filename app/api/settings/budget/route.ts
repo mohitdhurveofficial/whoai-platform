@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
-import { requirePermission } from "@/lib/server/guard";
+import { requireFeature } from "@/lib/server/guard";
 
 export async function GET() {
   const auth = await getServerAuthContext();
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const guard = await requirePermission("manageBudgets");
+  const guard = await requireFeature("budgetEnforcement", "manageBudgets");
   if (!guard.ok) return guard.response;
   const auth = guard.auth;
 
