@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerAuthContext } from "@/lib/server/auth";
+import { can, PERMISSIONS, ROLE_DESCRIPTIONS } from "@/lib/auth/roles";
 import { monthlyRequestQuota, normalizeTier, planConfig, retentionDays } from "@/lib/subscription";
 
 export async function GET() {
@@ -16,7 +17,9 @@ export async function GET() {
         subscriptionTier: true,
         subscriptionStatus: true,
         currentPeriodEnd: true,
+        cancelAtPeriodEnd: true,
         stripeCustomerId: true,
+        stripeSubscriptionId: true,
         currentMonthlyRequests: true,
       },
     });
@@ -33,12 +36,22 @@ export async function GET() {
     const config = planConfig(tier);
     const maxAgents = Number.isFinite(config.maxAgents) ? config.maxAgents : null;
 
+    // Billing changes are OWNER-only. Sent to the client so the page can explain
+    // who to ask instead of rendering buttons that answer every click with a 403.
+    // This is a UI hint, never the gate: the gate is requirePermission() on the
+    // checkout, portal and cancel routes.
+    const billingPermission = PERMISSIONS.manageBilling;
+
     return NextResponse.json({
       tier,
       label: config.label,
       status: organization.subscriptionStatus,
       currentPeriodEnd: organization.currentPeriodEnd,
+      cancelAtPeriodEnd: organization.cancelAtPeriodEnd,
       hasBillingAccount: Boolean(organization.stripeCustomerId),
+      hasActiveSubscription: Boolean(organization.stripeSubscriptionId),
+      canManageBilling: can(auth.role, "manageBilling"),
+      billingRoleLabel: ROLE_DESCRIPTIONS[billingPermission].label,
       usage: {
         agents: agentCount,
         maxAgents, // null = unlimited

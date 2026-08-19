@@ -32,6 +32,11 @@ model Organization {
   subscriptionStatus   String               @default("FREE")
   subscriptionTier     String               @default("FREE")
   currentPeriodEnd     DateTime?
+  // Set when the customer cancels: Stripe keeps the subscription active and
+  // paid-for until currentPeriodEnd, then deletes it. Stored so the billing page
+  // can say "cancels on the 14th" rather than "renews on the 14th", which is the
+  // opposite of the truth and the kind of thing that becomes a chargeback.
+  cancelAtPeriodEnd    Boolean              @default(false)
   status               String               @default("ACTIVE")
   activityLogs         ActivityLog[]
   agents               Agent[]

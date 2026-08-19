@@ -77,6 +77,7 @@ describe("handleStripeEvent", () => {
         subscriptionStatus: "active",
         subscriptionTier: "GROWTH",
         currentPeriodEnd: new Date(1_900_000_000 * 1000),
+        cancelAtPeriodEnd: false,
       },
     });
   });
@@ -107,6 +108,7 @@ describe("handleStripeEvent", () => {
         subscriptionStatus: "canceled",
         subscriptionTier: "FREE",
         currentPeriodEnd: new Date(1_900_000_000 * 1000),
+        cancelAtPeriodEnd: false,
       },
     });
   });
@@ -136,6 +138,7 @@ describe("handleStripeEvent", () => {
         subscriptionStatus: "past_due",
         subscriptionTier: "STARTER",
         currentPeriodEnd: new Date(1_900_000_000 * 1000),
+        cancelAtPeriodEnd: false,
       },
     });
   });
@@ -157,8 +160,58 @@ describe("handleStripeEvent", () => {
         subscriptionTier: "FREE",
         stripeSubscriptionId: null,
         currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
       },
     });
+  });
+
+  it("records a pending cancellation without taking the plan away", async () => {
+    const { db, updateMany } = makeDb();
+    const event = {
+      type: "customer.subscription.updated",
+      data: {
+        object: {
+          id: "sub_123",
+          customer: "cus_123",
+          // Stripe leaves a cancelling subscription active until the period ends.
+          status: "active",
+          cancel_at_period_end: true,
+          items: {
+            data: [{ price: { id: "price_growth" }, current_period_end: 1_900_000_000 }],
+          },
+        },
+      },
+    } as never;
+
+    await handleStripeEvent(event, db);
+
+    const { data } = updateMany.mock.calls[0][0];
+    expect(data.cancelAtPeriodEnd).toBe(true);
+    // The customer paid for this period — cancelling must not revoke it early.
+    expect(data.subscriptionTier).toBe("GROWTH");
+    expect(data.subscriptionStatus).toBe("active");
+  });
+
+  it("clears the pending cancellation when the customer resumes", async () => {
+    const { db, updateMany } = makeDb();
+    const event = {
+      type: "customer.subscription.updated",
+      data: {
+        object: {
+          id: "sub_123",
+          customer: "cus_123",
+          status: "active",
+          cancel_at_period_end: false,
+          items: {
+            data: [{ price: { id: "price_growth" }, current_period_end: 1_900_000_000 }],
+          },
+        },
+      },
+    } as never;
+
+    await handleStripeEvent(event, db);
+
+    expect(updateMany.mock.calls[0][0].data.cancelAtPeriodEnd).toBe(false);
   });
 
   it("invoice.payment_failed marks the org past_due", async () => {

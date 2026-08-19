@@ -93,6 +93,31 @@ export type PlanType = keyof typeof PLAN_LIMITS;
  */
 const LEGACY_TIER_ALIASES: Record<string, PlanType> = { PRO: "BUSINESS" };
 
+/**
+ * Tiers a customer can buy without talking to anyone.
+ *
+ * FREE is not a purchase and ENTERPRISE is quote-based, so both are excluded.
+ * Derived from plans.json rather than typed out, because this list is consulted
+ * in three places that must agree — the checkout route, the signup redirect, and
+ * the billing page. When they disagreed, the pricing page happily sent people to
+ * a plan the checkout then refused to sell them.
+ */
+export const PURCHASABLE_TIERS: PlanType[] = (
+  Object.keys(PLAN_LIMITS) as PlanType[]
+).filter((tier) => {
+  const price = PLAN_LIMITS[tier].priceMonthly;
+  return typeof price === "number" && price > 0;
+});
+
+/**
+ * True when `tier` (any casing) is a self-serve paid plan. Goes through
+ * normalizeTier so a stale `?plan=pro` link from before the rename still lands
+ * the customer on Business checkout rather than silently on the dashboard.
+ */
+export function isPurchasableTier(tier?: string | null): boolean {
+  return PURCHASABLE_TIERS.includes(normalizeTier(tier));
+}
+
 /** Normalize an arbitrary (possibly null/unknown) tier string to a PlanType. */
 export function normalizeTier(tier?: string | null): PlanType {
   const key = (tier ?? "FREE").toUpperCase();

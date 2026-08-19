@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle, Loader2, CreditCard } from "lucide-react";
-import { planConfig, planLimitsCopy } from "@/lib/subscription";
+import {
+  isPurchasableTier,
+  normalizeTier,
+  planConfig,
+  planLimitsCopy,
+} from "@/lib/subscription";
 
 // Plan ordering used to label a plan switch as an upgrade vs a downgrade.
 const TIER_RANK: Record<string, number> = {
@@ -19,7 +24,11 @@ type Subscription = {
   label: string;
   status: string | null;
   currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   hasBillingAccount: boolean;
+  hasActiveSubscription: boolean;
+  canManageBilling: boolean;
+  billingRoleLabel: string;
   usage: {
     agents: number;
     maxAgents: number | null;
@@ -33,6 +42,7 @@ type Subscription = {
 // the gateway enforces — so an upgrade card can never quote a limit the runtime
 // will not actually grant.
 const PLAN_BLURBS = [
+  { tier: "FREE", blurb: "Cost visibility for a single agent" },
   { tier: "STARTER", blurb: "Budget controls + kill switches" },
   { tier: "GROWTH", blurb: "RBAC, governance & anomaly detection" },
   { tier: "BUSINESS", blurb: "Governance and control at 200-agent scale" },
@@ -91,20 +101,25 @@ export default function BillingPage() {
 
         // Arrived from the pricing page with a chosen plan → kick off Stripe
         // checkout automatically for paid tiers (skip if already on that plan).
-        const paidTiers = ["STARTER", "GROWTH", "BUSINESS"];
-        const currentTier = (data?.tier ?? "FREE").toUpperCase();
+        // normalizeTier so a stale ?plan=pro link still resolves to Business, and
+        // so this agrees with the tier the checkout route will accept.
+        const wantedTier = planParam ? normalizeTier(planParam) : null;
+        const currentTier = normalizeTier(data?.tier);
         if (
-          planParam &&
-          paidTiers.includes(planParam) &&
-          planParam !== currentTier &&
+          wantedTier &&
+          isPurchasableTier(wantedTier) &&
+          wantedTier !== currentTier &&
+          // A viewer or developer cannot check out; auto-firing the request would
+          // just bounce a 403 at someone who never asked for it.
+          data?.canManageBilling &&
           !autoStartedRef.current
         ) {
           autoStartedRef.current = true;
-          setWorking(planParam);
+          setWorking(wantedTier);
           fetch("/api/billing/create-checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tier: planParam }),
+            body: JSON.stringify({ tier: wantedTier }),
           })
             .then((res) => res.json())
             .then((checkout) => {
@@ -153,6 +168,37 @@ export default function BillingPage() {
     }
   };
 
+  // Schedule or call off a cancellation. Both directions go through the same
+  // endpoint; `cancel` only picks the wording and the button that shows a spinner.
+  const setCancellation = async (cancel: boolean) => {
+    setWorking(cancel ? "cancel" : "resume");
+    setMessage(null);
+    try {
+      const res = await fetch("/api/billing/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancelAtPeriodEnd: cancel }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error || "Could not update the subscription." });
+        return;
+      }
+      const on = data.effectiveAt ? new Date(data.effectiveAt).toLocaleDateString() : null;
+      setMessage({
+        type: "success",
+        text: cancel
+          ? `Cancellation scheduled${on ? ` for ${on}` : ""}. You keep full access until then.`
+          : "Your subscription will renew as normal.",
+      });
+      setSub((prev) => (prev ? { ...prev, cancelAtPeriodEnd: cancel } : prev));
+    } catch {
+      setMessage({ type: "error", text: "Could not update the subscription." });
+    } finally {
+      setWorking(null);
+    }
+  };
+
   const openPortal = async () => {
     setWorking("portal");
     setMessage(null);
@@ -180,9 +226,14 @@ export default function BillingPage() {
   }
 
   const currentTier = sub?.tier ?? "FREE";
-  const renewal = sub?.currentPeriodEnd
+  const periodEnd = sub?.currentPeriodEnd
     ? new Date(sub.currentPeriodEnd).toLocaleDateString()
     : null;
+  const pendingCancel = Boolean(sub?.cancelAtPeriodEnd);
+  const canManage = sub?.canManageBilling ?? false;
+  // Only a live subscription can be cancelled or resumed — a free org has nothing
+  // to act on, and neither does one whose subscription Stripe already deleted.
+  const canCancel = Boolean(sub?.hasActiveSubscription) && canManage;
   // null on unlimited plans — there is no bar to fill.
   const quotaUsedPercent =
     sub?.usage.monthlyRequests != null && sub.usage.monthlyRequests > 0
@@ -218,7 +269,7 @@ export default function BillingPage() {
             <div className="mt-1 text-2xl font-bold text-[#111111]">{sub?.label ?? "Free"}</div>
             <div className="mt-1 text-[13px] text-[#666666]">
               Status: {sub?.status ?? "FREE"}
-              {renewal ? ` · Renews ${renewal}` : ""}
+              {periodEnd ? (pendingCancel ? ` · Ends ${periodEnd}` : ` · Renews ${periodEnd}`) : ""}
             </div>
             <div className="mt-1 text-[13px] text-[#666666]">
               Agents: {sub?.usage.agents ?? 0}
@@ -250,35 +301,78 @@ export default function BillingPage() {
               </div>
             )}
           </div>
-          {sub?.hasBillingAccount && (
-            <button
-              onClick={openPortal}
-              disabled={working === "portal"}
-              className="inline-flex items-center gap-2 rounded-md bg-[#111111] px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-60"
-            >
-              {working === "portal" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="flex flex-wrap items-center gap-2">
+            {canCancel &&
+              (pendingCancel ? (
+                <button
+                  onClick={() => setCancellation(false)}
+                  disabled={working === "resume"}
+                  className="inline-flex items-center gap-2 rounded-md bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-60"
+                >
+                  {working === "resume" && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Resume subscription
+                </button>
               ) : (
-                <CreditCard className="h-4 w-4" />
-              )}
-              Manage Billing
-            </button>
-          )}
+                <button
+                  onClick={() => setCancellation(true)}
+                  disabled={working === "cancel"}
+                  className="inline-flex items-center gap-2 rounded-md border border-[#EEE8E2] px-4 py-2 text-[14px] font-semibold text-[#666666] transition-colors hover:border-[#EF4444] hover:text-[#EF4444] disabled:opacity-60"
+                >
+                  {working === "cancel" && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Cancel subscription
+                </button>
+              ))}
+            {sub?.hasBillingAccount && canManage && (
+              <button
+                onClick={openPortal}
+                disabled={working === "portal"}
+                className="inline-flex items-center gap-2 rounded-md bg-[#111111] px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-60"
+              >
+                {working === "portal" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4" />
+                )}
+                Manage Billing
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
+      {pendingCancel && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-[14px] text-amber-900">
+          Your subscription is scheduled to end{periodEnd ? ` on ${periodEnd}` : ""}. You keep
+          every {sub?.label} feature until then, after which the workspace moves to the Free plan.
+          {canCancel ? " Resume any time before that date." : ""}
+        </div>
+      )}
+
+      {!canManage && (
+        <div className="rounded-md border border-[#EEE8E2] bg-[#FAF7F3] p-3 text-[14px] text-[#666666]">
+          Only the workspace {sub?.billingRoleLabel?.toLowerCase() ?? "owner"} can change the plan
+          or payment details. Ask them to make the change from this page.
+        </div>
+      )}
+
       {/* Plans */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {PLANS.map((plan) => {
           const isCurrent = currentTier === plan.tier;
           const isDowngrade = TIER_RANK[plan.tier] < (TIER_RANK[currentTier] ?? 0);
           // Enterprise is custom-priced — route to sales rather than self-serve checkout.
           const isContactSales = plan.tier === "ENTERPRISE";
+          // Free is not a purchase. Moving down to it means ending the paid
+          // subscription, which is the cancel path — not a Stripe checkout for a
+          // $0 price that does not exist.
+          const isCancelToFree = plan.tier === "FREE";
           const actionLabel = isContactSales
             ? "Contact sales"
-            : isDowngrade
-              ? "Downgrade"
-              : "Upgrade";
+            : isCancelToFree
+              ? "Cancel plan"
+              : isDowngrade
+                ? "Downgrade"
+                : "Upgrade";
           return (
             <div
               key={plan.tier}
@@ -305,14 +399,28 @@ export default function BillingPage() {
                 </Link>
               ) : (
                 <button
-                  onClick={() => startCheckout(plan.tier)}
-                  disabled={isCurrent || working === plan.tier}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#FF6B00] px-4 py-2 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() =>
+                    isCancelToFree ? setCancellation(true) : startCheckout(plan.tier)
+                  }
+                  disabled={
+                    isCurrent ||
+                    !canManage ||
+                    (isCancelToFree && (!canCancel || pendingCancel)) ||
+                    working === plan.tier ||
+                    (isCancelToFree && working === "cancel")
+                  }
+                  className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
+                    isCancelToFree
+                      ? "border border-[#EEE8E2] text-[#666666]"
+                      : "bg-[#FF6B00] text-white"
+                  }`}
                 >
-                  {working === plan.tier ? (
+                  {working === plan.tier || (isCancelToFree && working === "cancel") ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : isCurrent ? (
                     "Active"
+                  ) : isCancelToFree && pendingCancel ? (
+                    "Scheduled"
                   ) : (
                     actionLabel
                   )}

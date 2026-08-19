@@ -17,6 +17,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/marketing/Motion";
+import { safeRedirectTarget } from "@/lib/auth/redirect";
 
 const workflowSteps = [
   { icon: Bot, label: "Agent request", tone: "bg-white text-[#071126]" },
@@ -84,7 +85,9 @@ export default function LoginPage() {
 
       // Hard redirect ensures cookie (set by server response) is included.
       // router.push() can race with RSC payload fetching on fresh cookies.
-      window.location.href = "/dashboard";
+      window.location.href = safeRedirectTarget(
+        new URLSearchParams(window.location.search).get("redirectTo"),
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Authentication failed"

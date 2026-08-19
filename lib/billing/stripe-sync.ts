@@ -79,6 +79,11 @@ export async function handleStripeEvent(
           subscriptionStatus: subscription.status,
           subscriptionTier: tier,
           currentPeriodEnd: periodEndFrom(subscription),
+          // A pending cancellation arrives as an `updated` event with the status
+          // still "active" — the customer keeps the plan they paid for until the
+          // period ends. Recording it is what lets the UI say "cancels on" instead
+          // of "renews on", and what makes Resume discoverable.
+          cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
         },
       });
       return { type: event.type, handled: true };
@@ -97,6 +102,9 @@ export async function handleStripeEvent(
           subscriptionTier: "FREE",
           stripeSubscriptionId: null,
           currentPeriodEnd: null,
+          // The cancellation has now happened; leaving this set would make a
+          // later re-subscribe render as "already cancelling".
+          cancelAtPeriodEnd: false,
         },
       });
       return { type: event.type, handled: true };

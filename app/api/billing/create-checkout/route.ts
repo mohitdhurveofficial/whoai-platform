@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { requirePermission } from "@/lib/server/guard";
-import { priceIdForTier, type PlanType } from "@/lib/subscription";
-
-// Self-serve checkout is Starter/Growth/Business only. Enterprise is sales-led
-// (the UI routes it to "Contact sales"), so it is intentionally excluded here.
-const PURCHASABLE_TIERS: PlanType[] = ["STARTER", "GROWTH", "BUSINESS"];
+import { priceIdForTier, PURCHASABLE_TIERS, type PlanType } from "@/lib/subscription";
 
 export async function POST(req: Request) {
   const guard = await requirePermission("manageBilling");

@@ -9,6 +9,8 @@ import {
   planForPriceId,
   planLimitsCopy,
   priceIdForTier,
+  PURCHASABLE_TIERS,
+  isPurchasableTier,
   retentionDays,
 } from "@/lib/subscription";
 import plansData from "@/plans.json";
@@ -238,5 +240,42 @@ describe("planLimitsCopy", () => {
 
   it("falls back to Free for an unknown tier, matching enforcement", () => {
     expect(planLimitsCopy("nonsense").allowance).toBe(planLimitsCopy("FREE").allowance);
+  });
+});
+
+describe("purchasable tiers", () => {
+  it("is exactly the self-serve paid plans, derived from plans.json", () => {
+    // Free is not a purchase and Enterprise is quote-based. This list is the one
+    // the checkout route, the signup redirect and the proxy all consult — when
+    // they each kept their own copy, the Business rename silently stranded every
+    // customer who picked the most expensive self-serve plan.
+    expect(PURCHASABLE_TIERS).toEqual(["STARTER", "GROWTH", "BUSINESS"]);
+  });
+
+  it("agrees with plans.json about which plans have a price", () => {
+    for (const [tier, plan] of Object.entries(plansData.plans)) {
+      const sellable = typeof plan.priceMonthly === "number" && plan.priceMonthly > 0;
+      expect(isPurchasableTier(tier)).toBe(sellable);
+    }
+  });
+
+  it("accepts the casing the pricing page actually emits", () => {
+    // The CTA builds its link from the plan label: "Growth" -> ?plan=growth.
+    expect(isPurchasableTier("growth")).toBe(true);
+    expect(isPurchasableTier("business")).toBe(true);
+    expect(isPurchasableTier("Starter")).toBe(true);
+  });
+
+  it("still honours a pre-rename ?plan=pro link", () => {
+    expect(isPurchasableTier("pro")).toBe(true);
+    expect(normalizeTier("pro")).toBe("BUSINESS");
+  });
+
+  it("rejects what cannot be bought self-serve", () => {
+    expect(isPurchasableTier("free")).toBe(false);
+    expect(isPurchasableTier("enterprise")).toBe(false);
+    expect(isPurchasableTier("nonsense")).toBe(false);
+    expect(isPurchasableTier(null)).toBe(false);
+    expect(isPurchasableTier(undefined)).toBe(false);
   });
 });
