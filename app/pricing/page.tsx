@@ -5,13 +5,7 @@ import MarketingShell from "@/components/marketing/MarketingShell";
 import { ROICalculator } from "./roi-calculator";
 import { TrustBadges } from "@/components/ui/trust-badges";
 import { planConfig, planLimitsCopy } from "@/lib/subscription";
-import {
-  Reveal,
-  Stagger,
-  StaggerItem,
-  CountUp,
-  MagneticButton,
-} from "@/components/marketing/Motion";
+import { Reveal, Stagger, StaggerItem, MagneticButton } from "@/components/marketing/Motion";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -203,7 +197,10 @@ export default function PricingPage() {
                     <span className="text-[34px] font-extrabold tracking-tight">Custom</span>
                   ) : (
                     <span className="text-[34px] font-extrabold tracking-tight tabular-nums">
-                      <CountUp value={Number(tier.price.replace(/[^0-9.]/g, ""))} prefix="$" />
+                      {/* Printed, not animated. A price is the one number on
+                          this page that must be right in the first byte of
+                          HTML, before any JavaScript runs. */}
+                      {tier.price}
                     </span>
                   )}
                   <span className="text-[15px] text-[#888888] ml-2">{tier.cadence}</span>

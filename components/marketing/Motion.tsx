@@ -150,10 +150,19 @@ export function CountUp({
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const reduce = useReducedMotion();
-  const [animated, setAnimated] = useState(0);
+  // null means "not animating" — the real number is rendered instead. Starting
+  // this at 0 put a literal 0 in the server HTML, which is what crawlers and
+  // anyone without JavaScript read. On /pricing that meant advertising every
+  // paid plan at $0 a month.
+  const [animated, setAnimated] = useState<number | null>(null);
+  const visibleOnLoad = useRef<boolean | null>(null);
 
   useEffect(() => {
-    if (!inView || reduce) return;
+    if (visibleOnLoad.current === null) visibleOnLoad.current = inView;
+    // Counting up is a reward for scrolling. If the number was already on
+    // screen when the page loaded, rewinding it to zero just to animate it
+    // back would read as a glitch.
+    if (!inView || reduce || visibleOnLoad.current) return;
     const controls = animate(0, value, {
       duration,
       ease: EASE,
@@ -162,8 +171,7 @@ export function CountUp({
     return () => controls.stop();
   }, [inView, reduce, value, duration]);
 
-  // Reduced motion (or SSR) shows the final value immediately.
-  const current = reduce ? value : animated;
+  const current = animated ?? value;
   const formatted =
     decimals > 0
       ? current.toFixed(decimals)

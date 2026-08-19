@@ -10,6 +10,6 @@ export default defineConfig({
   test: {
     environment: "node",
     // Only our unit tests; avoids the Playwright e2e file under disabled/.
-    include: ["__tests__/**/*.test.ts"],
+    include: ["__tests__/**/*.test.{ts,tsx}"],
   },
 });
